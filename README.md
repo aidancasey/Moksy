@@ -1,6 +1,8 @@
-Moksy v0.1 by Graham Stephenson (www.twitter.com/brek_it, www.havecomputerwillcode.com, www.brekit.com)
--------------------------------------------------------------------------------------------------------
+Moksy v0.1 by Grey Ham
+----------------------
 An open source library for stubbing, faking, mocking and simulating Web Service calls.
+
+See www.twitter.com/brek_it, www.havecomputerwillcode.com and www.brekit.com for more information. 
 
 
 Why?
