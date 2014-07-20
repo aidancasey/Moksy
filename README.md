@@ -7,9 +7,9 @@ See www.twitter.com/brek_it, www.havecomputerwillcode.com and www.brekit.com for
 
 Why?
 ----
-As a technical tester, I often need to 'fake' services that are incomplete, unreliable or unavailable for testing by third parties. I have typically done this by writing simple Http applications that return canned responses.
+As a technical tester, I write my integration tests against REST API Services using a combination of RestSharp and Json.NET. However, I often - either directly or indirectly through aggregate services - access other services through those API Calls. For example: I might call my Broker service which in turn calls out to a third party service - which might be incomplete, unreliable or unavailable for testing. I have typically got around this problem by writing simple Http services that return canned responses so that I can continue testing.
 
-Moksy tries to make this easier by providing a Fluent API around 'Simulations' on how you expect a service to work. The assumption is (for now) that these calls work from C# within MsTest.
+Moksy tries to make this easier by providing a Fluent API around 'Simulations' on how a service should work. As part of your Integration test, you set up a Simulation and then - either directly or indirectly through another service call - hit the endpoint specified in that Simulation. The simulation is invoked and a predictable response is returned.
 
 A Simulation consists of a Condition and a Response. In its simplest use case, a Condition includes a resource such as /Pet. For example:
 
@@ -18,11 +18,15 @@ A Simulation consists of a Condition and a Response. In its simplest use case, a
 When we navigate to http://localhost:10011/Pet in a browser [or whichever port Moksy is running on] we will get back 'Hello World!'. Of course, the real motivation is to call other services which then hit /Pet!
 
 
-Imdb:
------
+In-Memory Database:
+-------------------
 Simple canned responses for common verbs - POST, PATCH, DELETE and so forth - like above are ideal in many cases. However, there is a very common use case when developing REST API's using the Micro/Macro service pattern: we often want to support Create, Read and Delete functionality to help UI devs and testers get up and running quickly. 
 
-Moksy does this for your automatically by creating an 'In Memory Database' for Json submitted to that resource. A property in the Json is specified as the 'Index' for uniqueness (optional). For example:
+Moksy does this for your automatically by creating an 'In Memory Database' for Json submitted to that resource. A property in the Json is specified as the 'Index' for uniqueness (optional). For example - assuming a simple Pet structure like this:
+
+{ "Kind" : "Dog" }
+
+We might use the following to set up an simulate a Pet service:
 
 		SimulationFactory.When.I.Post().ToImdb("/Pet").And.NotExists("Kind").Return.StatusCode(System.Net.HttpStatusCode.Created).And.AddToImdb();
 		SimulationFactory.When.I.Post().ToImdb("/Pet").And.Exists("Kind").Return.StatusCode(System.Net.HttpStatusCode.BadRequest).And.Body("A Pet of that kind already exists");
@@ -54,6 +58,7 @@ Many! This is literally v0.1 and does the bare minimum. And the code is a bit of
 However, it is usable - I am using it :-)
 
 See the readme.txt for a key list of limitations. 
+
 
 
 Coming next:
