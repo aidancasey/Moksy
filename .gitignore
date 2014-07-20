@@ -1,0 +1,13 @@
+Moksy.Common/bin/
+*.user
+Moksy.Host/bin/
+Moksy.Common/obj/
+Moksy.Host/obj/
+Moksy.IntegrationTest/bin/
+Moksy.IntegrationTest/obj/
+Moksy.Test/bin/
+Moksy.Test/obj/
+Moksy/bin/
+Moksy/obj/
+packages/
+*.suo
