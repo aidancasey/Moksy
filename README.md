@@ -7,9 +7,9 @@ See www.twitter.com/brek_it, www.havecomputerwillcode.com and www.brekit.com for
 
 Why?
 ----
-As a technical tester, I write my integration tests against REST API Services using a combination of RestSharp and Json.NET. However, I often - either directly or indirectly through aggregate services - access other services through those API Calls. For example: I might call my Broker service which in turn calls out to a third party service - which might be incomplete, unreliable or unavailable for testing. I have typically got around this problem by writing simple Http services that return canned responses so that I can continue testing.
+For test automation, I write my integration tests against REST API Services using a combination of RestSharp and Json.NET. However, I often end up calling third party services - either directly or indirectly - through those API Calls. These services might be incomplete, unreliable or unavailable for testing. I have typically got around this problem by writing simple Http services that return canned responses so that I can continue testing.
 
-Moksy tries to make this easier by providing a Fluent API around 'Simulations' on how a service should work. As part of your Integration test, you set up a Simulation and then - either directly or indirectly through another service call - hit the endpoint specified in that Simulation. The simulation is invoked and a predictable response is returned.
+Moksy tries to make this easier by providing a Fluent API around 'Simulations' on how a service should work. As part of your Integration test, you set up a Simulation for a particular endpoint and then - either directly or indirectly through another service call - hit the endpoint specified in that Simulation. The simulation is invoked and a predictable response is returned.
 
 A Simulation consists of a Condition and a Response. In its simplest use case, a Condition includes a resource such as /Pet. For example:
 
