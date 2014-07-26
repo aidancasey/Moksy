@@ -756,7 +756,7 @@ namespace Moksy.Storage
         private SimulationCollection Storage;
 
         /// <summary>
-        /// Used to store data POSTED to end-points. The key is the end-point (the full path). The list is the order in which items 
+        /// Used to store data POSTED to end-points. The key is the resource name (the full path). The list is the order in which items 
         /// were posted. 
         /// </summary>
         private Dictionary<string, List<string>> InMemoryDatabase = new Dictionary<string, List<string>>();
