@@ -1,3 +1,8 @@
+TODO: PUT
+TODO: PATCH
+TODO: Refactor IMDB to support nestedness. 
+
+
 MOKSY - V0.1 by Grey Ham (www.twitter.com/brek_it, www.brekit.com, www.havecomputerwillcode.com)
 ------------------------------------------------------------------------------------------------
 

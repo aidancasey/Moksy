@@ -51,14 +51,14 @@ namespace Moksy.Handlers
 
                             var contentAsString = new System.Text.ASCIIEncoding().GetString(task.Result);
 
-                            Storage.SimulationManager.Instance.AddToImdb(match, contentAsString);
+                            Storage.SimulationManager.Instance.AddToImdb(match, path, contentAsString);
                         }
                     }
                     else if (match.Condition.HttpMethod == HttpMethod.Get)
                     {
                         // This rule has been set up with Get().FromImdb(). The default Body in the Return structure is {value} - ie: the raw value of the stored Json.
                         Substitution s = new Substitution();
-                        var variables = s.GetVariables(match.Condition.Path);
+                        var variables = s.GetVariables(match.Condition.Pattern);
                         if (variables.Count == 0)
                         {
                             // The path of the Get operation does not contain any placeholders. ie: it is a 'GetAll' or 'GetSpecific'. The path might look like:
@@ -69,12 +69,12 @@ namespace Moksy.Handlers
 
                             if (match.Condition.ContentKind == ContentKind.Text)
                             {
-                                content = Storage.SimulationManager.Instance.GetFromImdbAsText(match);
+                                content = Storage.SimulationManager.Instance.GetFromImdbAsText(match, path);
                             }
                             else
                             {
                                 // We are Imdb. Each entry is a Json fragment. We concatenate them together and separate them with ,
-                                content = Storage.SimulationManager.Instance.GetFromImdbAsJson(match);
+                                content = Storage.SimulationManager.Instance.GetFromImdbAsJson(match, path);
                             }
                             if (content != null)
                             {

@@ -56,7 +56,7 @@ namespace Moksy.Test
         [TestMethod]
         public void PathMatchesCaseSensitive()
         {
-            SimulationCondition c = new SimulationCondition() { Path = "/Product" };
+            SimulationCondition c = new SimulationCondition() { Pattern = "/Product" };
 
             Assert.IsTrue(Evaluator.Matches(c, "/Product"));
         }
@@ -64,7 +64,7 @@ namespace Moksy.Test
         [TestMethod]
         public void PathDoesNotMatchCaseSensitive()
         {
-            SimulationCondition c = new SimulationCondition() { Path = "/Product" };
+            SimulationCondition c = new SimulationCondition() { Pattern = "/Product" };
 
             Assert.IsFalse(Evaluator.Matches(c, "/PRodUCt"));
         }

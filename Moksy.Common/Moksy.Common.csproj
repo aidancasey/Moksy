@@ -51,6 +51,9 @@
     <Compile Include="ContentKind.cs" />
     <Compile Include="Persistence.cs" />
     <Compile Include="Proxy.cs" />
+    <Compile Include="RouteMatcher.cs" />
+    <Compile Include="RouteToken.cs" />
+    <Compile Include="RouteTokenKind.cs" />
     <Compile Include="SimulationCollection.cs" />
     <Compile Include="SimulationConditionEvaluator.cs" />
     <Compile Include="Header.cs" />
@@ -60,6 +63,7 @@
     <Compile Include="SimulationFactory.cs" />
     <Compile Include="SimulationResponse.cs" />
     <Compile Include="Substitution.cs" />
+    <Compile Include="RouteParser.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

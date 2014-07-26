@@ -65,7 +65,7 @@ namespace Moksy.Common
         /// <returns></returns>
         public SimulationCondition Get(string path)
         {
-            Path = path;
+            Pattern = path;
             HttpMethod = System.Net.Http.HttpMethod.Get;
             return this;
         }
@@ -77,7 +77,7 @@ namespace Moksy.Common
         /// <returns></returns>
         public SimulationCondition Delete(string path)
         {
-            Path = path;
+            Pattern = path;
             HttpMethod = System.Net.Http.HttpMethod.Delete;
             return this;
         }
@@ -89,7 +89,7 @@ namespace Moksy.Common
         /// <returns></returns>
         public SimulationCondition Post(string path)
         {
-            Path = path;
+            Pattern = path;
             HttpMethod = System.Net.Http.HttpMethod.Post;
             return this;
         }
@@ -101,7 +101,7 @@ namespace Moksy.Common
         /// <returns></returns>
         public SimulationCondition Put(string path)
         {
-            Path = path;
+            Pattern = path;
             HttpMethod = System.Net.Http.HttpMethod.Put;
             return this;
         }
@@ -113,7 +113,7 @@ namespace Moksy.Common
         /// <returns></returns>
         public SimulationCondition Trace(string path)
         {
-            Path = path;
+            Pattern = path;
             HttpMethod = System.Net.Http.HttpMethod.Trace;
             return this;
         }
@@ -125,7 +125,7 @@ namespace Moksy.Common
         /// <returns></returns>
         public SimulationCondition Options(string path)
         {
-            Path = path;
+            Pattern = path;
             HttpMethod = System.Net.Http.HttpMethod.Options;
             return this;
         }
@@ -137,17 +137,17 @@ namespace Moksy.Common
         /// <returns></returns>
         public SimulationCondition Head(string path)
         {
-            Path = path;
+            Pattern = path;
             HttpMethod = System.Net.Http.HttpMethod.Head;
             return this;
         }
 
         /// <summary>
-        /// The Path the Request must match for the Simulation to take place.
+        /// The path / route / pattern that must be matched for this simulation to occur. ie: /Pet, or /Pet/{Kind} etc.
         /// </summary>
-        [JsonProperty(PropertyName = "path")]
+        [JsonProperty(PropertyName = "pattern")]
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public string Path { get; set; }
+        public string Pattern { get; set; }
 
         /// <summary>
         /// The HttpMethod the Request applies to. Typically: Get, Post, Delete. 
@@ -204,7 +204,7 @@ namespace Moksy.Common
             if (ContentKind != Common.ContentKind.Json) { throw new System.InvalidOperationException("ERROR: Exists can only be used with Json. Use .AsJson(). before the .Exists call. "); }
             
             Substitution s = new Substitution();
-            var vars = s.GetVariables(Path);
+            var vars = s.GetVariables(Pattern);
             if (vars.Count() != 1) { throw new System.InvalidOperationException(@"ERROR: To use Exists(), the Path parameter must contain at least one placeholder. ie: When.I.Get().From(""/Endpoint({id})"")"); }
 
             IndexProperty = string.Format("{0}", vars.First().Key);
@@ -222,7 +222,7 @@ namespace Moksy.Common
             if (ContentKind != Common.ContentKind.Json) { throw new System.InvalidOperationException("ERROR: NotExists can only be used with Json. Use .AsJson(). before the .NotExists call. "); }
 
             Substitution s = new Substitution();
-            var vars = s.GetVariables(Path);
+            var vars = s.GetVariables(Pattern);
             if (vars.Count() != 1) { throw new System.InvalidOperationException(@"ERROR: To use Exists(), the Path parameter must contain at least one placeholder. ie: When.I.Get().From(""/Endpoint({id})"")"); }
 
             IndexProperty = string.Format("{0}", vars.First().Key);

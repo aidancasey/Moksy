@@ -156,7 +156,7 @@ namespace Moksy.Common
             {
                 throw new System.InvalidOperationException(@"ERROR: You can only call To(path) after you have specified one of the HttpVerbs. ie: When.I.Post().To(""Endpoint"")");
             }
-            Condition.Path = path;
+            Condition.Pattern = path;
             return Condition;
         }
 
@@ -186,7 +186,7 @@ namespace Moksy.Common
             {
                 throw new System.InvalidOperationException(@"ERROR: You can only call From(path) after you have specified one of the HttpVerbs. ie: When.I.Post().To(""Endpoint"")");
             }
-            Condition.Path = path;
+            Condition.Pattern = path;
             return Condition;
         }
 

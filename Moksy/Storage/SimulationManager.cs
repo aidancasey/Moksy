@@ -70,7 +70,7 @@ namespace Moksy.Storage
                 {
                     if (method == HttpMethod.Get)
                     {
-                        var vars = new Substitution().GetVariables(match.Condition.Path);
+                        var vars = new Substitution().GetVariables(match.Condition.Pattern);
                         if (vars.Count() > 0)
                         {
                             var result = MatchesGetFromImdb(match, path, vars.First().Key);
@@ -93,12 +93,8 @@ namespace Moksy.Storage
 
         protected Simulation MatchesGetFromImdb(Simulation match, string path, string variable)
         {
-            // TODO: Split out and improve the resource parsing. 
-            // The path has placeholders such as /Get({id}). We need to pull out the resource.
-            var candidateResourceName = Regex.Match(match.Condition.Path, "^/[A-Za-z0-9]*");
-            if (!candidateResourceName.Success) return null;
-
-            string resourceName = candidateResourceName.Value;
+            var resourceName = RouteParser.GetFirstResource(path, match.Condition.Pattern);
+            if (null == resourceName) return null;
 
             // There are two possibilities:
             // 1. Persistence == Exists. In other words: an object with this property must exist for the match to occur.
@@ -115,16 +111,16 @@ namespace Moksy.Storage
 
             // ASSERTION: The in memory database exists. We now need to work out whether the value being requested exists or not. 
             Substitution s = new Substitution();
-            var regex = s.ConvertPatternToRegularExpression(match.Condition.Path);
+            var regex = RouteParser.ConvertPatternToRegularExpression(match.Condition.Pattern);
 
             System.Text.RegularExpressions.Regex rex = new System.Text.RegularExpressions.Regex(regex);
             var result = rex.Match(path);
             if (!result.Success) return null;
 
-            // TODO: We only get two matches back - the whole string and the text in the middle (the identity)
-            if (result.Groups.Count != 2) return null;
+            // TODO: We only get four matches back - the whole; prefix; value; end
+            if (result.Groups.Count != 4) return null;
 
-            var value = path.Substring(result.Groups[1].Index, result.Groups[1].Length);
+            var value = path.Substring(result.Groups[2].Index, result.Groups[2].Length);
             if (value == null) return null;
 
             var existingJson = FindMatch(resourceName, variable, value);
@@ -190,27 +186,26 @@ namespace Moksy.Storage
         {
             lock (Storage.SyncRoot)
             {
-                var vars = new Substitution().GetVariables(match.Condition.Path);
+                var vars = new Substitution().GetVariables(match.Condition.Pattern);
                 if (vars.Count() == 0) return null;
 
                 // The path has placeholders such as /Get({id}). We need to pull out the resource.
-                var candidateResourceName = Regex.Match(match.Condition.Path, "^/[A-Za-z0-9]*");
-                if (!candidateResourceName.Success) return null;
+                var resourceName = RouteParser.GetFirstResource(path, match.Condition.Pattern);
+                if (null == resourceName) return null;
 
-                string resourceName = candidateResourceName.Value;
                 if (!InMemoryDatabase.ContainsKey(resourceName)) return null;
 
                 Substitution s = new Substitution();
-                var regex = s.ConvertPatternToRegularExpression(match.Condition.Path);
+                var regex = RouteParser.ConvertPatternToRegularExpression(match.Condition.Pattern);
 
                 System.Text.RegularExpressions.Regex rex = new System.Text.RegularExpressions.Regex(regex);
                 var result = rex.Match(path);
                 if (!result.Success) return null;
 
-                // TODO: We only get two matches back - the whole string and the text in the middle (the identity)
-                if (result.Groups.Count != 2) return null;
+                // TODO: We only get four matches back - the whole; the prefix; kind; stem. 
+                if (result.Groups.Count != 4) return null;
 
-                var value = path.Substring(result.Groups[1].Index, result.Groups[1].Length);
+                var value = path.Substring(result.Groups[2].Index, result.Groups[2].Length);
                 if (value == null) return null;
 
                 var existingJson = FindMatch(resourceName, vars.First().Key, value);
@@ -240,27 +235,26 @@ namespace Moksy.Storage
 
                 if (method == HttpMethod.Delete)
                 {
-                    var vars = new Substitution().GetVariables(match.Condition.Path);
+                    var vars = new Substitution().GetVariables(match.Condition.Pattern);
                     if (vars.Count() == 0) return false;
 
                     // The path has placeholders such as /Get({id}). We need to pull out the resource.
-                    var candidateResourceName = Regex.Match(match.Condition.Path, "^/[A-Za-z0-9]*");
-                    if (!candidateResourceName.Success) return false;
+                    var resourceName = RouteParser.GetFirstResource(path, match.Condition.Pattern);
+                    if (null == resourceName) return false;
 
-                    string resourceName = candidateResourceName.Value;
                     if (!InMemoryDatabase.ContainsKey(resourceName)) return false;
 
                     Substitution s = new Substitution();
-                    var regex = s.ConvertPatternToRegularExpression(match.Condition.Path);
+                    var regex = RouteParser.ConvertPatternToRegularExpression(match.Condition.Pattern);
 
                     System.Text.RegularExpressions.Regex rex = new System.Text.RegularExpressions.Regex(regex);
                     var result = rex.Match(path);
                     if (!result.Success) return false;
 
-                    // TODO: We only get two matches back - the whole string and the text in the middle (the identity)
-                    if (result.Groups.Count != 2) return false;
+                    // TODO: We only get four matches back - the whole string; prefix; value; end. 
+                    if (result.Groups.Count != 4) return false;
 
-                    var value = path.Substring(result.Groups[1].Index, result.Groups[1].Length);
+                    var value = path.Substring(result.Groups[2].Index, result.Groups[2].Length);
                     if (value == null) return false;
 
                     var removed = Remove(resourceName, vars.First().Key, value);
@@ -349,7 +343,7 @@ namespace Moksy.Storage
                                 var contentAsString = new System.Text.ASCIIEncoding().GetString(task.Result);
 
                                 // Can we add this new object?
-                                bool canAddObject = CanAddObject(match, match.Condition.IndexProperty, contentAsString);
+                                bool canAddObject = CanAddObject(match, path, match.Condition.IndexProperty, contentAsString);
                                 if (match.Condition.Persistence == Persistence.NotExists)
                                 {
                                     if (canAddObject)
@@ -377,7 +371,7 @@ namespace Moksy.Storage
                     }
                     if (match.Condition.HttpMethod == HttpMethod.Get)
                     {
-                        var vars = new Substitution().GetVariables(match.Condition.Path);
+                        var vars = new Substitution().GetVariables(match.Condition.Pattern);
                         if (vars.Count() > 0)
                         {
                             var result = MatchesGetFromImdb(match, path, vars.First().Key);
@@ -390,7 +384,7 @@ namespace Moksy.Storage
                     }
                     if (match.Condition.HttpMethod == HttpMethod.Delete)
                     {
-                        var vars = new Substitution().GetVariables(match.Condition.Path);
+                        var vars = new Substitution().GetVariables(match.Condition.Pattern);
                         if (vars.Count() > 0)
                         {
                             var result = MatchesGetFromImdb(match, path, vars.First().Key);
@@ -439,23 +433,28 @@ namespace Moksy.Storage
             }
         }
 
+
         /// <summary>
         /// Add the content to the end point (path) specified in the simulation. 
         /// </summary>
         /// <param name="simulation"></param>
+        /// <param name="path"></param>
         /// <param name="content"></param>
-        public void AddToImdb(Simulation simulation, string content)
+        public void AddToImdb(Simulation simulation, string path, string content)
         {
             if (null == simulation) throw new System.ArgumentNullException("simulation");
 
             lock (Storage.SyncRoot)
             {
-                if (!InMemoryDatabase.ContainsKey(simulation.Condition.Path))
+                var resourceName = RouteParser.GetFirstResource(path, simulation.Condition.Pattern);
+                if (null == resourceName) return;
+
+                if (!InMemoryDatabase.ContainsKey(resourceName))
                 {
-                    InMemoryDatabase[simulation.Condition.Path] = new List<string>();
+                    InMemoryDatabase[resourceName] = new List<string>();
                 }
 
-                InMemoryDatabase[simulation.Condition.Path].Add(content);
+                InMemoryDatabase[resourceName].Add(content);
             }
         }
 
@@ -464,20 +463,21 @@ namespace Moksy.Storage
         /// it is assumed to be null. If the json is invalid, this will always return false. 
         /// </summary>
         /// <param name="simulation"></param>
+        /// <param name="path">Path</param>
         /// <param name="propertyName"></param>
         /// <param name="json"></param>
         /// <returns></returns>
-        public bool CanAddObject(Simulation simulation, string propertyName, string json)
+        public bool CanAddObject(Simulation simulation, string path, string propertyName, string json)
         {
             if (null == json) { json = ""; }
 
             try
             {
                 JObject job = JsonConvert.DeserializeObject(json) as JObject;
-                if(null == job) return false;
+                if (null == job) return false;
 
                 var value = GetPropertyValueFromJson(json, propertyName);
-                return CanAdd(simulation, propertyName, value);
+                return CanAdd(simulation, path, propertyName, value);
             }
             catch
             {
@@ -514,16 +514,20 @@ namespace Moksy.Storage
             }
         }
 
+
+
         /// <summary>
         /// This method is typically called when only Json values are added. This will look at each object and work out whether candidatePropertyValue already exists. If so, this returns false;
         /// Othewise it returns true. 
         /// </summary>
         /// <param name="simulation"></param>
+        /// <param name="path"></param>
+        /// <param name="candidatePropertyValue"></param>
         /// <param name="propertyName"></param>
         /// <returns></returns>
-        public bool CanAdd(Simulation simulation, string propertyName, string candidatePropertyValue)
+        public bool CanAdd(Simulation simulation, string path, string propertyName, string candidatePropertyValue)
         {
-            var match = FindMatch(simulation, propertyName, candidatePropertyValue);
+            var match = FindMatch(simulation, path, propertyName, candidatePropertyValue);
             return (null == match);
         }
 
@@ -532,20 +536,24 @@ namespace Moksy.Storage
         /// JSon object that corresponds to it. 
         /// </summary>
         /// <param name="simulation"></param>
+        /// <param name="path"></param>
         /// <param name="propertyName"></param>
         /// <param name="candidatePropertyValue"></param>
         /// <returns></returns>
-        public JObject FindMatch(Simulation simulation, string propertyName, string candidatePropertyValue)
+        public JObject FindMatch(Simulation simulation, string path, string propertyName, string candidatePropertyValue)
         {
             if (null == simulation) throw new System.ArgumentNullException("simulation");
 
-            if (!InMemoryDatabase.ContainsKey(simulation.Condition.Path))
+            var resourceName = RouteParser.GetFirstResource(path, simulation.Condition.Pattern);
+            if (null == resourceName) return null;
+
+            if (!InMemoryDatabase.ContainsKey(resourceName))
             {
                 // If the in memory database does not contain this path, then by definition we can add it: so it is unique. 
                 return null;
             }
 
-            foreach (var e in InMemoryDatabase[simulation.Condition.Path])
+            foreach (var e in InMemoryDatabase[resourceName])
             {
                 try
                 {
@@ -609,23 +617,27 @@ namespace Moksy.Storage
             return null;
         }
 
+
         /// <summary>
-        /// Return a list of (possibly empty) list of keys in the given path. The path.
+        /// Return a list of (possibly empty) list of keys in the given path. 
         /// </summary>
         /// <param name="path"></param>
         /// <returns></returns>
-        public IEnumerable<string> GetKeysFor(string path, string propertyName)
+        public IEnumerable<string> GetKeysFor(string path, string pattern, string propertyName)
         {
             List<string> result = new List<string>();
             if (null == path) return result;
             if (null == propertyName) return result;
 
-            if (!InMemoryDatabase.ContainsKey(path))
+            var resourceName = RouteParser.GetFirstResource(path, pattern);
+            if (null == resourceName) return result;
+
+            if (!InMemoryDatabase.ContainsKey(resourceName))
             {
                 return result;
             }
 
-            foreach (var p in InMemoryDatabase[path])
+            foreach (var p in InMemoryDatabase[resourceName])
             {
                 var key = GetPropertyValueFromJson(p, propertyName);
                 if (null == key) continue;
@@ -641,16 +653,19 @@ namespace Moksy.Storage
         /// </summary>
         /// <param name="simulation"></param>
         /// <returns></returns>
-        public string GetFromImdbAsText(Simulation simulation)
+        public string GetFromImdbAsText(Simulation simulation, string path)
         {
             if (null == simulation) throw new System.ArgumentNullException("simulation");
 
             lock (Storage.SyncRoot)
             {
-                if (InMemoryDatabase.ContainsKey(simulation.Condition.Path))
+                var resourceName = RouteParser.GetFirstResource(path, simulation.Condition.Pattern);
+                if (null == resourceName) return null;
+
+                if (InMemoryDatabase.ContainsKey(resourceName))
                 {
                     StringBuilder builder = new StringBuilder();
-                    foreach (var e in InMemoryDatabase[simulation.Condition.Path])
+                    foreach (var e in InMemoryDatabase[resourceName])
                     {
                         builder.Append(e);
                     }
@@ -666,16 +681,19 @@ namespace Moksy.Storage
         /// </summary>
         /// <param name="simulation"></param>
         /// <returns></returns>
-        public string GetFromImdbAsJson(Simulation simulation)
+        public string GetFromImdbAsJson(Simulation simulation, string path)
         {
             if (null == simulation) throw new System.ArgumentNullException("simulation");
 
             lock (Storage.SyncRoot)
             {
-                if (InMemoryDatabase.ContainsKey(simulation.Condition.Path))
+                var resourceName = RouteParser.GetFirstResource(path, simulation.Condition.Pattern);
+                if (null == resourceName) return null;
+
+                if (InMemoryDatabase.ContainsKey(resourceName))
                 {
                     List<string> components = new List<string>();
-                    foreach (var e in InMemoryDatabase[simulation.Condition.Path])
+                    foreach (var e in InMemoryDatabase[resourceName])
                     {
                         components.Add(e);
                     }
@@ -722,12 +740,12 @@ namespace Moksy.Storage
 
                 if (deleteData)
                 {
-                    var candidateResourceName = Regex.Match(match.Condition.Path, "^/[A-Za-z0-9]*");
-                    if (!candidateResourceName.Success) return true;
+                    var resourceName = RouteParser.GetFirstResource(match.Condition.Pattern, match.Condition.Pattern);
+                    if (null == resourceName) return false;
 
-                    if (InMemoryDatabase.ContainsKey(candidateResourceName.Value))
+                    if (InMemoryDatabase.ContainsKey(resourceName))
                     {
-                        InMemoryDatabase.Remove(candidateResourceName.Value);
+                        InMemoryDatabase.Remove(resourceName);
                     }
                 }
 

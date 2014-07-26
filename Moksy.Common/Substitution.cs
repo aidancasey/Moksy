@@ -102,34 +102,5 @@ namespace Moksy.Common
         {
             return GetVariables(value).Count > 0;
         }
-
-
-
-        /// <summary>
-        /// Converts a pattern - such as /Pet('{id}') - to a regular expression that can be matched against a particular path. 
-        /// </summary>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        // TODO: Improve.
-        public string ConvertPatternToRegularExpression(string pattern)
-        {
-            if (null == pattern) return pattern;
-
-            var vars = GetVariables(pattern);
-            if (vars.Count == 0) return pattern;
-
-            // NOTE: Currently only matches the first {variable}.
-            //       We need to replace the {variable} with a regular expression that will match. 
-            var v = vars.First();
-
-            var fullVariable = string.Format("{{{0}}}", v.Key);
-            var start = pattern.Substring(0, v.Value);
-            var regex = ".*";
-            var end = pattern.Substring(v.Value + fullVariable.Length);
-
-            // By doing this, we get separate tokens. 
-            regex = string.Format("{0}({1}){2}", Regex.Escape(start), regex, Regex.Escape(end));
-            return regex;
-        }
     }
 }

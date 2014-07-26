@@ -45,7 +45,7 @@ namespace Moksy.IntegrationTest
             Assert.AreEqual(1, all.Count());
 
             var first = all.First();
-            Assert.AreEqual("/Product", first.Condition.Path);
+            Assert.AreEqual("/Product", first.Condition.Pattern);
 
             Assert.AreEqual(HttpMethod.Get, first.Condition.HttpMethod);
 

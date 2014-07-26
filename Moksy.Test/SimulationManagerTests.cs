@@ -26,8 +26,8 @@ namespace Moksy.Test
         {
             Moksy.Storage.SimulationManager manager = new Storage.SimulationManager();
             Simulation s = new Simulation();
-            s.Condition.Path = "/Pet";
-            Assert.IsTrue(manager.CanAdd(s, "Kind", "Dog"));
+            s.Condition.Pattern = "/Pet";
+            Assert.IsTrue(manager.CanAdd(s, "/Pet", "Kind", "Dog"));
         }
 
         [TestMethod]
@@ -35,8 +35,8 @@ namespace Moksy.Test
         {
             Moksy.Storage.SimulationManager manager = new Storage.SimulationManager();
             var s = SimulationFactory.When.I.Post().ToImdb("/Pet").Simulation;
-            manager.AddToImdb(s, "NotValidJson");
-            Assert.IsTrue(manager.CanAdd(s, "Something", "Else"));
+            manager.AddToImdb(s, "/Pet", "NotValidJson");
+            Assert.IsTrue(manager.CanAdd(s, "/Pet", "Something", "Else"));
         }
 
         [TestMethod]
@@ -44,8 +44,8 @@ namespace Moksy.Test
         {
             Moksy.Storage.SimulationManager manager = new Storage.SimulationManager();
             var s = SimulationFactory.When.I.Post().ToImdb("/Pet").Simulation;
-            manager.AddToImdb(s, "{ }");
-            Assert.IsTrue(manager.CanAdd(s, "Kind", "Dog"));
+            manager.AddToImdb(s, "/Pet", "{ }");
+            Assert.IsTrue(manager.CanAdd(s, "/Pet", "Kind", "Dog"));
         }
 
         [TestMethod]
@@ -53,8 +53,8 @@ namespace Moksy.Test
         {
             Moksy.Storage.SimulationManager manager = new Storage.SimulationManager();
             var s = SimulationFactory.When.I.Post().ToImdb("/Pet").Simulation;
-            manager.AddToImdb(s, "{ }");
-            Assert.IsTrue(manager.CanAdd(s, "Kind", "Dog"));
+            manager.AddToImdb(s, "/Pet", "{ }");
+            Assert.IsTrue(manager.CanAdd(s, "/Pet", "Kind", "Dog"));
         }
 
         [TestMethod]
@@ -62,8 +62,8 @@ namespace Moksy.Test
         {
             Moksy.Storage.SimulationManager manager = new Storage.SimulationManager();
             var s = SimulationFactory.When.I.Post().ToImdb("/Pet").Simulation;
-            manager.AddToImdb(s, @"{ ""Kind"" : ""Cat"" }");
-            Assert.IsTrue(manager.CanAdd(s, "Kind", "Dog"));
+            manager.AddToImdb(s, "/Pet", @"{ ""Kind"" : ""Cat"" }");
+            Assert.IsTrue(manager.CanAdd(s, "/Pet", "Kind", "Dog"));
         }
 
         [TestMethod]
@@ -71,8 +71,8 @@ namespace Moksy.Test
         {
             Moksy.Storage.SimulationManager manager = new Storage.SimulationManager();
             var s = SimulationFactory.When.I.Post().ToImdb("/Pet").Simulation;
-            manager.AddToImdb(s, @"{ ""Kind"" : ""Dog"" }");
-            Assert.IsFalse(manager.CanAdd(s, "Kind", "Dog"));
+            manager.AddToImdb(s, "/Pet", @"{ ""Kind"" : ""Dog"" }");
+            Assert.IsFalse(manager.CanAdd(s, "/Pet", "Kind", "Dog"));
         }
 
 
@@ -81,10 +81,10 @@ namespace Moksy.Test
         {
             Moksy.Storage.SimulationManager manager = new Storage.SimulationManager();
             var s = SimulationFactory.When.I.Post().ToImdb("/Pet").Simulation;
-            manager.AddToImdb(s, @"{ }");
-            manager.AddToImdb(s, @"NotJson");
-            manager.AddToImdb(s, @"{ ""Kind"" : ""Cat"" }");
-            Assert.IsTrue(manager.CanAdd(s, "Kind", "Dog"));
+            manager.AddToImdb(s, "/Pet", @"{ }");
+            manager.AddToImdb(s, "/Pet", @"NotJson");
+            manager.AddToImdb(s, "/Pet", @"{ ""Kind"" : ""Cat"" }");
+            Assert.IsTrue(manager.CanAdd(s, "/Pet", "Kind", "Dog"));
         }
 
         [TestMethod]
@@ -92,11 +92,11 @@ namespace Moksy.Test
         {
             Moksy.Storage.SimulationManager manager = new Storage.SimulationManager();
             var s = SimulationFactory.When.I.Post().ToImdb("/Pet").Simulation;
-            manager.AddToImdb(s, @"{ }");
-            manager.AddToImdb(s, @"NotJson");
-            manager.AddToImdb(s, @"{ ""Kind"" : ""Cat"" }");
-            manager.AddToImdb(s, @"{ ""Kind"" : ""Dog"" }");
-            Assert.IsFalse(manager.CanAdd(s, "Kind", "Dog"));
+            manager.AddToImdb(s, "/Pet", @"{ }");
+            manager.AddToImdb(s, "/Pet", @"NotJson");
+            manager.AddToImdb(s, "/Pet", @"{ ""Kind"" : ""Cat"" }");
+            manager.AddToImdb(s, "/Pet", @"{ ""Kind"" : ""Dog"" }");
+            Assert.IsFalse(manager.CanAdd(s, "/Pet", "Kind", "Dog"));
         }
 
 
@@ -106,7 +106,7 @@ namespace Moksy.Test
         {
             Moksy.Storage.SimulationManager manager = new Storage.SimulationManager();
             var s = SimulationFactory.When.I.Post().ToImdb("/Pet").Simulation;
-            Assert.IsFalse(manager.CanAddObject(s, "TheProperty", "thisisnotjson"));
+            Assert.IsFalse(manager.CanAddObject(s, "/Pet", "TheProperty", "thisisnotjson"));
         }
 
         [TestMethod]
@@ -114,7 +114,7 @@ namespace Moksy.Test
         {
             Moksy.Storage.SimulationManager manager = new Storage.SimulationManager();
             var s = SimulationFactory.When.I.Post().ToImdb("/Pet").Simulation;
-            Assert.IsTrue(manager.CanAddObject(s, "TheProperty", "{ }"));
+            Assert.IsTrue(manager.CanAddObject(s, "/Pet", "TheProperty", "{ }"));
         }
 
         [TestMethod]
@@ -122,7 +122,7 @@ namespace Moksy.Test
         {
             Moksy.Storage.SimulationManager manager = new Storage.SimulationManager();
             var s = SimulationFactory.When.I.Post().ToImdb("/Pet").Simulation;
-            Assert.IsTrue(manager.CanAddObject(s, "TheProperty", @"{ ""TheProperty"" : null }"));
+            Assert.IsTrue(manager.CanAddObject(s, "/Pet", "TheProperty", @"{ ""TheProperty"" : null }"));
         }
 
         [TestMethod]
@@ -130,18 +130,16 @@ namespace Moksy.Test
         {
             Moksy.Storage.SimulationManager manager = new Storage.SimulationManager();
             var s = SimulationFactory.When.I.Post().ToImdb("/Pet").Simulation;
-            Assert.IsTrue(manager.CanAddObject(s, "TheProperty", @"{ ""TheProperty"" : ""TheValue"" }"));
+            Assert.IsTrue(manager.CanAddObject(s, "/Pet", "TheProperty", @"{ ""TheProperty"" : ""TheValue"" }"));
         }
-
-
 
         [TestMethod]
         public void CanNotAddObjectIfPropertyIsImplicitlyAlreadyNull()
         {
             Moksy.Storage.SimulationManager manager = new Storage.SimulationManager();
             var s = SimulationFactory.When.I.Post().ToImdb("/Pet").Simulation;
-            manager.AddToImdb(s, @"{ }");
-            Assert.IsFalse(manager.CanAddObject(s, "TheProperty", "{ }"));
+            manager.AddToImdb(s, "/Pet", @"{ }");
+            Assert.IsFalse(manager.CanAddObject(s, "/Pet", "TheProperty", "{ }"));
         }
 
         [TestMethod]
@@ -149,8 +147,8 @@ namespace Moksy.Test
         {
             Moksy.Storage.SimulationManager manager = new Storage.SimulationManager();
             var s = SimulationFactory.When.I.Post().ToImdb("/Pet").Simulation;
-            manager.AddToImdb(s, @"{ }");
-            Assert.IsTrue(manager.CanAddObject(s, "TheProperty", @"{ ""TheProperty"" : ""TheValue"" }"));
+            manager.AddToImdb(s, "/Pet", @"{ }");
+            Assert.IsTrue(manager.CanAddObject(s, "/Pet", "TheProperty", @"{ ""TheProperty"" : ""TheValue"" }"));
         }
 
 
@@ -210,7 +208,7 @@ namespace Moksy.Test
         public void GetKeysNoEntriesIsNull()
         {
             Moksy.Storage.SimulationManager manager = new Storage.SimulationManager();
-            var result = manager.GetKeysFor(null, null);
+            var result = manager.GetKeysFor(null, null, null);
             Assert.AreEqual(0, result.Count());
         }
 
@@ -218,7 +216,7 @@ namespace Moksy.Test
         public void GetKeysNoEntriesPathNotAdded()
         {
             Moksy.Storage.SimulationManager manager = new Storage.SimulationManager();
-            var result = manager.GetKeysFor("/NoneExistent", "Kind");
+            var result = manager.GetKeysFor("/NoneExistent", "/NoneExistent", "Kind");
             Assert.AreEqual(0, result.Count());
         }
 
@@ -227,8 +225,8 @@ namespace Moksy.Test
         {
             Moksy.Storage.SimulationManager manager = new Storage.SimulationManager();
             var s = SimulationFactory.When.I.Post().ToImdb("/Pet").Simulation;
-            manager.AddToImdb(s, "{ }");
-            var result = manager.GetKeysFor("/Pet", "Kind");
+            manager.AddToImdb(s, "/Pet", "{ }");
+            var result = manager.GetKeysFor("/Pet", "/Pet", "Kind");
             Assert.AreEqual(0, result.Count());
         }
 
@@ -237,8 +235,8 @@ namespace Moksy.Test
         {
             Moksy.Storage.SimulationManager manager = new Storage.SimulationManager();
             var s = SimulationFactory.When.I.Post().ToImdb("/Pet").Simulation;
-            manager.AddToImdb(s, @"{ ""Kind"" : ""Dog"" }");
-            var result = manager.GetKeysFor("/Pet", "Kind");
+            manager.AddToImdb(s, "/Pet", @"{ ""Kind"" : ""Dog"" }");
+            var result = manager.GetKeysFor("/Pet", "/Pet", "Kind");
             Assert.AreEqual(1, result.Count());
             Assert.AreEqual("Dog", result.ToArray()[0]);
         }
@@ -248,9 +246,9 @@ namespace Moksy.Test
         {
             Moksy.Storage.SimulationManager manager = new Storage.SimulationManager();
             var s = SimulationFactory.When.I.Post().ToImdb("/Pet").Simulation;
-            manager.AddToImdb(s, @"{ ""Kind"" : ""Dog"" }");
-            manager.AddToImdb(s, @"{ ""Kind"" : ""Cat"" }");
-            var result = manager.GetKeysFor("/Pet", "Kind");
+            manager.AddToImdb(s, "/Pet", @"{ ""Kind"" : ""Dog"" }");
+            manager.AddToImdb(s, "/Pet", @"{ ""Kind"" : ""Cat"" }");
+            var result = manager.GetKeysFor("/Pet", "/Pet", "Kind");
             Assert.AreEqual(2, result.Count());
             Assert.AreEqual("Dog", result.ToArray()[0]);
             Assert.AreEqual("Cat", result.ToArray()[1]);
@@ -316,7 +314,7 @@ namespace Moksy.Test
 
             var match = mgr.Match(HttpMethod.Get, "/Pet('Dog')", new List<Header>(), false);
             Assert.IsNotNull(match);
-            Assert.AreEqual("/Pet('{Kind}')", match.Condition.Path);
+            Assert.AreEqual("/Pet('{Kind}')", match.Condition.Pattern);
         }
 
         [TestMethod]
@@ -331,7 +329,7 @@ namespace Moksy.Test
 
             var match = mgr.Match(HttpMethod.Get, "/Pet('Dog')", new List<Header>(), false);
             Assert.IsNotNull(match);
-            Assert.AreEqual("/Pet('{Kind}')", match.Condition.Path);
+            Assert.AreEqual("/Pet('{Kind}')", match.Condition.Pattern);
         }
 
         [TestMethod]
@@ -349,9 +347,8 @@ namespace Moksy.Test
 
             var match = mgr.Match(HttpMethod.Get, "/Pet", new List<Header>(), false);
             Assert.IsNotNull(match);
-            Assert.AreEqual("/Pet", match.Condition.Path);
+            Assert.AreEqual("/Pet", match.Condition.Pattern);
         }
-
 
 
 
@@ -388,7 +385,7 @@ namespace Moksy.Test
             var get = SimulationFactory.When.I.Get().FromImdb("/Pet('{Kind}')").AsJson().Then.Return.StatusCode(System.Net.HttpStatusCode.OK);
             mgr.Add(get.Simulation);
 
-            mgr.AddToImdb(post.Simulation, @"{ ""Kind"" : ""Cat"" }");
+            mgr.AddToImdb(post.Simulation, "/Pet", @"{ ""Kind"" : ""Cat"" }");
 
             var match = mgr.GetFromImdb(HttpMethod.Get, "/Pet('Dog')", new List<Header>());
             Assert.IsNull(match);
@@ -404,7 +401,7 @@ namespace Moksy.Test
             var get = SimulationFactory.When.I.Get().FromImdb("/Pet('{Kind}')").AsJson().And.Exists("Kind").Then.Return.StatusCode(System.Net.HttpStatusCode.OK);
             mgr.Add(get.Simulation);
 
-            mgr.AddToImdb(post.Simulation, @"{ ""Kind"" : ""Dog"" }");
+            mgr.AddToImdb(post.Simulation, "/Pet", @"{ ""Kind"" : ""Dog"" }");
 
             var match = mgr.GetFromImdb(HttpMethod.Get, "/Pet('Dog')", new List<Header>());
             Assert.IsNotNull(match);

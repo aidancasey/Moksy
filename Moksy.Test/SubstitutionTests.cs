@@ -212,30 +212,5 @@ namespace Moksy.Test
             Assert.IsTrue(Substitution.HasVariables("/Pet('{id}')"));
         }
 
-
-
-        [TestMethod]
-        public void RegExConverationWorksWithNull()
-        {
-            Assert.IsNull(Substitution.ConvertPatternToRegularExpression(null));
-        }
-
-        [TestMethod]
-        public void RegExConverationWorksWithEmpty()
-        {
-            Assert.AreEqual("", Substitution.ConvertPatternToRegularExpression(""));
-        }
-
-        [TestMethod]
-        public void RegExConverationWorksWithNoVars()
-        {
-            Assert.AreEqual("/Pet", Substitution.ConvertPatternToRegularExpression("/Pet"));
-        }
-
-        [TestMethod]
-        public void RegExConverationWorksWithOneVar()
-        {
-            Assert.AreEqual(@"/Pet\('(.*)'\)", Substitution.ConvertPatternToRegularExpression("/Pet('{id}')"));
-        }
     }
 }

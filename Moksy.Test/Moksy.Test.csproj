@@ -62,11 +62,13 @@
   </Choose>
   <ItemGroup>
     <Compile Include="ConditionEvaluatorTests.cs" />
+    <Compile Include="ResourceMatcherTests.cs" />
     <Compile Include="SimulationManagerTests.cs" />
     <Compile Include="SubstitutionTests.cs" />
     <Compile Include="ResponsePopulationTests.cs" />
     <Compile Include="SimulationPopulationTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ResourceParserTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Moksy.Common\Moksy.Common.csproj">

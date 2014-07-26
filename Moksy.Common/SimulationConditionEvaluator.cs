@@ -43,7 +43,7 @@ namespace Moksy.Common
         {
             if (condition == null) return false;
 
-            return Matches(condition.Path, path);
+            return Matches(condition.Pattern, path);
         }
 
         /// <summary>
@@ -60,7 +60,7 @@ namespace Moksy.Common
             if (null != pattern && path == null) return false;
 
             Substitution s = new Substitution();
-            var regex = string.Format("{0}$",s.ConvertPatternToRegularExpression(pattern));
+            var regex = RouteParser.ConvertPatternToRegularExpression(pattern);
 
             System.Text.RegularExpressions.Regex rex = new System.Text.RegularExpressions.Regex(regex);
             var result = rex.Match(path);

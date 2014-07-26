@@ -18,7 +18,7 @@ namespace Moksy.Test
             var simulation = SimulationFactory.New();
             Assert.IsNotNull(simulation.Name);
             Assert.IsNotNull(simulation.Condition);
-            Assert.AreEqual(null, simulation.Condition.Path);
+            Assert.AreEqual(null, simulation.Condition.Pattern);
             Assert.AreEqual(null, simulation.Condition.HttpMethod);
             Assert.AreEqual(0, simulation.Condition.RequestHeaders.Count);
             Assert.AreEqual(null, simulation.Response.Content);
@@ -176,7 +176,7 @@ namespace Moksy.Test
         {
             var s = SimulationFactory.When.Get().From("/ThePath");
             Assert.AreEqual(System.Net.Http.HttpMethod.Get, s.HttpMethod);
-            Assert.AreEqual("/ThePath", s.Path);
+            Assert.AreEqual("/ThePath", s.Pattern);
         }
 
         [TestMethod]
@@ -184,7 +184,7 @@ namespace Moksy.Test
         {
             var s = SimulationFactory.When.Delete().From("/ThePath");
             Assert.AreEqual(System.Net.Http.HttpMethod.Delete, s.HttpMethod);
-            Assert.AreEqual("/ThePath", s.Path);
+            Assert.AreEqual("/ThePath", s.Pattern);
         }
 
         [TestMethod]
@@ -192,7 +192,7 @@ namespace Moksy.Test
         {
             var s = SimulationFactory.When.Post().To("/ThePath");
             Assert.AreEqual(System.Net.Http.HttpMethod.Post, s.HttpMethod);
-            Assert.AreEqual("/ThePath", s.Path);
+            Assert.AreEqual("/ThePath", s.Pattern);
         }
 
         [TestMethod]
@@ -200,7 +200,7 @@ namespace Moksy.Test
         {
             var s = SimulationFactory.When.Trace().To("/ThePath");
             Assert.AreEqual(System.Net.Http.HttpMethod.Trace, s.HttpMethod);
-            Assert.AreEqual("/ThePath", s.Path);
+            Assert.AreEqual("/ThePath", s.Pattern);
         }
 
         [TestMethod]
@@ -208,7 +208,7 @@ namespace Moksy.Test
         {
             var s = SimulationFactory.When.Put().To("/ThePath");
             Assert.AreEqual(System.Net.Http.HttpMethod.Put, s.HttpMethod);
-            Assert.AreEqual("/ThePath", s.Path);
+            Assert.AreEqual("/ThePath", s.Pattern);
         }
 
         [TestMethod]
@@ -216,7 +216,7 @@ namespace Moksy.Test
         {
             var s = SimulationFactory.When.Options().To("/ThePath");
             Assert.AreEqual(System.Net.Http.HttpMethod.Options, s.HttpMethod);
-            Assert.AreEqual("/ThePath", s.Path);
+            Assert.AreEqual("/ThePath", s.Pattern);
         }
 
         [TestMethod]
@@ -224,7 +224,7 @@ namespace Moksy.Test
         {
             var s = SimulationFactory.When.Head().To("/ThePath");
             Assert.AreEqual(System.Net.Http.HttpMethod.Head, s.HttpMethod);
-            Assert.AreEqual("/ThePath", s.Path);
+            Assert.AreEqual("/ThePath", s.Pattern);
         }
 
 
