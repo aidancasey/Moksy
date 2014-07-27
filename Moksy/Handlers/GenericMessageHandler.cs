@@ -54,19 +54,42 @@ namespace Moksy.Handlers
                             Storage.SimulationManager.Instance.AddToImdb(match, path, contentAsString);
                         }
                     }
-                    else if (match.Condition.HttpMethod == HttpMethod.Put && match.Response.AddImdb)
+                    else if (match.Condition.HttpMethod == HttpMethod.Put)
                     {
-                        // This rule has been set up with Put().ToImdb() and .AddToImdb() is in the Response. 
-                        // We need to extract the body of the Request (which we assume to be Json) and add it to the Imdb. 
                         ByteArrayContent content = request.Content as ByteArrayContent;
+                        string contentAsString = null;
                         if (content != null)
                         {
                             var task = content.ReadAsByteArrayAsync();
                             task.Wait();
 
-                            var contentAsString = new System.Text.ASCIIEncoding().GetString(task.Result);
+                            contentAsString = new System.Text.ASCIIEncoding().GetString(task.Result);
+                        }
 
+                        if(match.Response.AddImdb)
+                        {
+                            // This rule has been set up with Put().ToImdb() and .AddToImdb() is in the Response. 
+                            // We need to extract the body of the Request (which we assume to be Json) and add it to the Imdb. 
                             Storage.SimulationManager.Instance.AddToImdb(match, path, contentAsString);
+                        }
+
+                        var responseBody = match.Response.Content;
+                        if (responseBody != null && responseBody != "")
+                        {
+                            if (contentAsString == null) contentAsString = "";
+
+                            Substitution s = new Substitution();
+                            var variables = s.GetVariables(responseBody);
+                            if (variables.Count > 0)
+                            {
+                                // The .Body("...{value}...") might have been specified (but there is at least one placeholder). 
+                                Dictionary<string, string> vars = new Dictionary<string, string>();
+                                vars["value"] = contentAsString;
+
+                                responseBody = s.Substitute(responseBody, vars);
+                            }
+
+                            canned.Content = new StringContent(responseBody);
                         }
                     }
                     else if (match.Condition.HttpMethod == HttpMethod.Get)

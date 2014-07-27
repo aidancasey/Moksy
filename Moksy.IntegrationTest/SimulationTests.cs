@@ -721,5 +721,29 @@ namespace Moksy.IntegrationTest
             Assert.AreEqual(System.Net.HttpStatusCode.NotModified, response.StatusCode);
             Assert.AreEqual(@"{""Kind"":""Cat"",""Name"":""Kitty""}", response.Content);
         }
+
+
+
+        [TestMethod]
+        public void PutReturnsNoContent()
+        {
+            var simulation1 = Moksy.Common.SimulationFactory.New("First").I.Put().ToImdb("/Pet").AsJson().And.NotExists("{Kind}").Return.StatusCode(System.Net.HttpStatusCode.LengthRequired).And.AddToImdb();
+            Proxy.Add(simulation1);
+
+            var response = Put("/Pet", @"{ ""Kind"" : ""Cat"", ""Name"" : ""Kitty""  }");
+            Assert.AreEqual(System.Net.HttpStatusCode.LengthRequired, response.StatusCode);
+            Assert.AreEqual("", response.Content);
+        }
+
+        [TestMethod]
+        public void PutReturnsValue()
+        {
+            var simulation1 = Moksy.Common.SimulationFactory.New("First").I.Put().ToImdb("/Pet").AsJson().And.NotExists("{Kind}").Return.StatusCode(System.Net.HttpStatusCode.LengthRequired).And.AddToImdb().With.Body("{value}");
+            Proxy.Add(simulation1);
+
+            var response = Put("/Pet", @"{ ""Kind"" : ""Cat"", ""Name"" : ""Kitty""  }");
+            Assert.AreEqual(System.Net.HttpStatusCode.LengthRequired, response.StatusCode);
+            Assert.AreEqual(@"{ ""Kind"" : ""Cat"", ""Name"" : ""Kitty""  }", response.Content);
+        }
     }
 }
