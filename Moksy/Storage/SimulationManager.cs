@@ -8,7 +8,6 @@ using System.Net.Http;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-
 namespace Moksy.Storage
 {
     /// <summary>
@@ -23,6 +22,7 @@ namespace Moksy.Storage
         public SimulationManager()
         {
             Storage = new SimulationCollection();
+            Database = new Database();
         }
 
         public static SimulationManager Instance = new SimulationManager();
@@ -53,6 +53,9 @@ namespace Moksy.Storage
 
             return match;
         }
+
+
+
 
         /// <summary>
         /// Match the very first rule given the path and the headers. 
@@ -100,7 +103,7 @@ namespace Moksy.Storage
             // 1. Persistence == Exists. In other words: an object with this property must exist for the match to occur.
             // 2. Persistence == NotExists. In other words: an object WITHOUT this property must exist for the match to occur. 
 
-            if (!InMemoryDatabase.ContainsKey(resourceName))
+            if (!Database.ContainsResource(path, match.Condition.Pattern))
             {
                 if (match.Condition.Persistence == Persistence.NotExists)
                 {
@@ -123,7 +126,7 @@ namespace Moksy.Storage
             var value = path.Substring(result.Groups[2].Index, result.Groups[2].Length);
             if (value == null) return null;
 
-            var existingJson = FindMatch(resourceName, variable, value);
+            var existingJson = FindMatch(path, match.Condition.Pattern, variable, value);
             if (match.Condition.Persistence == Persistence.NotExists)
             {
                 if (existingJson == null)
@@ -193,7 +196,7 @@ namespace Moksy.Storage
                 var resourceName = RouteParser.GetFirstResource(path, match.Condition.Pattern);
                 if (null == resourceName) return null;
 
-                if (!InMemoryDatabase.ContainsKey(resourceName)) return null;
+                if (!Database.ContainsResource(path, match.Condition.Pattern)) return null;
 
                 Substitution s = new Substitution();
                 var regex = RouteParser.ConvertPatternToRegularExpression(match.Condition.Pattern);
@@ -208,7 +211,7 @@ namespace Moksy.Storage
                 var value = path.Substring(result.Groups[2].Index, result.Groups[2].Length);
                 if (value == null) return null;
 
-                var existingJson = FindMatch(resourceName, vars.First().Key, value);
+                var existingJson = FindMatch(path, match.Condition.Pattern, vars.First().Key, value);
                 return existingJson;
             }
         }
@@ -222,7 +225,7 @@ namespace Moksy.Storage
         /// <returns>true if the object was deleted; false otherwise. </returns>
         /// <remarks>This will look at all paths currently in the system (based on the method) 
         /// </remarks>
-        public bool DeleteFromImdb(System.Net.Http.HttpMethod method, string path, IEnumerable<Header> headers)
+        public bool DeleteFromImdb(System.Net.Http.HttpMethod method, string path, string pattern, IEnumerable<Header> headers)
         {
             // TODO: Refactor. Like GetFromImdb
             if (null == path) return false;
@@ -242,7 +245,7 @@ namespace Moksy.Storage
                     var resourceName = RouteParser.GetFirstResource(path, match.Condition.Pattern);
                     if (null == resourceName) return false;
 
-                    if (!InMemoryDatabase.ContainsKey(resourceName)) return false;
+                    if (!Database.ContainsResource(path,pattern)) return false;
 
                     Substitution s = new Substitution();
                     var regex = RouteParser.ConvertPatternToRegularExpression(match.Condition.Pattern);
@@ -257,7 +260,7 @@ namespace Moksy.Storage
                     var value = path.Substring(result.Groups[2].Index, result.Groups[2].Length);
                     if (value == null) return false;
 
-                    var removed = Remove(resourceName, vars.First().Key, value);
+                    var removed = Remove(path, pattern, vars.First().Key, value);
                     return removed;
                 }
             }
@@ -271,15 +274,19 @@ namespace Moksy.Storage
         /// Remove an entry from the Imdb for the given path.
         /// </summary>
         /// <param name="path"></param>
+        /// <param name="pattern"></param>
         /// <param name="propertyName"></param>
         /// <param name="propertyValue"></param>
         /// <returns></returns>
-        public bool Remove(string path, string propertyName, string propertyValue)
+        public bool Remove(string path, string pattern, string propertyName, string propertyValue)
         {
-            if (!InMemoryDatabase.ContainsKey(path)) return false;
+            if (!Database.ContainsResource(path, pattern)) return false;
             if (null == propertyName) return false;
 
-            foreach (var e in InMemoryDatabase[path])
+            var resource = Database.LookupResource(path, pattern);
+            if (null == resource) return false;
+
+            foreach (var e in resource.Data)
             {
                 try
                 {
@@ -290,14 +297,14 @@ namespace Moksy.Storage
                     var value = jobject[propertyName];
                     if (null == value && propertyValue == null)
                     {
-                        InMemoryDatabase[path].Remove(e);
+                        Database.Remove(path, pattern, propertyName, propertyValue);
                         return true;
                     }
                     if (value == null) continue;
 
                     if (System.Convert.ToString((value as JValue).Value) == propertyValue)
                     {
-                        InMemoryDatabase[path].Remove(e);
+                        Database.Remove(path, pattern, propertyName, propertyValue);
                         return true;
                     }
                 }
@@ -329,7 +336,7 @@ namespace Moksy.Storage
 
                 foreach(var match in matches)
                 {
-                    if (method == HttpMethod.Post)
+                    if (method == HttpMethod.Post || method == HttpMethod.Put)
                     {
                         if (match.Condition.IndexProperty != null)
                         {
@@ -434,13 +441,18 @@ namespace Moksy.Storage
         }
 
 
+        public void AddToImdb(Simulation simulation, string path, string content)
+        {
+            AddToImdb(simulation, path, path, content);
+        }
+
         /// <summary>
         /// Add the content to the end point (path) specified in the simulation. 
         /// </summary>
         /// <param name="simulation"></param>
         /// <param name="path"></param>
         /// <param name="content"></param>
-        public void AddToImdb(Simulation simulation, string path, string content)
+        public void AddToImdb(Simulation simulation, string path, string pattern, string content)
         {
             if (null == simulation) throw new System.ArgumentNullException("simulation");
 
@@ -449,12 +461,7 @@ namespace Moksy.Storage
                 var resourceName = RouteParser.GetFirstResource(path, simulation.Condition.Pattern);
                 if (null == resourceName) return;
 
-                if (!InMemoryDatabase.ContainsKey(resourceName))
-                {
-                    InMemoryDatabase[resourceName] = new List<string>();
-                }
-
-                InMemoryDatabase[resourceName].Add(content);
+                Database.AddJson(path, pattern, simulation.Condition.IndexProperty, content);
             }
         }
 
@@ -547,13 +554,10 @@ namespace Moksy.Storage
             var resourceName = RouteParser.GetFirstResource(path, simulation.Condition.Pattern);
             if (null == resourceName) return null;
 
-            if (!InMemoryDatabase.ContainsKey(resourceName))
-            {
-                // If the in memory database does not contain this path, then by definition we can add it: so it is unique. 
-                return null;
-            }
+            var resource = Database.LookupResource(path, simulation.Condition.Pattern);
+            if (null == resource) return null;
 
-            foreach (var e in InMemoryDatabase[resourceName])
+            foreach (var e in resource.Data)
             {
                 try
                 {
@@ -586,12 +590,15 @@ namespace Moksy.Storage
         /// <param name="propertyName"></param>
         /// <param name="propertyValue"></param>
         /// <returns></returns>
-        public JObject FindMatch(string path, string propertyName, string propertyValue)
+        public JObject FindMatch(string path, string pattern, string propertyName, string propertyValue)
         {
-            if (!InMemoryDatabase.ContainsKey(path)) return null;
+            if (!Database.ContainsResource(path, pattern)) return null;
             if (null == propertyName) return null;
 
-            foreach (var e in InMemoryDatabase[path])
+            var resource = Database.LookupResource(path, pattern);
+            if (null == resource) return null;
+
+            foreach (var e in resource.Data)
             {
                 try
                 {
@@ -632,12 +639,10 @@ namespace Moksy.Storage
             var resourceName = RouteParser.GetFirstResource(path, pattern);
             if (null == resourceName) return result;
 
-            if (!InMemoryDatabase.ContainsKey(resourceName))
-            {
-                return result;
-            }
+            var resource = Database.LookupResource(path, pattern);
+            if (null == resource) return result;
 
-            foreach (var p in InMemoryDatabase[resourceName])
+            foreach (var p in resource.Data)
             {
                 var key = GetPropertyValueFromJson(p, propertyName);
                 if (null == key) continue;
@@ -662,17 +667,15 @@ namespace Moksy.Storage
                 var resourceName = RouteParser.GetFirstResource(path, simulation.Condition.Pattern);
                 if (null == resourceName) return null;
 
-                if (InMemoryDatabase.ContainsKey(resourceName))
-                {
-                    StringBuilder builder = new StringBuilder();
-                    foreach (var e in InMemoryDatabase[resourceName])
-                    {
-                        builder.Append(e);
-                    }
-                    return builder.ToString();
-                }
+                var resource = Database.LookupResource(path, simulation.Condition.Pattern);
+                if (null == resource) return null;
 
-                return null;
+                StringBuilder builder = new StringBuilder();
+                foreach (var e in resource.Data)
+                {
+                    builder.Append(e);
+                }
+                return builder.ToString();
             }
         }
 
@@ -690,18 +693,16 @@ namespace Moksy.Storage
                 var resourceName = RouteParser.GetFirstResource(path, simulation.Condition.Pattern);
                 if (null == resourceName) return null;
 
-                if (InMemoryDatabase.ContainsKey(resourceName))
-                {
-                    List<string> components = new List<string>();
-                    foreach (var e in InMemoryDatabase[resourceName])
-                    {
-                        components.Add(e);
-                    }
-                    var result = string.Join(",", components);
-                    return result;
-                }
+                var resource = Database.LookupResource(path, simulation.Condition.Pattern);
+                if (null == resource) return null;
 
-                return null;
+                List<string> components = new List<string>();
+                foreach (var e in resource.Data)
+                {
+                    components.Add(e);
+                }
+                var result = string.Join(",", components);
+                return result;
             }
         }
 
@@ -730,7 +731,7 @@ namespace Moksy.Storage
                 if (name == "*")
                 {
                     Storage.Clear();
-                    InMemoryDatabase.Clear();
+                    Database.RemoveAll();
                     return true;
                 }
                 var match = Storage.FirstOrDefault(f => string.Compare(f.Name, name, true) == 0);
@@ -740,13 +741,15 @@ namespace Moksy.Storage
 
                 if (deleteData)
                 {
+                    // TODO: Correct this... I need the path + pattern context. 
+
                     var resourceName = RouteParser.GetFirstResource(match.Condition.Pattern, match.Condition.Pattern);
                     if (null == resourceName) return false;
 
-                    if (InMemoryDatabase.ContainsKey(resourceName))
-                    {
-                        InMemoryDatabase.Remove(resourceName);
-                    }
+                    var resource = Database.LookupResource(match.Condition.Pattern, match.Condition.Pattern);
+                    if (null == resource) return false;
+                    
+                    Database.RemoveResource(match.Condition.Pattern, match.Condition.Pattern);
                 }
 
                 return true;
@@ -756,9 +759,8 @@ namespace Moksy.Storage
         private SimulationCollection Storage;
 
         /// <summary>
-        /// Used to store data POSTED to end-points. The key is the resource name (the full path). The list is the order in which items 
-        /// were posted. 
+        /// In-memory database for simulated resources. 
         /// </summary>
-        private Dictionary<string, List<string>> InMemoryDatabase = new Dictionary<string, List<string>>();
+        private Database Database;
     }
 }

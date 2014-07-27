@@ -30,7 +30,8 @@ namespace Moksy.Test
             Assert.IsTrue(manager.CanAdd(s, "/Pet", "Kind", "Dog"));
         }
 
-        [TestMethod]
+        // Obsoleted: Imdb must now be Json. Always. 
+        // [TestMethod]
         public void CanAddIfEndpointContainsOneEntryThatIsNotJson()
         {
             Moksy.Storage.SimulationManager manager = new Storage.SimulationManager();
@@ -76,18 +77,8 @@ namespace Moksy.Test
         }
 
 
-        [TestMethod]
-        public void CanAddButAfterEmptyMismatchAndValueMismatch()
-        {
-            Moksy.Storage.SimulationManager manager = new Storage.SimulationManager();
-            var s = SimulationFactory.When.I.Post().ToImdb("/Pet").Simulation;
-            manager.AddToImdb(s, "/Pet", @"{ }");
-            manager.AddToImdb(s, "/Pet", @"NotJson");
-            manager.AddToImdb(s, "/Pet", @"{ ""Kind"" : ""Cat"" }");
-            Assert.IsTrue(manager.CanAdd(s, "/Pet", "Kind", "Dog"));
-        }
-
-        [TestMethod]
+        // Obsoleted: Imdb must now be Json. Always. 
+        // [TestMethod]
         public void CanNotAddButAfterEmptyMismatchAndValueMismatch()
         {
             Moksy.Storage.SimulationManager manager = new Storage.SimulationManager();

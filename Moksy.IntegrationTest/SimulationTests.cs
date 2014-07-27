@@ -172,12 +172,12 @@ namespace Moksy.IntegrationTest
             var t = Moksy.Common.SimulationFactory.When.I.Get().FromImdb("/Product").Then.Return.StatusCode(System.Net.HttpStatusCode.NonAuthoritativeInformation);
             Proxy.Add(t);
 
-            var response = Post("/Product", "MyContent");
+            var response = Post("/Product", @"{""Kind"":""Dog""}");
             Assert.AreEqual(System.Net.HttpStatusCode.MultipleChoices, response.StatusCode);
 
             response = Get("/Product");
             Assert.AreEqual(System.Net.HttpStatusCode.NonAuthoritativeInformation, response.StatusCode);
-            Assert.AreEqual("MyContent", response.Content);
+            Assert.AreEqual(@"{""Kind"":""Dog""}", response.Content);
         }
 
         [TestMethod]
@@ -283,12 +283,12 @@ namespace Moksy.IntegrationTest
 
             var response = Post("/Product", "{ }");
             Assert.AreEqual(System.Net.HttpStatusCode.ProxyAuthenticationRequired, response.StatusCode);
-            response = Post("/Product", "{ a : b }");
+            response = Post("/Product", @"{ ""a"" : ""b"" }");
             Assert.AreEqual(System.Net.HttpStatusCode.ProxyAuthenticationRequired, response.StatusCode);
 
             response = Get("/Product");
             Assert.AreEqual(System.Net.HttpStatusCode.PaymentRequired, response.StatusCode);
-            Assert.AreEqual("{ },{ a : b }", response.Content);
+            Assert.AreEqual(@"{ },{ ""a"" : ""b"" }", response.Content);
         }
 
         [TestMethod]
@@ -301,11 +301,11 @@ namespace Moksy.IntegrationTest
             Proxy.Add(simulation2);
 
             var response = Post("/Product", "{ }");
-            response = Post("/Product", "{ a : b }");
+            response = Post("/Product", @"{ ""a"" : ""b"" }");
 
             response = Get("/Product");
             Assert.AreEqual(System.Net.HttpStatusCode.PaymentRequired, response.StatusCode);
-            Assert.AreEqual("Abc{ },{ a : b }Def", response.Content);
+            Assert.AreEqual(@"Abc{ },{ ""a"" : ""b"" }Def", response.Content);
         }
 
 
@@ -617,6 +617,109 @@ namespace Moksy.IntegrationTest
 
             response = Delete("/Pet('Cat')");
             Assert.AreEqual(System.Net.HttpStatusCode.NotImplemented, response.StatusCode);
+        }
+
+
+
+        [TestMethod]
+        public void PutNotExistsNotAddToDatabase()
+        {
+            var simulation1 = Moksy.Common.SimulationFactory.New("First").I.Put().ToImdb("/Pet").AsJson().And.NotExists("{Kind}").Return.StatusCode(System.Net.HttpStatusCode.ExpectationFailed);
+            Proxy.Add(simulation1);
+
+            var simulation2 = Moksy.Common.SimulationFactory.New("Second").I.Get().FromImdb("/Pet/{Kind}").AsJson().And.Exists().Return.StatusCode(System.Net.HttpStatusCode.NotModified);
+            Proxy.Add(simulation2);
+
+            var simulation3 = Moksy.Common.SimulationFactory.New("Third").I.Get().FromImdb("/Pet/{Kind}").AsJson().And.NotExists().Return.StatusCode(System.Net.HttpStatusCode.ProxyAuthenticationRequired);
+            Proxy.Add(simulation3);
+
+            //var response = Post("/Pet", @"{ ""Kind"" : ""Cat"", ""Name"" : ""Garfield""  }");
+
+            var response = Put("/Pet", @"{ ""Kind"" : ""Cat"", ""Name"" : ""Kitty""  }");
+            Assert.AreEqual(System.Net.HttpStatusCode.ExpectationFailed, response.StatusCode);
+
+            response = Get("/Pet/Cat");
+            Assert.AreEqual(System.Net.HttpStatusCode.ProxyAuthenticationRequired, response.StatusCode);
+        }
+
+        [TestMethod]
+        public void PutExistsNotAddToDatabase()
+        {
+            var add = Moksy.Common.SimulationFactory.New("First").I.Post().ToImdb("/Pet").AsJson().And.NotExists("{Kind}").Return.StatusCode(System.Net.HttpStatusCode.ProxyAuthenticationRequired).AddToImdb();
+            Proxy.Add(add);
+
+            var simulation1 = Moksy.Common.SimulationFactory.New("First").I.Put().ToImdb("/Pet").AsJson().And.NotExists("{Kind}").Return.StatusCode(System.Net.HttpStatusCode.ExpectationFailed);
+            Proxy.Add(simulation1);
+
+            var simulation4 = Moksy.Common.SimulationFactory.New("Fourth").I.Put().ToImdb("/Pet").AsJson().And.Exists("{Kind}").Return.StatusCode(System.Net.HttpStatusCode.LengthRequired);
+            Proxy.Add(simulation4);
+
+            var simulation2 = Moksy.Common.SimulationFactory.New("Second").I.Get().FromImdb("/Pet/{Kind}").AsJson().And.Exists().Return.StatusCode(System.Net.HttpStatusCode.NotModified);
+            Proxy.Add(simulation2);
+
+            var simulation3 = Moksy.Common.SimulationFactory.New("Third").I.Get().FromImdb("/Pet/{Kind}").AsJson().And.NotExists().Return.StatusCode(System.Net.HttpStatusCode.ProxyAuthenticationRequired);
+            Proxy.Add(simulation3);
+
+            var response = Post("/Pet", @"{ ""Kind"" : ""Cat"", ""Name"" : ""Garfield""  }");
+
+            response = Put("/Pet", @"{ ""Kind"" : ""Cat"", ""Name"" : ""Kitty""  }");
+            Assert.AreEqual(System.Net.HttpStatusCode.LengthRequired, response.StatusCode);
+
+            response = Get("/Pet/Cat");
+            Assert.AreEqual(System.Net.HttpStatusCode.NotModified, response.StatusCode);
+            Assert.AreEqual(@"{""Kind"":""Cat"",""Name"":""Garfield""}", response.Content);
+        }
+
+
+
+        [TestMethod]
+        public void PutNotExistsAddToDatabase()
+        {
+            var simulation1 = Moksy.Common.SimulationFactory.New("First").I.Put().ToImdb("/Pet").AsJson().And.NotExists("{Kind}").Return.StatusCode(System.Net.HttpStatusCode.ExpectationFailed).And.AddToImdb();
+            Proxy.Add(simulation1);
+
+            var simulation2 = Moksy.Common.SimulationFactory.New("Second").I.Get().FromImdb("/Pet/{Kind}").AsJson().And.Exists().Return.StatusCode(System.Net.HttpStatusCode.NotModified);
+            Proxy.Add(simulation2);
+
+            var simulation3 = Moksy.Common.SimulationFactory.New("Third").I.Get().FromImdb("/Pet/{Kind}").AsJson().And.NotExists().Return.StatusCode(System.Net.HttpStatusCode.ProxyAuthenticationRequired);
+            Proxy.Add(simulation3);
+
+            //var response = Post("/Pet", @"{ ""Kind"" : ""Cat"", ""Name"" : ""Garfield""  }");
+
+            var response = Put("/Pet", @"{ ""Kind"" : ""Cat"", ""Name"" : ""Kitty""  }");
+            Assert.AreEqual(System.Net.HttpStatusCode.ExpectationFailed, response.StatusCode);
+
+            response = Get("/Pet/Cat");
+            Assert.AreEqual(System.Net.HttpStatusCode.NotModified, response.StatusCode);
+            Assert.AreEqual(@"{""Kind"":""Cat"",""Name"":""Kitty""}", response.Content);
+        }
+
+        [TestMethod]
+        public void PutExistsAddToDatabase()
+        {
+            var add = Moksy.Common.SimulationFactory.New("First").I.Post().ToImdb("/Pet").AsJson().And.NotExists("{Kind}").Return.StatusCode(System.Net.HttpStatusCode.ProxyAuthenticationRequired).AddToImdb();
+            Proxy.Add(add);
+
+            var simulation1 = Moksy.Common.SimulationFactory.New("First").I.Put().ToImdb("/Pet").AsJson().And.NotExists("{Kind}").Return.StatusCode(System.Net.HttpStatusCode.ExpectationFailed);
+            Proxy.Add(simulation1);
+
+            var simulation4 = Moksy.Common.SimulationFactory.New("Fourth").I.Put().ToImdb("/Pet").AsJson().And.Exists("{Kind}").Return.StatusCode(System.Net.HttpStatusCode.LengthRequired).Then.AddToImdb();
+            Proxy.Add(simulation4);
+
+            var simulation2 = Moksy.Common.SimulationFactory.New("Second").I.Get().FromImdb("/Pet/{Kind}").AsJson().And.Exists().Return.StatusCode(System.Net.HttpStatusCode.NotModified);
+            Proxy.Add(simulation2);
+
+            var simulation3 = Moksy.Common.SimulationFactory.New("Third").I.Get().FromImdb("/Pet/{Kind}").AsJson().And.NotExists().Return.StatusCode(System.Net.HttpStatusCode.ProxyAuthenticationRequired);
+            Proxy.Add(simulation3);
+
+            var response = Post("/Pet", @"{ ""Kind"" : ""Cat"", ""Name"" : ""Garfield""  }");
+
+            response = Put("/Pet", @"{ ""Kind"" : ""Cat"", ""Name"" : ""Kitty""  }");
+            Assert.AreEqual(System.Net.HttpStatusCode.LengthRequired, response.StatusCode);
+
+            response = Get("/Pet/Cat");
+            Assert.AreEqual(System.Net.HttpStatusCode.NotModified, response.StatusCode);
+            Assert.AreEqual(@"{""Kind"":""Cat"",""Name"":""Kitty""}", response.Content);
         }
     }
 }

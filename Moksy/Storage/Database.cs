@@ -47,7 +47,11 @@ namespace Moksy.Storage
                 if (null == resource) return false;
 
                 string propertyValue = null;
-                var jobjectPropertyValue = jobject[propertyName];
+                JToken jobjectPropertyValue = null;
+                if (propertyName != null)
+                {
+                    jobjectPropertyValue = jobject[propertyName];
+                }
                 if (jobjectPropertyValue != null)
                 {
                     propertyValue = jobjectPropertyValue.ToString();
@@ -139,6 +143,67 @@ namespace Moksy.Storage
 
 
         /// <summary>
+        /// Returns true if this Database contains an entry for the given resource. 
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="pattern"></param>
+        /// <returns></returns>
+        public bool ContainsResource(string path, string pattern)
+        {
+            var resource = LookupResource(path, pattern);
+            return resource != null;
+        }
+
+
+
+        /// <summary>
+        /// Looks up the resource based on the given path. 
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="pattern"></param>
+        /// <returns></returns>
+        public Resource LookupResource(string path, string pattern)
+        {
+            var tokens = RouteParser.Parse(path, pattern).ToArray();
+            if (tokens.Count() == 0) return null;
+
+            // TODO: Refactor when we support nested resources. 
+            var token = tokens[0];
+            if (token.Kind != RouteTokenKind.Resource) return null;
+
+            var match = Resources.FirstOrDefault(f => f.Name == token.Value);
+            if (match == null) return null;
+
+            return match;
+        }
+
+
+
+        /// <summary>
+        /// Remove the given resource from the Database. All data will be purged for that resource. Will return true if remove; false if it does not exist. 
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="pattern"></param>
+        /// <returns></returns>
+        public bool RemoveResource(string path, string pattern)
+        {
+            var tokens = RouteParser.Parse(path, pattern).ToArray();
+            if (tokens.Count() == 0) return false;
+
+            // TODO: Refactor when we support nested resources. 
+            var token = tokens[0];
+            if (token.Kind != RouteTokenKind.Resource) return false;
+
+            var match = Resources.FirstOrDefault(f => f.Name == token.Value);
+            if (match == null) return false;
+
+            Resources.Remove(match);
+            return true;
+        }
+
+
+
+        /// <summary>
         /// Return the value of propertyName in the json string. If the property does not exist in the string, this will return the value null. 
         /// </summary>
         /// <param name="json"></param>
@@ -194,6 +259,8 @@ namespace Moksy.Storage
         /// <returns></returns>
         protected int FindIndexOf(Resource resource, string propertyName, string value)
         {
+            if (null == propertyName) return -1;
+
             foreach (var d in resource.Data)
             {
                 JObject jobject = JsonConvert.DeserializeObject(d) as JObject;

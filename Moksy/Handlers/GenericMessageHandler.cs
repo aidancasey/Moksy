@@ -54,6 +54,21 @@ namespace Moksy.Handlers
                             Storage.SimulationManager.Instance.AddToImdb(match, path, contentAsString);
                         }
                     }
+                    else if (match.Condition.HttpMethod == HttpMethod.Put && match.Response.AddImdb)
+                    {
+                        // This rule has been set up with Put().ToImdb() and .AddToImdb() is in the Response. 
+                        // We need to extract the body of the Request (which we assume to be Json) and add it to the Imdb. 
+                        ByteArrayContent content = request.Content as ByteArrayContent;
+                        if (content != null)
+                        {
+                            var task = content.ReadAsByteArrayAsync();
+                            task.Wait();
+
+                            var contentAsString = new System.Text.ASCIIEncoding().GetString(task.Result);
+
+                            Storage.SimulationManager.Instance.AddToImdb(match, path, contentAsString);
+                        }
+                    }
                     else if (match.Condition.HttpMethod == HttpMethod.Get)
                     {
                         // This rule has been set up with Get().FromImdb(). The default Body in the Return structure is {value} - ie: the raw value of the stored Json.
@@ -155,7 +170,7 @@ namespace Moksy.Handlers
                         {
                             if (match.Response.RemoveImdb)
                             {
-                                Storage.SimulationManager.Instance.DeleteFromImdb(HttpMethod.Delete, path, headers);
+                                Storage.SimulationManager.Instance.DeleteFromImdb(HttpMethod.Delete, path, match.Condition.Pattern, headers);
                             }
                             Substitution s = new Substitution();
                             string candidateValue = "";
