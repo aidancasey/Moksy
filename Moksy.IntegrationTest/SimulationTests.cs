@@ -1,5 +1,7 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moksy.Common;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -744,6 +746,167 @@ namespace Moksy.IntegrationTest
             var response = Put("/Pet", @"{ ""Kind"" : ""Cat"", ""Name"" : ""Kitty""  }");
             Assert.AreEqual(System.Net.HttpStatusCode.LengthRequired, response.StatusCode);
             Assert.AreEqual(@"{ ""Kind"" : ""Cat"", ""Name"" : ""Kitty""  }", response.Content);
+        }
+
+
+
+        [TestMethod]
+        public void DynamicGuidInReturnBodyAlongWithValue()
+        {
+            var simulation1 = Moksy.Common.SimulationFactory.New("First").I.Put().ToImdb("/Pet").AsJson().And.NotExists("{Kind}").Return.StatusCode(System.Net.HttpStatusCode.LengthRequired).And.AddToImdb().With.Variable("TheVar").Body("{value}-{TheVar}THEEND");
+            Proxy.Add(simulation1);
+
+            var response = Put("/Pet", @"{ ""Kind"" : ""Cat"", ""Name"" : ""Kitty""  }");
+            Assert.AreEqual(System.Net.HttpStatusCode.LengthRequired, response.StatusCode);
+            Assert.IsTrue(response.Content.StartsWith(@"{ ""Kind"" : ""Cat"", ""Name"" : ""Kitty""  }-"));
+            Assert.IsTrue(response.Content.EndsWith(@"THEEND"));
+        }
+
+        [TestMethod]
+        public void ConstantInReturnBodyAlongWithValue()
+        {
+            var simulation1 = Moksy.Common.SimulationFactory.New("First").I.Put().ToImdb("/Pet").AsJson().And.NotExists("{Kind}").Return.StatusCode(System.Net.HttpStatusCode.LengthRequired).And.AddToImdb().With.Variable("TheVar", "TheValue").Body("{value}-{TheVar}THEEND");
+            Proxy.Add(simulation1);
+
+            var response = Put("/Pet", @"{ ""Kind"" : ""Cat"", ""Name"" : ""Kitty""  }");
+            Assert.AreEqual(System.Net.HttpStatusCode.LengthRequired, response.StatusCode);
+            Assert.IsTrue(response.Content.StartsWith(@"{ ""Kind"" : ""Cat"", ""Name"" : ""Kitty""  }-TheValueTHEEND"));
+        }
+
+
+
+        [TestMethod]
+        public void ConstantVariableIncluded()
+        {
+            var simulation1 = Moksy.Common.SimulationFactory.When.I.Put().ToImdb("/Pet").AsJson().And.NotExists("{Kind}").Return.StatusCode(System.Net.HttpStatusCode.LengthRequired).And.AddToImdb().OverrideProperty("Name", "Garfield").Body("{value}");
+            Proxy.Add(simulation1);
+
+            var response = Put("/Pet", @"{ ""Kind"" : ""Cat"", ""Name"" : ""Kitty""  }");
+            Assert.AreEqual(System.Net.HttpStatusCode.LengthRequired, response.StatusCode);
+            Assert.AreEqual(@"{""Kind"":""Cat"",""Name"":""Garfield""}", response.Content);
+        }
+
+        [TestMethod]
+        public void ConstantNullVariableIncluded()
+        {
+            var simulation1 = Moksy.Common.SimulationFactory.When.I.Put().ToImdb("/Pet").AsJson().And.NotExists("{Kind}").Return.StatusCode(System.Net.HttpStatusCode.LengthRequired).And.AddToImdb().OverrideProperty("Name", null).Body("{value}");
+            Proxy.Add(simulation1);
+
+            var response = Put("/Pet", @"{ ""Kind"" : ""Cat"", ""Name"" : ""Kitty""  }");
+            Assert.AreEqual(System.Net.HttpStatusCode.LengthRequired, response.StatusCode);
+            Assert.AreEqual(@"{""Kind"":""Cat"",""Name"":null}", response.Content);
+        }
+
+
+        [TestMethod]
+        public void SubstitutedPropertyIsReturned()
+        {
+            var simulation1 = Moksy.Common.SimulationFactory.When.I.Put().ToImdb("/Pet").AsJson().And.NotExists("{Kind}").Return.StatusCode(System.Net.HttpStatusCode.LengthRequired).And.AddToImdb().With.Variable("thename","Garfield").OverrideProperty("Name", "{thename}").Body("{value}");
+            Proxy.Add(simulation1);
+
+            var response = Put("/Pet", @"{ ""Kind"" : ""Cat"", ""Name"" : ""Kitty""  }");
+            Assert.AreEqual(System.Net.HttpStatusCode.LengthRequired, response.StatusCode);
+            Assert.AreEqual(@"{""Kind"":""Cat"",""Name"":""Garfield""}", response.Content);
+        }
+
+        [TestMethod]
+        public void SubstitutedGuidPropertyIsReturned()
+        {
+            var simulation1 = Moksy.Common.SimulationFactory.When.I.Put().ToImdb("/Pet").AsJson().And.NotExists("{Kind}").Return.StatusCode(System.Net.HttpStatusCode.LengthRequired).And.AddToImdb().With.Variable("theguid").OverrideProperty("Id", "{theguid}").Body("{value}");
+            Proxy.Add(simulation1);
+
+            var response = Put("/Pet", @"{ ""Kind"" : ""Cat"", ""Name"" : ""Kitty""  }");
+            Assert.AreEqual(System.Net.HttpStatusCode.LengthRequired, response.StatusCode);
+            Assert.IsTrue(response.Content.Contains(@"{""Kind"":""Cat"",""Name"":""Kitty"",""Id"":"));
+
+            var job = JsonConvert.DeserializeObject(response.Content) as JObject;
+            var calculatedGuid = job["Id"];
+            Guid parsedGuid = default(Guid);
+            bool valid = System.Guid.TryParse(calculatedGuid.ToString(), out parsedGuid);
+            Assert.IsTrue(valid);
+            Assert.AreEqual(calculatedGuid.ToString(), parsedGuid.ToString());
+        }
+
+
+
+        [TestMethod]
+        public void EndToEndSubstituteWithId()
+        {
+            // Will create a new Guid and return just the GUID in the Body. We will then use that GUID to retrieve the object we have stored. 
+            var simulation1 = Moksy.Common.SimulationFactory.When.I.Post().ToImdb("/Pet").AsJson().And.NotExists("{Kind}").Return.StatusCode(System.Net.HttpStatusCode.LengthRequired).And.AddToImdb().With.Variable("theguid").OverrideProperty("Id", "{theguid}").Body("{theguid}");
+            Proxy.Add(simulation1);
+
+            var simulation2 = Moksy.Common.SimulationFactory.When.I.Get().FromImdb("/Pet/{Id}").AsJson().And.Exists().Return.StatusCode(System.Net.HttpStatusCode.NotModified);
+            Proxy.Add(simulation2);
+
+            var response = Post("/Pet", @"{ ""Kind"" : ""Cat"", ""Name"" : ""Kitty""  }");
+            var guid = response.Content;
+
+            var path = string.Format("/Pet/{0}", guid);
+            response = Get(path);
+            Assert.AreEqual(System.Net.HttpStatusCode.NotModified, response.StatusCode);
+            Assert.IsTrue(response.Content.Contains(@"{""Kind"":""Cat"",""Name"":""Kitty"""));
+        }
+
+
+
+        // Tests built-in variables that are always returned. ie: {uriroot} contains the 
+        [TestMethod]
+        public void BuiltInVariablesPost()
+        {
+            // Some variables are available to all methods as placeholders. 
+            var simulation1 = Moksy.Common.SimulationFactory.When.I.Post().ToImdb("/Pet").AsJson().And.NotExists("{Kind}").Return.StatusCode(System.Net.HttpStatusCode.LengthRequired).And.AddToImdb().With.Body("{requestroot}-{requestscheme}-{requesthost}-{requestport}");
+            Proxy.Add(simulation1);
+
+            var response = Post("/Pet", @"{ ""Kind"" : ""Cat"", ""Name"" : ""Kitty""  }");
+            Assert.AreEqual("http://localhost:10011-http-localhost-10011", response.Content);
+        }
+
+        [TestMethod]
+        public void BuiltInVariablesGet()
+        {
+            // Some variables are available to all methods as placeholders. 
+            var simulation1 = Moksy.Common.SimulationFactory.When.I.Get().FromImdb("/Pet/{Kind}").AsJson().And.NotExists("{Kind}").Return.StatusCode(System.Net.HttpStatusCode.LengthRequired).With.Body("{requestroot}-{requestscheme}-{requesthost}-{requestport}");
+            Proxy.Add(simulation1);
+
+            var response = Get("/Pet/Dog");
+            Assert.AreEqual("http://localhost:10011-http-localhost-10011", response.Content);
+        }
+
+        [TestMethod]
+        public void BuiltInVariablesHeadNoImdb()
+        {
+            // Some variables are available to all methods as placeholders. 
+            var simulation1 = Moksy.Common.SimulationFactory.When.I.Options().From("/Pet").Return.StatusCode(System.Net.HttpStatusCode.LengthRequired).With.Body("{requestroot}-{requestscheme}-{requesthost}-{requestport}");
+            Proxy.Add(simulation1);
+
+            var response = Execute("/Pet", RestSharp.Method.OPTIONS);
+            Assert.AreEqual("http://localhost:10011-http-localhost-10011", response.Content);
+        }
+
+
+
+        [TestMethod]
+        public void BuiltInVariablesInResponseHeader()
+        {
+            var simulation1 = Moksy.Common.SimulationFactory.When.I.Post().ToImdb("/Pet").AsJson().And.NotExists("{Kind}").Return.StatusCode(System.Net.HttpStatusCode.LengthRequired).And.AddToImdb().With.Variable("Identity").OverrideProperty("Id", "{Identity}").Header("Location", "{requestroot}/Pet/{Identity}");
+            Proxy.Add(simulation1);
+
+            var simulation2 = Moksy.Common.SimulationFactory.When.I.Get().FromImdb("/Pet/{Id}").And.Exists("{Id}").Return.StatusCode(System.Net.HttpStatusCode.OK);
+            Proxy.Add(simulation2);
+
+            var response = Post("/Pet", @"{ ""Kind"" : ""Cat"", ""Name"" : ""Kitty""  }");
+            Assert.AreEqual("", response.Content);
+
+            var header = response.Headers.FirstOrDefault(f => f.Name == "Location");
+            Assert.IsNotNull(header);
+            var location = header.Value.ToString();
+
+            var guid = location.Substring(location.Length - 36);
+
+            response = Get(location.Substring(location.IndexOf("/Pet/")));
+            Assert.AreEqual(System.Net.HttpStatusCode.OK, response.StatusCode);
+            Assert.IsTrue(response.Content.Contains(guid));
         }
     }
 }

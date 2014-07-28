@@ -50,6 +50,7 @@
   <ItemGroup>
     <Compile Include="ContentKind.cs" />
     <Compile Include="Persistence.cs" />
+    <Compile Include="Property.cs" />
     <Compile Include="Proxy.cs" />
     <Compile Include="RouteMatcher.cs" />
     <Compile Include="RouteToken.cs" />
@@ -64,6 +65,8 @@
     <Compile Include="SimulationResponse.cs" />
     <Compile Include="Substitution.cs" />
     <Compile Include="RouteParser.cs" />
+    <Compile Include="Variable.cs" />
+    <Compile Include="VariableKind.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

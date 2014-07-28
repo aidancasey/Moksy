@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -20,6 +21,8 @@ namespace Moksy.Common
         {
             HttpStatusCode = System.Net.HttpStatusCode.Unused;
             ResponseHeadersStorage = new List<Header>();
+            VariablesStorage = new List<Variable>();
+            PropertiesStorage = new List<Property>();
         }
 
         /// <summary>
@@ -28,8 +31,11 @@ namespace Moksy.Common
         /// <param name="content">The content. Can be null or empty string. The default is {value} which is the sensible default and will contain the value from 
         /// the Imdb if using ToImdb or FromImdb. </param>
         /// <returns></returns>
-        /// <remarks>The content parameter can contain free text and {value}. For example: you can choose to wrap responses in additional Json. For example:
-        /// Some text {value} that wraps the value. 
+        /// <remarks>Content can contain free text, the {value} placeholder (which is the value of the object that was added to the Imdb) or a {variable}. For example:
+        /// To return the object that was added to the database, use Body("{value}"). 
+        /// To return a dynamically created GUID associated with an object added to the Imdb, do this:
+        /// ...Then.Return.With.Variable("identity").OverrideProperty("Id", "{identity}").Body("{identity}");
+        /// [That would also asign an Id property to the value of identity]
         /// </remarks>
         public SimulationResponse Body(string content)
         {
@@ -42,8 +48,7 @@ namespace Moksy.Common
         /// </summary>
         /// <param name="content">The object to be serialized as Json. </param>
         /// <returns></returns>
-        /// <remarks>The content parameter can contain free text and {value}. For example: you can choose to wrap responses in additional Json. For example:
-        /// Some text {value} that wraps the value. 
+        /// <remarks>
         /// </remarks>
         public SimulationResponse Body(object o)
         {
@@ -147,6 +152,153 @@ namespace Moksy.Common
             }
         }
 
+        [JsonIgnore]
+        public List<Variable> Variables
+        {
+            get
+            {
+                var result = new List<Variable>(VariablesStorage);
+                return result;
+            }
+            set
+            {
+                if (value == null)
+                {
+                    VariablesStorage = new List<Variable>();
+                    return;
+                }
+
+                VariablesStorage.Clear();
+                VariablesStorage.AddRange(value);
+            }
+        }
+
+        [JsonProperty("variables")]
+        public Variable[] VariablesForJson
+        {
+            get
+            {
+                return VariablesStorage.ToArray();
+            }
+            set
+            {
+                VariablesStorage = new List<Variable>();
+                if (null == value) return;
+                VariablesStorage.AddRange(value);
+            }
+        }
+        private List<Variable> VariablesStorage;
+
+
+        /// <summary>
+        /// Set up a new variable as part of the response. This variable can be used as a placeholder in any content that is returned or stored in the Imdb. 
+        /// </summary>
+        /// <param name="name">Name of the variable. If null, will return safely. </param>
+        /// <returns></returns>
+        public SimulationResponse Variable(string name)
+        {
+            if (null == name) return this;
+            Variable v = new Variable(name);
+            VariablesStorage.Add(v);
+            return this;
+        }
+
+        /// <summary>
+        /// Add a variable. The variable will be created as a Constant value. 
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public SimulationResponse Variable(string name, string value)
+        {
+            if (null == name) return this;
+            Variable v = new Variable(name, value);
+            VariablesStorage.Add(v);
+            return this;
+        }
+
+
+
+        /// <summary>
+        /// For a POST/PUT, indicates that property name will be set to value BEFORE the object is committed to the Imdb. 
+        /// </summary>
+        /// <param name="name">Property name. Cannot be Null. </param>
+        /// <param name="value">Property value. Can be Null. </param>
+        /// <remarks>Properties relate to changes that will be made to an object BEFORE it is added to the Imdb. For example: objects often have internal identifiers / Guids so
+        /// we would call .OverrideProperty("Id"). in the Response. This will create a new Guid (default property type is Guid) and push it into the Json as an Id property. 
+        /// </remarks>
+        /// <returns></returns>
+        public SimulationResponse OverrideProperty(string name, string value)
+        {
+            if (null == name) return this;
+            Property p = new Property(name, value);
+            PropertiesStorage.Add(p);
+            return this;
+        }
+
+
+
+        [JsonIgnore]
+        public List<Property> Properties
+        {
+            get
+            {
+                var result = new List<Property>(PropertiesStorage);
+                return result;
+            }
+            set
+            {
+                if (value == null)
+                {
+                    PropertiesStorage = new List<Property>();
+                    return;
+                }
+
+                PropertiesStorage.Clear();
+                PropertiesStorage.AddRange(value);
+            }
+        }
+
+        [JsonProperty("properties")]
+        public Property[] PropertiesForJson
+        {
+            get
+            {
+                return PropertiesStorage.ToArray();
+            }
+            set
+            {
+                PropertiesStorage = new List<Property>();
+                if (null == value) return;
+                PropertiesStorage.AddRange(value);
+            }
+        }
+        private List<Property> PropertiesStorage;
+
+
+
+        /// <summary>
+        /// Calculate the values for the variables. Call this even if the variables are constant; this will ensure that any placeholders are expanded. 
+        /// </summary>
+        /// <returns>A (possibly empty) collection of values to be used as the variables. </returns>
+        public Dictionary<string, string> CalculateVariables()
+        {
+            Dictionary<string, string> result = new Dictionary<string, string>();
+            foreach (var v in VariablesStorage)
+            {
+                if (v.Kind == VariableKind.Guid)
+                {
+                    result[v.Name] = System.Guid.NewGuid().ToString();
+                }
+                if (v.Kind == VariableKind.Constant)
+                {
+                    result[v.Name] = v.Value;
+                }
+            }
+            return result;
+        }
+
+
         /// <summary>
         /// Indicates the Post data should be added to the in memory database. 
         /// </summary>
@@ -167,7 +319,11 @@ namespace Moksy.Common
             {
                 if (Simulation.Condition.IsImdb == false)
                 {
-                    throw new System.InvalidOperationException(@"You can only specify AddToImdb() if the condition includes Imdb(). ie: When.I.Post().To(""/Endpoint"").With.Imdb().Then.Return.StatusCode(Created).And.AddToImdb()");
+                    throw new System.InvalidOperationException(@"You can only specify AddToImdb() if the condition includes Imdb(). ie: When.I.Post().ToImdb(""/Endpoint"").Then.Return.StatusCode(Created).And.AddToImdb()");
+                }
+                if (Simulation.Condition.HttpMethod != HttpMethod.Post && Simulation.Condition.HttpMethod != HttpMethod.Put)
+                {
+                    throw new System.InvalidOperationException(@"You can only specify AddToImdb() for Post() and Put() Conditions. ");
                 }
             }
             AddImdb = add;
@@ -278,6 +434,7 @@ namespace Moksy.Common
                 return this;
             }
         }
+
 
         /// <summary>
         /// Return ourselves. 

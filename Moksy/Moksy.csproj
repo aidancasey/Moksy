@@ -64,6 +64,7 @@
     <Compile Include="Handlers\GenericMessageHandler.cs" />
     <Compile Include="Handlers\SimulationMessageHandler.cs" />
     <Compile Include="HttpResponseMessageFactory.cs" />
+    <Compile Include="JsonHelpers.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Routes\GenericRoute.cs" />
     <Compile Include="Routes\SimulationRoute.cs" />

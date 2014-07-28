@@ -434,5 +434,83 @@ namespace Moksy.Test
             var s = SimulationFactory.When.I.Post().ToImdb("/Endpoint").AsJson().Then.Return.Body(new Pet() { Kind = "Dog" });
             Assert.AreEqual(@"{""Kind"":""Dog""}", s.Content);
         }
+
+
+
+        [TestMethod]
+        public void EmptyVariables()
+        {
+            var s = SimulationFactory.When.I.Post().ToImdb("/").Then.Return;
+            Assert.AreEqual(0, s.Variables.Count);
+        }
+
+        [TestMethod]
+        public void AddVariableGuid()
+        {
+            var s = SimulationFactory.When.I.Post().ToImdb("/").Then.Return.With.Variable("TheVar");
+            Assert.AreEqual(1, s.Variables.Count);
+            Assert.AreEqual("TheVar", s.Variables[0].Name);
+            Assert.AreEqual(VariableKind.Guid, s.Variables[0].Kind);
+        }
+
+        [TestMethod]
+        public void AddVariableConstant()
+        {
+            var s = SimulationFactory.When.I.Post().ToImdb("/").Then.Return.With.Variable("TheVar", "TheValue");
+            Assert.AreEqual(1, s.Variables.Count);
+            Assert.AreEqual("TheVar", s.Variables[0].Name);
+            Assert.AreEqual("TheValue", s.Variables[0].Value);
+            Assert.AreEqual(VariableKind.Constant, s.Variables[0].Kind);
+        }
+
+        [TestMethod]
+        public void CalculateVariablesEmpty()
+        {
+            var s = SimulationFactory.When.I.Post().ToImdb("/").Then.Return;
+            var result = s.CalculateVariables();
+            Assert.AreEqual(0, result.Count);
+        }
+
+        [TestMethod]
+        public void CalculateVariablesGuid()
+        {
+            var s = SimulationFactory.When.I.Post().ToImdb("/").Then.Return.With.Variable("TheVar");
+            var result = s.CalculateVariables();
+            Assert.AreEqual(1, result.Count);
+            Guid guid = default(Guid);
+            var valid = System.Guid.TryParse(result["TheVar"], out guid);
+            Assert.IsTrue(valid);
+
+            // Now calculate the variables again - a new Guid should be created. 
+            var result2 = s.CalculateVariables();
+            Assert.AreNotEqual(result["TheVar"], result2["TheVar"]);
+        }
+
+        [TestMethod]
+        public void CalculateVariablesConstant()
+        {
+            var s = SimulationFactory.When.I.Post().ToImdb("/").Then.Return.With.Variable("TheVar", "TheValue");
+            var result = s.CalculateVariables();
+            Assert.AreEqual(1, result.Count);
+            Assert.AreEqual("TheValue", result["TheVar"]);
+        }
+
+
+
+        [TestMethod]
+        public void EmptyProperties()
+        {
+            var s = SimulationFactory.When.I.Post().ToImdb("/").Then.Return;
+            Assert.AreEqual(0, s.Properties.Count);
+        }
+
+        [TestMethod]
+        public void OneProperty()
+        {
+            var s = SimulationFactory.When.I.Post().ToImdb("/").Then.Return.OverrideProperty("A", "B");
+            Assert.AreEqual(1, s.Properties.Count);
+            Assert.AreEqual("A", s.Properties[0].Name);
+            Assert.AreEqual("B", s.Properties[0].Value);
+        }
     }
 }

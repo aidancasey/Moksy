@@ -32,26 +32,54 @@ namespace Moksy.Handlers
             // and so forth. Exactly one value will be returned. The Match algorithm is greedy - it will match the very first one it finds, so add your most
             // specific simulations first. 
             Simulation match = null;
+            Substitution s = new Substitution();
+
             match = Storage.SimulationManager.Instance.Match(request.Method, request.Content, path, headers, true);
             if (match != null)
             {
+                var vars = CreateVariables("", match);
+                vars["requestscheme"] = request.RequestUri.Scheme;
+                vars["requesthost"] = request.RequestUri.Host;
+                vars["requestport"] = request.RequestUri.Port.ToString();
+                vars["requestroot"] = string.Format("{0}://{1}:{2}", request.RequestUri.Scheme, request.RequestUri.Host, request.RequestUri.Port.ToString());
+
+                SubstituteHeaders(vars, match.Response.ResponseHeaders);
+
                 var canned = HttpResponseMessageFactory.New(match.Response);
 
                 if (match.Condition.IsImdb)
                 {
-                    if (match.Condition.HttpMethod == HttpMethod.Post && match.Response.AddImdb)
+                    if (match.Condition.HttpMethod == HttpMethod.Post)
                     {
                         // This rule has been set up with Post().ToImdb() and .AddToImdb() is in the Response. 
                         // We need to extract the body of the Request (which we assume to be Json) and add it to the Imdb. 
                         ByteArrayContent content = request.Content as ByteArrayContent;
+                        string contentAsString = "";
                         if (content != null)
                         {
                             var task = content.ReadAsByteArrayAsync();
                             task.Wait();
 
-                            var contentAsString = new System.Text.ASCIIEncoding().GetString(task.Result);
+                            contentAsString = new System.Text.ASCIIEncoding().GetString(task.Result);
 
+                            contentAsString = SubstituteProperties(contentAsString, vars, match.Response.Properties);
+                            vars["value"] = contentAsString;
+                        }
+
+                        if (match.Response.AddImdb)
+                        {
                             Storage.SimulationManager.Instance.AddToImdb(match, path, contentAsString);
+                        }
+
+                        // We now need to populate the response with any variables that have been set up. 
+                        if (match.Response.Content != null)
+                        {
+                            foreach (var p in match.Response.Properties)
+                            {
+                                vars[p.Name] = p.Value;
+                            }
+                            var result = s.Substitute(match.Response.Content, vars);
+                            canned.Content = new StringContent(result);
                         }
                     }
                     else if (match.Condition.HttpMethod == HttpMethod.Put)
@@ -64,9 +92,10 @@ namespace Moksy.Handlers
                             task.Wait();
 
                             contentAsString = new System.Text.ASCIIEncoding().GetString(task.Result);
+                            contentAsString = SubstituteProperties(contentAsString, vars, match.Response.Properties);
                         }
 
-                        if(match.Response.AddImdb)
+                        if (match.Response.AddImdb)
                         {
                             // This rule has been set up with Put().ToImdb() and .AddToImdb() is in the Response. 
                             // We need to extract the body of the Request (which we assume to be Json) and add it to the Imdb. 
@@ -78,14 +107,11 @@ namespace Moksy.Handlers
                         {
                             if (contentAsString == null) contentAsString = "";
 
-                            Substitution s = new Substitution();
                             var variables = s.GetVariables(responseBody);
                             if (variables.Count > 0)
                             {
                                 // The .Body("...{value}...") might have been specified (but there is at least one placeholder). 
-                                Dictionary<string, string> vars = new Dictionary<string, string>();
                                 vars["value"] = contentAsString;
-
                                 responseBody = s.Substitute(responseBody, vars);
                             }
 
@@ -95,7 +121,6 @@ namespace Moksy.Handlers
                     else if (match.Condition.HttpMethod == HttpMethod.Get)
                     {
                         // This rule has been set up with Get().FromImdb(). The default Body in the Return structure is {value} - ie: the raw value of the stored Json.
-                        Substitution s = new Substitution();
                         var variables = s.GetVariables(match.Condition.Pattern);
                         if (variables.Count == 0)
                         {
@@ -129,9 +154,7 @@ namespace Moksy.Handlers
                                     if (variables.Count > 0)
                                     {
                                         // The .Body("...{value}...") might have been specified (but there is at least one placeholder). 
-                                        Dictionary<string, string> vars = new Dictionary<string, string>();
                                         vars["value"] = content;
-
                                         content = s.Substitute(match.Response.Content, vars);
                                     }
                                     else
@@ -163,9 +186,7 @@ namespace Moksy.Handlers
                             variables = s.GetVariables(match.Response.Content);
                             if (variables.Count > 0)
                             {
-                                Dictionary<string, string> vars = new Dictionary<string, string>();
-                                vars["value"] = string.Format("{0}", candidateValue);
-
+                                vars["value"] = candidateValue;
                                 candidateValue = s.Substitute(match.Response.Content, vars);
                             }
                             else
@@ -195,21 +216,30 @@ namespace Moksy.Handlers
                             {
                                 Storage.SimulationManager.Instance.DeleteFromImdb(HttpMethod.Delete, path, match.Condition.Pattern, headers);
                             }
-                            Substitution s = new Substitution();
                             string candidateValue = "";
                             var variables = s.GetVariables(match.Response.Content);
                             if (variables.Count > 0)
                             {
                                 candidateValue = JsonConvert.SerializeObject(existing);
-
-                                Dictionary<string, string> vars = new Dictionary<string, string>();
-                                vars["value"] = string.Format("{0}", candidateValue);
-
+                                vars["value"] = candidateValue;
                                 candidateValue = s.Substitute(match.Response.Content, vars);
                             }
 
                             canned.Content = new StringContent(candidateValue);
                         }
+                    }
+                }
+                else
+                {
+                    // We have our match - but we need to substitute anything in the content. 
+                    if (match.Response.Content != null)
+                    {
+                        foreach (var p in match.Response.Properties)
+                        {
+                            vars[p.Name] = p.Value;
+                        }
+                        var result = s.Substitute(match.Response.Content, vars);
+                        canned.Content = new StringContent(result);
                     }
                 }
 
@@ -222,5 +252,49 @@ namespace Moksy.Handlers
             var response = Task<HttpResponseMessage>.Factory.StartNew( () => {return message;});
             return response;
         }
+
+        protected Dictionary<string, string> CreateVariables(string value, Simulation s)
+        {
+            Dictionary<string, string> vars = new Dictionary<string, string>();
+            vars["value"] = string.Format("{0}", value);
+
+            var vs = s.Response.CalculateVariables();
+            foreach (var v in vs)
+            {
+                vars[v.Key] = v.Value;
+            }
+
+            return vars;
+        }
+
+        protected string SubstituteProperties(string content, Dictionary<string, string> variables, IEnumerable<Property> properties)
+        {
+            if (null == properties || properties.Count() == 0) return content;
+
+            var result = content;
+
+            JsonHelpers helpers = new JsonHelpers();
+            Substitution s = new Substitution();
+            foreach (var p in properties)
+            {
+                var value = s.Substitute(p.Value, variables);
+                result = helpers.SetProperty(p.Name, value, result);
+            }
+
+            return result;
+        }
+
+        protected void SubstituteHeaders(Dictionary<string, string> variables, IEnumerable<Header> headers)
+        {
+            if (null == headers || headers.Count() == 0) return;
+
+            JsonHelpers helpers = new JsonHelpers();
+            Substitution s = new Substitution();
+            foreach (var h in headers)
+            {
+                h.Value = s.Substitute(h.Value, variables);
+            }
+        }
+
     }
 }
