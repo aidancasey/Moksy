@@ -1,9 +1,4 @@
-TODO: PUT
-TODO: PATCH
-TODO: Refactor IMDB to support nestedness. 
-
-
-MOKSY - V0.1 by Grey Ham (www.twitter.com/brek_it, www.brekit.com, www.havecomputerwillcode.com)
+MOKSY - V0.2 by Grey Ham (www.twitter.com/brek_it, www.brekit.com, www.havecomputerwillcode.com)
 ------------------------------------------------------------------------------------------------
 
 
@@ -32,7 +27,7 @@ For example: assuming a Pet Json structure that has a single property 'Kind':
     "Kind" : "Dog"
 }
 
-Moksy will support Create, Read and Delete functions (POST, GET, DELETE) on that end-point with these simulations and use Kind as the unique index:
+Moksy will support Create, Read and Delete functions (POST, GET, DELETEm PUT) on that end-point with these simulations and use Kind as the unique index:
 
 		SimulationFactory.When.I.Post().ToImdb("/Pet").And.NotExists("Kind").Return.StatusCode(System.Net.HttpStatusCode.Created).And.AddToImdb();
 		SimulationFactory.When.I.Post().ToImdb("/Pet").And.Exists("Kind").Return.StatusCode(System.Net.HttpStatusCode.BadRequest).And.Body("A Pet of that kind already exists");
@@ -43,6 +38,9 @@ Moksy will support Create, Read and Delete functions (POST, GET, DELETE) on that
 
 		SimulationFactory.When.I.Delete().FromImdb("/Pet/{kind}").And.Exists().Then.Return.StatusCode(System.Net.HttpStatusCode.NoContent).And.RemoveFromImdb();
 		SimulationFactory.When.I.Delete().FromImdb("/Pet/{kind}").And.NotExists().Then.Return.StatusCode(System.Net.HttpStatusCode.NoContent);
+
+		SimulationFactory.When.I.Put().ToImdb("/Pet").And.NotExists("Kind").Return.StatusCode(System.Net.HttpStatusCode.Created).And.AddToImdb().And.Body("{value}");
+		SimulationFactory.When.I.Put().ToImdb("/Pet").And.Exists("Kind").Return.StatusCode(System.Net.HttpStatusCode.OK).And.AddToImdb().And.Body("{value}");
 
 Posting the Json structure to http://localhost:10011/Pet will add it to the in memory database; calling GET on http://localhost:10011 will return a comma-separated
 list of the Json entries wrapped in [] to simulate an array. Of course, calling GET on http://localhost:10011/Dog will return just the above structure. 
@@ -72,17 +70,23 @@ tests to pass, you have everything you need to start using Moksy.
  
 
 
+ New in V0.2:
+------------
+- Simulations can now inject values (typically Guids or nested objects) into your Json structures before committing them to the Imdb. Useful for href, identity etc. 
+- Use Variables and Properties to return (for example) the Location of the submitted object in the POST Response header.
+- Refactored a lot of code to do with the parsing
+- PUT is now supported
+
+
+
 LIMITATIONS:
 ------------
-- Very many! This is literally 0.1 :-)
-- For In-Memory Database, only POST, GET and DELETE are supported. PUT and PATCH support will be added in future. 
+- Very many! This is still a work in progress. 
+- For In-Memory Database, only POST, GET, PUT and DELETE are supported. PATCH support will be added in future. 
 - HTTPS is not supported. 
-- All resource paths can currently only contain alphanumeric characters. ie: /Pet('D_*^$%^') is allowed but /_Pet('D_*^$%^') is not. 
 - Only a single placeholder can be specified in the paths. ie: /Pet('{Kind}') is supported but /Pet('{Kind}')/Toy('{Name}') is not. 
-- Everything is 100% case sensitive! 
-- All simulations must be set up as part of a test (typically using MsTest). In future, it will be possible to persist these and enable them programmatically
-- Accessing resources for GET and DELETE can only be done through the URL. ie: GET /Pet('Dog') and not GET /Pet with 'Dog' in the Body. 
-- The Simulations have to be set up using code. 
+- Accessing resources for GET and DELETE can only be done through the URL. ie: GET /Pet('Dog') and not GET /Pet with 'Dog' in the Body or Header. 
+- All Simulations must be set up as part of the test. In future, it will be possible to persist the simulations. 
 
 
 Quick samples:
@@ -156,6 +160,35 @@ Obviously, building up test data is part of the problem - you need to be able to
 Similarly with Delete. 
 
 PUT and PATCH is currently not supported for the Imdb. 
+
+
+
+More Advanced Samples (Variables and Properties)
+------------------------------------------------
+The Problem: [the application is currently limited to GUIDS]
+When we add an object to the Imdb, we sometimes need to give it an identity. This typically a GUID or some hash but is always opaque. As a client, we cannot provide this identity because it is server calculated. 
+
+Moksy can support this by creating a dynamic Variable in the Response and then using the OverrideProperty method to assign that Variable to the value of a Property in the Json. 
+For example:
+
+	When.I.Post().ToImdb("/Pet").And.NotExists("Kind").Then.Return.StatusCode(System.Net.HttpStatusCode.Created).With.Variable("Identity").OverrideProperty("Id", "{Identity}").AddToImdb().Body("{Identity}");
+
+That will set "Id" to a new Guid (the Variable() method will calculate a new Guid on every simulation assuming no hard coded value is provided). Id is then a property of the submitted / stored Json object.
+
+With that in mind, we can 'round trip' by returning the object using that Identity:
+
+	When.I.Get().FromImdb("/Pet/{Id}").And.Exists("Id").Then.Return.StatusCode(System.Net.HttpStatusCode.OK).And.Body("{value}");
+
+Variables are referenced in the Body using {...} notation. There are four variables that are always present to every simulation:
+
+	{requestscheme}			- ie: http
+	{requesthost}			- ie: localhost
+	{requestport}			- ie: 10011
+	{requestroot}			- ie: http://localhost:10011
+
+This information can be used (for example) in 'inject' the Location of an object in a Response header:
+
+	When.I.Post().ToImdb("/Pet").And.NotExists("Kind").Then.Return.StatusCode(System.Net.HttpStatusCode.Created).With.Variable("Identity").OverrideProperty("Id", "{Identity}").AddToImdb().Body("{Identity}").With.Header("Location", "{uriroot}/Pet/{Identity}");
 
 
 
