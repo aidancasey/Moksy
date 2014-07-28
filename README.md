@@ -89,14 +89,3 @@ Many! This is literally v0.1 and does the bare minimum. And the code is a bit of
 However, it is usable - I am using it :-)
 
 See the readme.txt for a key list of limitations. 
-
-
-
-Coming next:
-------------
-The key features I will add shortly are:
-
-1. Specify parameters as part of the URL or as part of the Body.
-2. Turn Swagger specifications into services automatically.
-3. "Dynamic" properties for calculating properties, headers and so forth. 
-4. Leverage header values for Imdb filtering and grouping. 
