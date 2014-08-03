@@ -62,6 +62,7 @@
   </Choose>
   <ItemGroup>
     <Compile Include="ConditionEvaluatorTests.cs" />
+    <Compile Include="ConstraintTests.cs" />
     <Compile Include="DatabaseTests.cs" />
     <Compile Include="JsonHelpersTests.cs" />
     <Compile Include="ResourceMatcherTests.cs" />

@@ -45,7 +45,8 @@ namespace Moksy.Handlers
                     task.Wait();
                     
                     var contentAsString = new System.Text.ASCIIEncoding().GetString(task.Result);
-                    var s = JsonConvert.DeserializeObject<Simulation>(contentAsString);
+                    var settings = new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Objects };
+                    var s = JsonConvert.DeserializeObject<Simulation>(contentAsString, settings);
                     return Create(s, request, cancellationToken);
                 }
             }
@@ -71,7 +72,8 @@ namespace Moksy.Handlers
             HttpResponseMessage message = new HttpResponseMessage(System.Net.HttpStatusCode.OK);
 
             var allSimulations = SimulationManager.Instance.Get();
-            var json = JsonConvert.SerializeObject(allSimulations);
+            var settings = new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Objects };
+            var json = JsonConvert.SerializeObject(allSimulations, settings);
             message.Content = new StringContent(json);
 
             var response = Task<HttpResponseMessage>.Factory.StartNew(() => { return message; });
@@ -90,9 +92,10 @@ namespace Moksy.Handlers
 
             var instance = SimulationManager.Instance.GetByName(name);
             string json = "";
+            var settings = new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Objects };
             if (instance != null)
             {
-                json = JsonConvert.SerializeObject(instance);
+                json = JsonConvert.SerializeObject(instance, settings);
             }
             else
             {

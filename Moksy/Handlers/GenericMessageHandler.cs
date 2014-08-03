@@ -34,7 +34,11 @@ namespace Moksy.Handlers
             Simulation match = null;
             Substitution s = new Substitution();
 
-            match = Storage.SimulationManager.Instance.Match(request.Method, request.Content, path, headers, true);
+            var simulation = Storage.SimulationManager.Instance.Match(request.Method, request.Content, path, headers, true);
+            if(simulation != null)
+            {
+                match= simulation.Simulation;
+            }
             if (match != null)
             {
                 var vars = CreateVariables("", match);

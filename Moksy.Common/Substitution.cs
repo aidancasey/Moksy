@@ -32,7 +32,7 @@ namespace Moksy.Common
 
             System.Text.RegularExpressions.Regex regex = new System.Text.RegularExpressions.Regex("({[A-Za-z0-9]+})+");
             var matches = regex.Matches(content);
-            foreach (Match match in matches)
+            foreach (System.Text.RegularExpressions.Match match in matches)
             {
                 if (match.Success)
                 {

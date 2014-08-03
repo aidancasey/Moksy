@@ -27,7 +27,7 @@ namespace Moksy
         }
 
         public readonly int Port;
-
+        public readonly JsonSerializerSettings JsonSerializerSettings = new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Objects };
 
 
         /// <summary>
@@ -43,7 +43,7 @@ namespace Moksy
             {
                 throw new System.Net.WebException(string.Format("Unable to fetch all resources from {0}. StatusCode returned: {1}, Content: {2}", Root, response.StatusCode, response.Content));
             }
-            var result = JsonConvert.DeserializeObject<SimulationCollection>(response.Content);
+            var result = JsonConvert.DeserializeObject<SimulationCollection>(response.Content, JsonSerializerSettings);
             return result;
         }
 
@@ -63,7 +63,7 @@ namespace Moksy
             var response = client.Execute(request);
             if (response.StatusCode == HttpStatusCode.NotFound) return null;
 
-            var result = JsonConvert.DeserializeObject<Simulation>(response.Content);
+            var result = JsonConvert.DeserializeObject<Simulation>(response.Content, JsonSerializerSettings);
             return result;
         }
 
@@ -133,7 +133,7 @@ namespace Moksy
 
             RestSharp.IRestClient client = new RestSharp.RestClient(Root);
             RestSharp.IRestRequest request = new RestSharp.RestRequest(path, RestSharp.Method.POST);
-            request.AddParameter("application/json", JsonConvert.SerializeObject(simulation), RestSharp.ParameterType.RequestBody);
+            request.AddParameter("application/json", JsonConvert.SerializeObject(simulation, JsonSerializerSettings), RestSharp.ParameterType.RequestBody);
             var response = client.Execute(request);
             return response.StatusCode;
         }

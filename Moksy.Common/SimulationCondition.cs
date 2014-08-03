@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Moksy.Common.Constraints;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -192,6 +193,77 @@ namespace Moksy.Common
                 RequestHeadersStorage = new List<Header>();
                 if (null == value) return;
                 RequestHeadersStorage.AddRange(value);
+            }
+        }
+
+
+
+        /// <summary>
+        /// Add a Constraint to the collection. 
+        /// </summary>
+        /// <param name="b">The constraint. </param>
+        /// <returns></returns>
+        public SimulationCondition Constraint(ConstraintBase b)
+        {
+            if (null == b) return this;
+            ConstraintStorage.Add(b);
+            return this;
+        }
+
+        /// <summary>
+        /// Add zero or more constraints to the collection. 
+        /// </summary>
+        /// <param name="bs"></param>
+        /// <returns></returns>
+        public SimulationCondition Constraint(IEnumerable<ConstraintBase> bs)
+        {
+            if (null == bs) return this;
+            foreach (var b in bs)
+            {
+                if (null == b) continue;
+                ConstraintStorage.Add(b);
+            }
+            return this;
+        }
+        
+
+
+        /// <summary>
+        /// Any constraints to be applied to this condition. 
+        /// </summary>
+        [JsonIgnore]
+        public List<ConstraintBase> Constraints
+        {
+            get
+            {
+                var result = new List<ConstraintBase>(ConstraintStorage);
+                return result;
+            }
+            set
+            {
+                if (value == null)
+                {
+                    ConstraintStorage = new List<ConstraintBase>();
+                    return;
+                }
+
+                ConstraintStorage.Clear();
+                ConstraintStorage.AddRange(value);
+            }
+        }
+
+        [JsonProperty("constraints")]
+        public ConstraintBase[] ConstraintsForJson
+        {
+            get
+            {
+                return ConstraintStorage.ToArray();
+            }
+            set
+            {
+                ConstraintStorage = new List<ConstraintBase>();
+                if (null == value) return;
+                ConstraintStorage.AddRange(value);
             }
         }
 
@@ -460,5 +532,10 @@ namespace Moksy.Common
         /// Storage for the header
         /// </summary>
         private List<Header> RequestHeadersStorage = new List<Header>();
+
+        /// <summary>
+        /// Storage for all constraints. 
+        /// </summary>
+        private List<ConstraintBase> ConstraintStorage = new List<ConstraintBase>();
     }
 }

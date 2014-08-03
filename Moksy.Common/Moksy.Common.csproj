@@ -48,7 +48,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Constraints\ConstraintBase.cs" />
+    <Compile Include="Constraints\LengthConstraint.cs" />
+    <Compile Include="Constraints\IsEmptyConstraint.cs" />
+    <Compile Include="Constraints\IsNullConstraint.cs" />
+    <Compile Include="Constraints\LengthKind.cs" />
     <Compile Include="ContentKind.cs" />
+    <Compile Include="Match.cs" />
     <Compile Include="Persistence.cs" />
     <Compile Include="Property.cs" />
     <Compile Include="Proxy.cs" />

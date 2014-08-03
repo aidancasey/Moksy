@@ -1,4 +1,5 @@
 ﻿using Moksy.Common;
+using Moksy.Common.Constraints;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -326,7 +327,7 @@ namespace Moksy.Storage
         /// <param name="path"></param>
         /// <param name="headers"></param>
         /// <returns></returns>
-        public Simulation Match(System.Net.Http.HttpMethod method, HttpContent content, string path, IEnumerable<Header> headers, bool decrement)
+        public Moksy.Common.Match Match(System.Net.Http.HttpMethod method, HttpContent content, string path, IEnumerable<Header> headers, bool decrement)
         {
             lock (Storage.SyncRoot)
             {
@@ -338,42 +339,66 @@ namespace Moksy.Storage
                 {
                     if (method == HttpMethod.Post || method == HttpMethod.Put)
                     {
+                        string contentAsString = "";
+
+                        ByteArrayContent c = content as ByteArrayContent;
+                        if (c != null)
+                        {
+                            var task = c.ReadAsByteArrayAsync();
+                            task.Wait();
+
+                            contentAsString = new System.Text.ASCIIEncoding().GetString(task.Result);
+                        }
+
+                        var matchingConstraints = FindMatchingConstraints(match.Condition.Constraints, contentAsString);
+                        if (match.Condition.Constraints.Count > 0 && matchingConstraints.Count() != match.Condition.Constraints.Count)
+                        {
+                            continue;
+                        }
+
                         if (match.Condition.IndexProperty != null)
                         {
                             // NOTE: IndexProperty != null implies that a uniqueness constraint has been applied. 
-                            ByteArrayContent c = content as ByteArrayContent;
-                            if (c != null)
+
+                            // Can we add this new object?
+                            bool canAddObject = CanAddObject(match, path, match.Condition.IndexProperty, contentAsString);
+                            if (match.Condition.Persistence == Persistence.NotExists)
                             {
-                                var task = c.ReadAsByteArrayAsync();
-                                task.Wait();
-
-                                var contentAsString = new System.Text.ASCIIEncoding().GetString(task.Result);
-
-                                // Can we add this new object?
-                                bool canAddObject = CanAddObject(match, path, match.Condition.IndexProperty, contentAsString);
-                                if (match.Condition.Persistence == Persistence.NotExists)
+                                if (canAddObject)
                                 {
-                                    if (canAddObject)
-                                    {
-                                        // An object with this property does not exist, therefore we can add it. 
-                                        return match;
-                                    }
-
-                                    continue;
-                                }
-                                if (match.Condition.Persistence == Persistence.Exists)
-                                {
-                                    if (!canAddObject)
-                                    {
-                                        // The property already exists because we can't add it. We therefore have a match. 
-                                        return match;
-                                    }
-
-                                    continue;
+                                    // An object with this property does not exist, therefore we can add it. 
+                                    var t = new Common.Match() { Simulation = match };
+                                    t.Violations.AddRange(matchingConstraints);
+                                    return t;
                                 }
 
                                 continue;
                             }
+                            if (match.Condition.Persistence == Persistence.Exists)
+                            {
+                                if (!canAddObject)
+                                {
+                                    // The property already exists because we can't add it. We therefore have a match. 
+                                    var t = new Common.Match() { Simulation = match };
+                                    t.Violations.AddRange(matchingConstraints);
+                                    return t;
+                                }
+
+                                continue;
+                            }
+
+                            continue;
+                        }
+                        else
+                        {
+                            var t = new Common.Match() { Simulation = match };
+
+                            var ms = FindMatchingConstraints(match.Condition.Constraints, contentAsString);
+                            if (ms.Count() > 0)
+                            {
+                                t.Violations.AddRange(ms);
+                            }
+                            return t;
                         }
                     }
                     if (match.Condition.HttpMethod == HttpMethod.Get)
@@ -386,7 +411,9 @@ namespace Moksy.Storage
                             {
                                 continue;
                             }
-                            return result;
+
+                            var t = new Common.Match() { Simulation = result };
+                            return t;
                         }
                     }
                     if (match.Condition.HttpMethod == HttpMethod.Delete)
@@ -399,7 +426,9 @@ namespace Moksy.Storage
                             {
                                 continue;
                             }
-                            return result;
+
+                            var t = new Common.Match() { Simulation = result };
+                            return t;
                         }
                     }
 
@@ -412,7 +441,8 @@ namespace Moksy.Storage
                         }
                     }
 
-                    return match;
+                    var t2 = new Common.Match() { Simulation = match };
+                    return t2;
                 }
 
                 return null;
@@ -754,6 +784,41 @@ namespace Moksy.Storage
 
                 return true;
             }
+        }
+
+        /// <summary>
+        /// Will match 
+        /// </summary>
+        /// <param name="content"></param>
+        /// <returns></returns>
+        public IEnumerable<ConstraintBase> FindMatchingConstraints(IEnumerable<ConstraintBase> constraints, string content)
+        {
+            List<ConstraintBase> result = new List<ConstraintBase>();
+            if (constraints == null) return result;
+            if (content == null) return result;
+
+            JObject jobject = null;
+            try
+            {
+                jobject = JsonConvert.DeserializeObject(content) as JObject;
+
+            }
+            catch(Exception ex)
+            {
+            }
+
+            if(jobject == null) return result;
+
+            foreach (var c in constraints)
+            {
+                var e = c.Evaluate(jobject);
+                if (e)
+                {
+                    result.Add(c);
+                }
+            }
+
+            return result;
         }
 
         private SimulationCollection Storage;

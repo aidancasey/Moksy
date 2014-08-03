@@ -1,5 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moksy.Common;
+using Moksy.Common.Constraints;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -908,5 +909,41 @@ namespace Moksy.IntegrationTest
             Assert.AreEqual(System.Net.HttpStatusCode.OK, response.StatusCode);
             Assert.IsTrue(response.Content.Contains(guid));
         }
+
+
+
+        #region Constraints
+
+        [TestMethod]
+        public void ConstraintIsMatched()
+        {
+            var simulation1 = Moksy.Common.SimulationFactory.When.I.Post().ToImdb("/Pet").AsJson().And.NotExists("{Kind}").With.Constraint(new LengthConstraint("Kind", 3)).Then.Return.StatusCode(System.Net.HttpStatusCode.LengthRequired);
+            Proxy.Add(simulation1);
+
+            var response = Post("/Pet", @"{ ""Kind"" : ""Cat"" }");
+            Assert.AreEqual(System.Net.HttpStatusCode.LengthRequired, response.StatusCode);
+        }
+
+        [TestMethod]
+        public void BothConstraintsAreMatched()
+        {
+            var simulation1 = Moksy.Common.SimulationFactory.When.I.Post().ToImdb("/Pet").AsJson().And.NotExists("{Kind}").With.Constraint(new LengthConstraint("Kind", 3)).And.Constraint(new LengthConstraint("Name", 8)).Then.Return.StatusCode(System.Net.HttpStatusCode.LengthRequired);
+            Proxy.Add(simulation1);
+
+            var response = Post("/Pet", @"{ ""Kind"" : ""Cat"", ""Name"":""Garfield"" }");
+            Assert.AreEqual(System.Net.HttpStatusCode.LengthRequired, response.StatusCode);
+        }
+
+        [TestMethod]
+        public void OneOfTwoConstraintsAreMatched()
+        {
+            var simulation1 = Moksy.Common.SimulationFactory.When.I.Post().ToImdb("/Pet").AsJson().And.NotExists("{Kind}").With.Constraint(new LengthConstraint("Kind", 3)).And.Constraint(new LengthConstraint("Name", 8)).Then.Return.StatusCode(System.Net.HttpStatusCode.LengthRequired);
+            Proxy.Add(simulation1);
+
+            var response = Post("/Pet", @"{ ""Kind"" : ""Cat"", ""Name"":""Kitty"" }");
+            Assert.AreNotEqual(System.Net.HttpStatusCode.LengthRequired, response.StatusCode);
+        }
+
+        #endregion
     }
 }

@@ -47,7 +47,7 @@ namespace Moksy.Common
             var matches = r.Matches(pattern);
             if (matches.Count == 0) return result;
 
-            foreach (Match match in matches)
+            foreach (System.Text.RegularExpressions.Match match in matches)
             {
                 int offset = 1;
 
@@ -193,7 +193,7 @@ namespace Moksy.Common
             var matches = r.Matches(pattern);
 
             StringBuilder b = new StringBuilder();
-            foreach (Match m in matches)
+            foreach (System.Text.RegularExpressions.Match m in matches)
             {
                 vars = s.GetVariables(m.Value);
                 if (vars.Count == 0)
