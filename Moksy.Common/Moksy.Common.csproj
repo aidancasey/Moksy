@@ -49,10 +49,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Constraints\ConstraintBase.cs" />
-    <Compile Include="Constraints\LengthConstraint.cs" />
-    <Compile Include="Constraints\IsEmptyConstraint.cs" />
+    <Compile Include="Constraints\LengthBetweenConstraint.cs" />
+    <Compile Include="Constraints\LengthGreaterThanConstraint.cs" />
+    <Compile Include="Constraints\LengthLessThanConstraint.cs" />
+    <Compile Include="Constraints\LengthNotEqualsConstraint.cs" />
+    <Compile Include="Constraints\LengthEqualsConstraint.cs" />
+    <Compile Include="Constraints\LengthLessThanOrGreaterThanConstraint.cs" />
+    <Compile Include="Constraints\IsMissingConstraint.cs" />
     <Compile Include="Constraints\IsNullConstraint.cs" />
-    <Compile Include="Constraints\LengthKind.cs" />
     <Compile Include="ContentKind.cs" />
     <Compile Include="Match.cs" />
     <Compile Include="Persistence.cs" />
@@ -71,6 +75,7 @@
     <Compile Include="SimulationResponse.cs" />
     <Compile Include="Substitution.cs" />
     <Compile Include="RouteParser.cs" />
+    <Compile Include="SubstitutionVariable.cs" />
     <Compile Include="Variable.cs" />
     <Compile Include="VariableKind.cs" />
   </ItemGroup>

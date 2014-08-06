@@ -199,7 +199,7 @@ namespace Moksy.Common
 
 
         /// <summary>
-        /// Add a Constraint to the collection. 
+        /// Add an assertion to the collection. 
         /// </summary>
         /// <param name="b">The constraint. </param>
         /// <returns></returns>
@@ -211,7 +211,7 @@ namespace Moksy.Common
         }
 
         /// <summary>
-        /// Add zero or more constraints to the collection. 
+        /// Add zero or more assertions to the collection. 
         /// </summary>
         /// <param name="bs"></param>
         /// <returns></returns>
@@ -223,6 +223,19 @@ namespace Moksy.Common
                 if (null == b) continue;
                 ConstraintStorage.Add(b);
             }
+            return this;
+        }
+
+
+
+        /// <summary>
+        /// Indicates that this rule will be matched only if there are one or more violations in the Constraint evaluations. This can be used to return a collection of error
+        /// messages from the service. 
+        /// </summary>
+        /// <returns></returns>
+        public SimulationCondition HasConstraintViolations()
+        {
+            HasAnyConstraintViolations = true;
             return this;
         }
         
@@ -267,6 +280,9 @@ namespace Moksy.Common
             }
         }
 
+        [JsonProperty(PropertyName = "hasConstraintViolations")]
+        public bool HasAnyConstraintViolations { get; set; }
+
         /// <summary>
         /// Indicates that the object referenced using a {placeholder} in the Path exists as part of the condition. 
         /// </summary>
@@ -279,7 +295,7 @@ namespace Moksy.Common
             var vars = s.GetVariables(Pattern);
             if (vars.Count() != 1) { throw new System.InvalidOperationException(@"ERROR: To use Exists(), the Path parameter must contain at least one placeholder. ie: When.I.Get().From(""/Endpoint({id})"")"); }
 
-            IndexProperty = string.Format("{0}", vars.First().Key);
+            IndexProperty = string.Format("{0}", vars.First().Name);
 
             Persistence = Common.Persistence.Exists;
             return this;
@@ -297,7 +313,7 @@ namespace Moksy.Common
             var vars = s.GetVariables(Pattern);
             if (vars.Count() != 1) { throw new System.InvalidOperationException(@"ERROR: To use Exists(), the Path parameter must contain at least one placeholder. ie: When.I.Get().From(""/Endpoint({id})"")"); }
 
-            IndexProperty = string.Format("{0}", vars.First().Key);
+            IndexProperty = string.Format("{0}", vars.First().Name);
 
             Persistence = Common.Persistence.NotExists;
             return this;

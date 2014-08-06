@@ -25,9 +25,9 @@ namespace Moksy.Common
         /// </summary>
         /// <param name="content"></param>
         /// <returns></returns>
-        public Dictionary<string, int> GetVariables(string content)
+        public List<SubstitutionVariable> GetVariables(string content)
         {
-            var result = new Dictionary<string, int>(StringComparer.InvariantCultureIgnoreCase);
+            var result = new List<SubstitutionVariable>();
             if (null == content) return result;
 
             System.Text.RegularExpressions.Regex regex = new System.Text.RegularExpressions.Regex("({[A-Za-z0-9]+})+");
@@ -38,7 +38,12 @@ namespace Moksy.Common
                 {
                     foreach (Group g in match.Groups)
                     {
-                        result[g.Value.Replace("{", "").Replace("}", "")] = g.Index;
+                        var key = g.Value.Replace("{", "").Replace("}", "");
+                        var existing = result.FirstOrDefault(f => f.Name == key && f.Position == g.Index);
+                        if (existing != null) continue;
+
+                        SubstitutionVariable v = new SubstitutionVariable() { Name = key, Position = g.Index };
+                        result.Add(v);
                     }
                 }
             }
@@ -70,19 +75,19 @@ namespace Moksy.Common
             int startIndex = 0;
             foreach (var var in vars)
             {
-                var c = result.Substring(startIndex, var.Value - startIndex);
+                var c = result.Substring(startIndex, var.Position - startIndex);
                 components.Add(c);
                 startIndex += c.Length;
 
-                if (pairs.ContainsKey(var.Key))
+                if (pairs.ContainsKey(var.Name))
                 {
-                    components.Add(pairs[var.Key]);
+                    components.Add(pairs[var.Name]);
                 }
                 else
                 {
-                    components.Add(string.Format("{{{0}}}", var.Key));
+                    components.Add(string.Format("{{{0}}}", var.Name));
                 }
-                startIndex += var.Key.Length + 2;
+                startIndex += var.Name.Length + 2;
             }
             components.Add(result.Substring(startIndex));
 

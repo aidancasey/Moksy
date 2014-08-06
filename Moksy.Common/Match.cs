@@ -17,7 +17,8 @@ namespace Moksy.Common
         /// </summary>
         public Match()
         {
-            Violations = new List<ConstraintBase>();
+            EvaluatedMatchingConstraints = new List<ConstraintBase>();
+            EvaluatedNoneMatchingConstraints = new List<ConstraintBase>();
         }
 
         /// <summary>
@@ -26,8 +27,13 @@ namespace Moksy.Common
         public Simulation Simulation { get; set; }
 
         /// <summary>
-        /// Any 
+        /// Any constraints that evaluted to true for this object. 
         /// </summary>
-        public readonly List<ConstraintBase> Violations;
+        public readonly List<ConstraintBase> EvaluatedMatchingConstraints;
+
+        /// <summary>
+        /// Any constraints that evaluated to false for this object. 
+        /// </summary>
+        public readonly List<ConstraintBase> EvaluatedNoneMatchingConstraints;
     }
 }

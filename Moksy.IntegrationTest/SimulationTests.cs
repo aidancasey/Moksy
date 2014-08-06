@@ -917,7 +917,7 @@ namespace Moksy.IntegrationTest
         [TestMethod]
         public void ConstraintIsMatched()
         {
-            var simulation1 = Moksy.Common.SimulationFactory.When.I.Post().ToImdb("/Pet").AsJson().And.NotExists("{Kind}").With.Constraint(new LengthConstraint("Kind", 3)).Then.Return.StatusCode(System.Net.HttpStatusCode.LengthRequired);
+            var simulation1 = Moksy.Common.SimulationFactory.When.I.Post().ToImdb("/Pet").AsJson().And.NotExists("{Kind}").With.Constraint(new LengthEqualsConstraint("Kind", 3)).Then.Return.StatusCode(System.Net.HttpStatusCode.LengthRequired);
             Proxy.Add(simulation1);
 
             var response = Post("/Pet", @"{ ""Kind"" : ""Cat"" }");
@@ -927,7 +927,7 @@ namespace Moksy.IntegrationTest
         [TestMethod]
         public void BothConstraintsAreMatched()
         {
-            var simulation1 = Moksy.Common.SimulationFactory.When.I.Post().ToImdb("/Pet").AsJson().And.NotExists("{Kind}").With.Constraint(new LengthConstraint("Kind", 3)).And.Constraint(new LengthConstraint("Name", 8)).Then.Return.StatusCode(System.Net.HttpStatusCode.LengthRequired);
+            var simulation1 = Moksy.Common.SimulationFactory.When.I.Post().ToImdb("/Pet").AsJson().And.NotExists("{Kind}").With.Constraint(new LengthEqualsConstraint("Kind", 3)).And.Constraint(new LengthEqualsConstraint("Name", 8)).Then.Return.StatusCode(System.Net.HttpStatusCode.LengthRequired);
             Proxy.Add(simulation1);
 
             var response = Post("/Pet", @"{ ""Kind"" : ""Cat"", ""Name"":""Garfield"" }");
@@ -937,13 +937,70 @@ namespace Moksy.IntegrationTest
         [TestMethod]
         public void OneOfTwoConstraintsAreMatched()
         {
-            var simulation1 = Moksy.Common.SimulationFactory.When.I.Post().ToImdb("/Pet").AsJson().And.NotExists("{Kind}").With.Constraint(new LengthConstraint("Kind", 3)).And.Constraint(new LengthConstraint("Name", 8)).Then.Return.StatusCode(System.Net.HttpStatusCode.LengthRequired);
+            var simulation1 = Moksy.Common.SimulationFactory.When.I.Post().ToImdb("/Pet").AsJson().And.NotExists("{Kind}").With.Constraint(new LengthEqualsConstraint("Kind", 3)).And.Constraint(new LengthEqualsConstraint("Name", 8)).Then.Return.StatusCode(System.Net.HttpStatusCode.LengthRequired);
             Proxy.Add(simulation1);
 
             var response = Post("/Pet", @"{ ""Kind"" : ""Cat"", ""Name"":""Kitty"" }");
             Assert.AreNotEqual(System.Net.HttpStatusCode.LengthRequired, response.StatusCode);
         }
 
+
+
+        [TestMethod]
+        public void NoConstraintsAreMatchedReturnsEmptyArrayAsBody()
+        {
+            var simulation1 = Moksy.Common.SimulationFactory.When.I.Post().ToImdb("/Pet").AsJson().And.NotExists("{Kind}").Then.Return.StatusCode(System.Net.HttpStatusCode.LengthRequired).With.Body("{matchingConstraints}").And.AddToImdb();
+            Proxy.Add(simulation1);
+
+            var response = Post("/Pet", @"{ ""Kind"" : ""Cat"", ""Name"":""Kitty"" }");
+            Assert.AreEqual(System.Net.HttpStatusCode.LengthRequired, response.StatusCode);
+            Assert.AreEqual("[]", response.Content);
+        }
+
+        [TestMethod]
+        public void OneMatchingConstraintIsMetAndReturned()
+        {
+            var simulation1 = Moksy.Common.SimulationFactory.When.I.Post().ToImdb("/Pet").AsJson().And.NotExists("{Kind}").With.Constraint(new LengthEqualsConstraint("Kind", 5)).Then.Return.StatusCode(System.Net.HttpStatusCode.LengthRequired).With.Body("{matchingConstraints}-{nonMatchingConstraints}").And.AddToImdb();
+            Proxy.Add(simulation1);
+
+            var response = Post("/Pet", @"{ ""Kind"" : ""Horse"", ""Name"":""Sir Ed"" }");
+            Assert.AreEqual(System.Net.HttpStatusCode.LengthRequired, response.StatusCode);
+            Assert.AreEqual(@"[{""Name"":""Length"",""PropertyName"":""Kind"",""Kind"":""Equals"",""ExpectedLength"":5,""ActualLength"":5,""PropertyValue"":""Horse"",""PropertyHasValue"":true,""Description"":""The property 'Kind' was expected to be of length '5'.""}]-[]", response.Content);
+        }
+
+        [TestMethod]
+        public void NoMatchingConstraintsAreMetOrReturned()
+        {
+            var simulation1 = Moksy.Common.SimulationFactory.When.I.Post().ToImdb("/Pet").AsJson().And.NotExists("{Kind}").With.Constraint(new LengthEqualsConstraint("Kind", 5)).And.HasConstraintViolations().Then.Return.StatusCode(System.Net.HttpStatusCode.LengthRequired).With.Body("{matchingConstraints}-{nonMatchingConstraints}").And.AddToImdb();
+            Proxy.Add(simulation1);
+
+            var response = Post("/Pet", @"{ ""Kind"" : ""Horse"", ""Name"":""Sir Ed"" }");
+            Assert.AreEqual(System.Net.HttpStatusCode.NotImplemented, response.StatusCode);
+        }
+
+        [TestMethod]
+        public void OneMatchingViolationIsReturned()
+        {
+            var simulation1 = Moksy.Common.SimulationFactory.When.I.Post().ToImdb("/Pet").AsJson().And.NotExists("{Kind}").With.Constraint(new LengthEqualsConstraint("Kind", 5)).And.HasConstraintViolations().Then.Return.StatusCode(System.Net.HttpStatusCode.LengthRequired).With.Body("{matchingConstraints}-{noneMatchingConstraints}").And.AddToImdb();
+            Proxy.Add(simulation1);
+
+            var response = Post("/Pet", @"{ ""Kind"" : ""Cat"", ""Name"":""Sir Ed"" }");
+            Assert.AreEqual(System.Net.HttpStatusCode.LengthRequired, response.StatusCode);
+            Assert.AreEqual(@"[]-[{""Name"":""Length"",""PropertyName"":""Kind"",""Kind"":""Equals"",""ExpectedLength"":5,""ActualLength"":3,""PropertyValue"":""Cat"",""PropertyHasValue"":true,""Description"":""The property 'Kind' was expected to be of length '5'.""}]", response.Content);
+        }
+
+        [TestMethod]
+        public void OneMatchingViolationBetweenIsReturned()
+        {
+            var simulation1 = Moksy.Common.SimulationFactory.When.I.Post().ToImdb("/Pet").AsJson().And.NotExists("{Kind}").With.Constraint(new LengthBetweenConstraint("Kind", 5, 8)).And.HasConstraintViolations().Then.Return.StatusCode(System.Net.HttpStatusCode.LengthRequired).With.Body("{matchingConstraints}-{noneMatchingConstraints}").And.AddToImdb();
+            Proxy.Add(simulation1);
+
+            var response = Post("/Pet", @"{ ""Kind"" : ""Cat"", ""Name"":""Sir"" }");
+            Assert.AreEqual(System.Net.HttpStatusCode.LengthRequired, response.StatusCode);
+            Assert.AreEqual(@"[]-[{""Name"":""Length"",""PropertyName"":""Kind"",""Kind"":""Between"",""MinimumLength"":5,""MaximumLength"":8,""ActualLength"":3,""PropertyValue"":""Cat"",""PropertyHasValue"":true,""Description"":""The property 'Kind' was expected to be between '5' and '8' characters in length (inclusive).""}]", response.Content);
+        }
+
         #endregion
+
     }
 }

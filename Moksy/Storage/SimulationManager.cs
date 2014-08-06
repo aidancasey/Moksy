@@ -77,7 +77,7 @@ namespace Moksy.Storage
                         var vars = new Substitution().GetVariables(match.Condition.Pattern);
                         if (vars.Count() > 0)
                         {
-                            var result = MatchesGetFromImdb(match, path, vars.First().Key);
+                            var result = MatchesGetFromImdb(match, path, vars.First().Name);
                             return result;
                         }
                     }
@@ -212,7 +212,7 @@ namespace Moksy.Storage
                 var value = path.Substring(result.Groups[2].Index, result.Groups[2].Length);
                 if (value == null) return null;
 
-                var existingJson = FindMatch(path, match.Condition.Pattern, vars.First().Key, value);
+                var existingJson = FindMatch(path, match.Condition.Pattern, vars.First().Name, value);
                 return existingJson;
             }
         }
@@ -261,7 +261,7 @@ namespace Moksy.Storage
                     var value = path.Substring(result.Groups[2].Index, result.Groups[2].Length);
                     if (value == null) return false;
 
-                    var removed = Remove(path, pattern, vars.First().Key, value);
+                    var removed = Remove(path, pattern, vars.First().Name, value);
                     return removed;
                 }
             }
@@ -350,10 +350,25 @@ namespace Moksy.Storage
                             contentAsString = new System.Text.ASCIIEncoding().GetString(task.Result);
                         }
 
-                        var matchingConstraints = FindMatchingConstraints(match.Condition.Constraints, contentAsString);
-                        if (match.Condition.Constraints.Count > 0 && matchingConstraints.Count() != match.Condition.Constraints.Count)
+                        var matchingAssertions = FindMatchingConstraints(match.Condition.Constraints, contentAsString);
+                        var noneMatchingAsserations = FindNoneMatchingConstraints(match.Condition.Constraints, contentAsString);
+                        if (match.Condition.Constraints.Count > 0 && matchingAssertions.Count() != match.Condition.Constraints.Count)
                         {
-                            continue;
+                            // This means that not every constraint that was specified was matched
+                            // If .HasAnyConstraintViolations() is specified, this means it is OK to continue matching. 
+                            if (match.Condition.HasAnyConstraintViolations)
+                            {
+                            }
+                            else
+                            {
+                                // We want all constraints to be matched to continue. 
+                                continue;
+                            }
+                        }
+                        else
+                        {
+                            // All constraints have been met. 
+                            if (match.Condition.HasAnyConstraintViolations) continue;
                         }
 
                         if (match.Condition.IndexProperty != null)
@@ -368,7 +383,8 @@ namespace Moksy.Storage
                                 {
                                     // An object with this property does not exist, therefore we can add it. 
                                     var t = new Common.Match() { Simulation = match };
-                                    t.Violations.AddRange(matchingConstraints);
+                                    t.EvaluatedMatchingConstraints.AddRange(matchingAssertions);
+                                    t.EvaluatedNoneMatchingConstraints.AddRange(noneMatchingAsserations);
                                     return t;
                                 }
 
@@ -380,7 +396,8 @@ namespace Moksy.Storage
                                 {
                                     // The property already exists because we can't add it. We therefore have a match. 
                                     var t = new Common.Match() { Simulation = match };
-                                    t.Violations.AddRange(matchingConstraints);
+                                    t.EvaluatedMatchingConstraints.AddRange(matchingAssertions);
+                                    t.EvaluatedNoneMatchingConstraints.AddRange(noneMatchingAsserations);
                                     return t;
                                 }
 
@@ -393,10 +410,10 @@ namespace Moksy.Storage
                         {
                             var t = new Common.Match() { Simulation = match };
 
-                            var ms = FindMatchingConstraints(match.Condition.Constraints, contentAsString);
-                            if (ms.Count() > 0)
+                            if (matchingAssertions.Count() > 0)
                             {
-                                t.Violations.AddRange(ms);
+                                t.EvaluatedMatchingConstraints.AddRange(matchingAssertions);
+                                t.EvaluatedNoneMatchingConstraints.AddRange(noneMatchingAsserations);
                             }
                             return t;
                         }
@@ -406,7 +423,7 @@ namespace Moksy.Storage
                         var vars = new Substitution().GetVariables(match.Condition.Pattern);
                         if (vars.Count() > 0)
                         {
-                            var result = MatchesGetFromImdb(match, path, vars.First().Key);
+                            var result = MatchesGetFromImdb(match, path, vars.First().Name);
                             if (null == result)
                             {
                                 continue;
@@ -421,7 +438,7 @@ namespace Moksy.Storage
                         var vars = new Substitution().GetVariables(match.Condition.Pattern);
                         if (vars.Count() > 0)
                         {
-                            var result = MatchesGetFromImdb(match, path, vars.First().Key);
+                            var result = MatchesGetFromImdb(match, path, vars.First().Name);
                             if (null == result)
                             {
                                 continue;
@@ -814,6 +831,43 @@ namespace Moksy.Storage
                 var e = c.Evaluate(jobject);
                 if (e)
                 {
+                    c.EvaluatedResponse = c.GetState(jobject);
+                    result.Add(c);
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Will match 
+        /// </summary>
+        /// <param name="content"></param>
+        /// <returns></returns>
+        public IEnumerable<ConstraintBase> FindNoneMatchingConstraints(IEnumerable<ConstraintBase> constraints, string content)
+        {
+            List<ConstraintBase> result = new List<ConstraintBase>();
+            if (constraints == null) return result;
+            if (content == null) return result;
+
+            JObject jobject = null;
+            try
+            {
+                jobject = JsonConvert.DeserializeObject(content) as JObject;
+
+            }
+            catch (Exception ex)
+            {
+            }
+
+            if (jobject == null) return result;
+
+            foreach (var c in constraints)
+            {
+                var e = c.Evaluate(jobject);
+                if (!e)
+                {
+                    c.EvaluatedResponse = c.GetState(jobject);
                     result.Add(c);
                 }
             }

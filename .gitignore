@@ -11,3 +11,7 @@ Moksy/bin/
 Moksy/obj/
 packages/
 *.suo
+NugetStage/
+TestResults/
+*.exe
+*.nuspec

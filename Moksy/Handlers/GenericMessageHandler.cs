@@ -47,6 +47,15 @@ namespace Moksy.Handlers
                 vars["requestport"] = request.RequestUri.Port.ToString();
                 vars["requestroot"] = string.Format("{0}://{1}:{2}", request.RequestUri.Scheme, request.RequestUri.Host, request.RequestUri.Port.ToString());
 
+                var evaluatedMatchingResponses = from T in simulation.EvaluatedMatchingConstraints select T.EvaluatedResponse;
+                var evaluatedMatchingResponsesAsString = string.Join(",", evaluatedMatchingResponses.ToArray());
+                vars["matchingConstraints"] = string.Format("[{0}]", evaluatedMatchingResponsesAsString);
+
+                var evaluatedNoneMatchingResponses = from T in simulation.EvaluatedNoneMatchingConstraints select T.EvaluatedResponse;
+                var evaluatedNoneMatchingResponsesAsString = string.Join(",", evaluatedNoneMatchingResponses.ToArray());
+                vars["noneMatchingConstraints"] = string.Format("[{0}]", evaluatedNoneMatchingResponsesAsString);
+                vars["nonMatchingConstraints"] = string.Format("[{0}]", evaluatedNoneMatchingResponsesAsString);
+
                 SubstituteHeaders(vars, match.Response.ResponseHeaders);
 
                 var canned = HttpResponseMessageFactory.New(match.Response);

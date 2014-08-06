@@ -204,10 +204,10 @@ namespace Moksy.Common
                 
                 foreach (var v in vars)
                 {
-                    var fullVariable = string.Format("{{{0}}}", v.Key);
-                    var start = m.Value.Substring(0, v.Value);
+                    var fullVariable = string.Format("{{{0}}}", v.Name);
+                    var start = m.Value.Substring(0, v.Position);
                     var regex = ".*?";
-                    var end = m.Value.Substring(v.Value + fullVariable.Length);
+                    var end = m.Value.Substring(v.Position + fullVariable.Length);
 
                     b.AppendFormat("({0})({1})({2})", Regex.Escape(start), regex, Regex.Escape(end));
                 }

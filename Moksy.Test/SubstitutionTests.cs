@@ -72,18 +72,8 @@ namespace Moksy.Test
             var result = Substitution.GetVariables("Woo{myVar}Hoo");
             Assert.AreEqual(1, result.Count);
 
-            var position = result["myVar"];
-            Assert.AreEqual(3, position);
-        }
-
-        [TestMethod]
-        public void ExtractVariablesOneVariableSpecifiedCaseInsensitive()
-        {
-            var result = Substitution.GetVariables("Woo{myVar}Hoo");
-            Assert.AreEqual(1, result.Count);
-
-            var position = result["MYVAR"];
-            Assert.AreEqual(3, position);
+            var position = result.FirstOrDefault(f => f.Name == "myVar");
+            Assert.AreEqual(3, position.Position);
         }
 
         [TestMethod]
@@ -92,11 +82,11 @@ namespace Moksy.Test
             var result = Substitution.GetVariables("Woo{myVar1}Ho{myVar2}o");
             Assert.AreEqual(2, result.Count);
 
-            var position = result["myVar1"];
-            Assert.AreEqual(3, position);
+            var position = result.FirstOrDefault(f => f.Name == "myVar1");
+            Assert.AreEqual(3, position.Position);
 
-            position = result["myVar2"];
-            Assert.AreEqual(13, position);
+            position = result.FirstOrDefault(f => f.Name == "myVar2");
+            Assert.AreEqual(13, position.Position);
         }
 
 
@@ -106,11 +96,11 @@ namespace Moksy.Test
             var result = Substitution.GetVariables("{Woo{myVar1}Ho{myVar2}o}");
             Assert.AreEqual(2, result.Count);
 
-            var position = result["myVar1"];
-            Assert.AreEqual(4, position);
+            var position = result.FirstOrDefault(f => f.Name == "myVar1");
+            Assert.AreEqual(4, position.Position);
 
-            position = result["myVar2"];
-            Assert.AreEqual(14, position);
+            position = result.FirstOrDefault(f => f.Name == "myVar2");
+            Assert.AreEqual(14, position.Position);
         }
 
 
