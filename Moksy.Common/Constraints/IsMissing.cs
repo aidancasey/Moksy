@@ -9,17 +9,16 @@ using System.Threading.Tasks;
 namespace Moksy.Common.Constraints
 {
     /// <summary>
-    /// Is a property in the object Null?
+    /// Is a property in the object missing?
     /// </summary>
-    public class IsNullConstraint : ConstraintBase 
+    public class IsMissing : ConstraintBase 
     {
-        public IsNullConstraint()
+        public IsMissing()
         {
-
             SetupDefaultResponses();
         }
 
-        public IsNullConstraint(string propertyName)
+        public IsMissing(string propertyName)
         {
             PropertyName = propertyName;
 
@@ -28,7 +27,7 @@ namespace Moksy.Common.Constraints
 
         private void SetupDefaultResponses()
         {
-            Response = IsNullResponseTemplate;
+            Response = MissingResponseTemplate;
         }
 
         [JsonProperty(PropertyName="propertyName")]
@@ -40,9 +39,9 @@ namespace Moksy.Common.Constraints
             if (null == jobject) return false;
 
             var value = jobject[PropertyName];
-            if (value == null) return false;
+            if (value == null) return true;
 
-            return value.Type.ToString() == "Null";
+            return false;
         }
 
         public override string GetState(Newtonsoft.Json.Linq.JObject jobject)
@@ -57,7 +56,7 @@ namespace Moksy.Common.Constraints
             return result;
         }
 
-        public const string IsNullResponseTemplate = @"{""Name"":""IsNull"",""PropertyName"":""{PropertyName}"",""PropertyValue"":{PropertyValue},""PropertyHasValue"":{PropertyHasValue},""Description"":""The property '{PropertyName}' was expected to be Null.""}";
+        public const string MissingResponseTemplate = @"{""Name"":""IsMissing"",""PropertyName"":""{PropertyName}"",""PropertyValue"":{PropertyValue},""PropertyHasValue"":{PropertyHasValue},""Description"":""The property '{PropertyName}' was not expected to be in the Json. ""}";
 
         public string Response { get; set; }
     }

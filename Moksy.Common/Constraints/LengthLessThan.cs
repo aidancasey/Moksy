@@ -9,11 +9,11 @@ using System.Threading.Tasks;
 namespace Moksy.Common.Constraints
 {
     /// <summary>
-    /// Is a property between a particular length inclusive. 
+    /// Is a property less than the given length. 
     /// </summary>
-    public class LengthBetweenConstraint : ConstraintBase 
+    public class LengthLessThan : ConstraintBase 
     {
-        public LengthBetweenConstraint()
+        public LengthLessThan()
         {
             TreatMissingAsLengthZero = true;
             TreatNullAsLengthZero = true;
@@ -21,33 +21,31 @@ namespace Moksy.Common.Constraints
             SetupDefaultResponses();
         }
 
-        public LengthBetweenConstraint(string propertyName, int minimum, int maximum)
+        public LengthLessThan(string propertyName, int length)
         {
             TreatMissingAsLengthZero = true;
             TreatNullAsLengthZero = true;
 
             PropertyName = propertyName;
-            MinimumLength = minimum;
-            MaximumLength = maximum;
+            MinimumLength = length;
 
             SetupDefaultResponses();
         }
 
-        public LengthBetweenConstraint(string propertyName, int minimum, int maximum, bool treatMissingAsLengthZero, bool treatNullAsLengthZero)
+        public LengthLessThan(string propertyName, int length, bool treatMissingAsLengthZero, bool treatNullAsLengthZero)
         {
             TreatMissingAsLengthZero = treatMissingAsLengthZero;
             TreatNullAsLengthZero = treatNullAsLengthZero;
 
             PropertyName = propertyName;
-            MinimumLength = minimum;
-            MaximumLength = maximum;
+            MinimumLength = length;
 
             SetupDefaultResponses();
         }
 
         private void SetupDefaultResponses()
         {
-            Response = BetweenResponseTemplate;
+            LessThanResponse = LessThanResponseTemplate;
         }
 
         [JsonProperty(PropertyName="propertyName")]
@@ -55,9 +53,6 @@ namespace Moksy.Common.Constraints
 
         [JsonProperty(PropertyName="minimumLength")]
         public int MinimumLength { get; set; }
-
-        [JsonProperty(PropertyName="maximumLength")]
-        public int MaximumLength { get; set; }
 
         [JsonProperty(PropertyName = "treatMissingAsLengthZero")]
         public bool TreatMissingAsLengthZero { get; set; }
@@ -85,28 +80,24 @@ namespace Moksy.Common.Constraints
             var value = jobject[PropertyName];
             if (value == null)
             {
-                if (TreatMissingAsLengthZero && MinimumLength == 0)
+                if (TreatMissingAsLengthZero)
                 {
-                    return true;
+                    ActualLength = 0;
+                    return 0 < MinimumLength;
                 }
 
                 return false;
             }
             if (value.Type.ToString() == "Null")
             {
-                if (TreatNullAsLengthZero && MinimumLength == 0)
-                {
-                    return true;
-                }
-
                 return false;
             }
 
             var length = value.ToString().Length;
             bool result = false;
 
-            result = (length >= MinimumLength && length <= MaximumLength);
-
+            result = (length < MinimumLength);
+          
             ActualLength = length;
 
             return result;
@@ -115,26 +106,23 @@ namespace Moksy.Common.Constraints
         public override string GetState(JObject jobject)
         {
             string result = "";
-
-            result = Response;
-
+            
+            result = LessThanResponse;
+            
             Substitution s = new Substitution();
             Dictionary<string, string> pairs = new Dictionary<string, string>();
             pairs["PropertyName"] = PropertyName;
             pairs["PropertyValue"] = GetValue(jobject, PropertyName);
             pairs["PropertyHasValue"] = (jobject[PropertyName] != null).ToString().ToLower();
-
             pairs["MinimumLength"] = MinimumLength.ToString();
-            pairs["MaximumLength"] = MaximumLength.ToString();
-
             pairs["ActualLength"] = ActualLength.ToString();
-            pairs["Kind"] = "Between";
+            pairs["Kind"] = "LessThan";
             result = s.Substitute(result, pairs);
             return result;
         }
 
-        public const string BetweenResponseTemplate = @"{""Name"":""Length"",""PropertyName"":""{PropertyName}"",""Kind"":""{Kind}"",""MinimumLength"":{MinimumLength},""MaximumLength"":{MaximumLength},""ActualLength"":{ActualLength},""PropertyValue"":{PropertyValue},""PropertyHasValue"":{PropertyHasValue},""Description"":""The property '{PropertyName}' was expected to be between '{MinimumLength}' and '{MaximumLength}' characters in length (inclusive).""}";
+        public const string LessThanResponseTemplate = @"{""Name"":""Length"",""PropertyName"":""{PropertyName}"",""Kind"":""{Kind}"",""MinimumLength"":{MinimumLength},""ActualLength"":{ActualLength},""PropertyValue"":{PropertyValue},""PropertyHasValue"":{PropertyHasValue},""Description"":""The property '{PropertyName}' was expected to be less than '{MinimumLength}' characters.""}";
 
-        public string Response { get; set; }
+        public string LessThanResponse { get; set; }
     }
 }

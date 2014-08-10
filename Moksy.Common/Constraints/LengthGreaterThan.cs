@@ -9,34 +9,17 @@ using System.Threading.Tasks;
 namespace Moksy.Common.Constraints
 {
     /// <summary>
-    /// Is a property less than the given length. 
+    /// Is a property greater than the given length. 
     /// </summary>
-    public class LengthLessThanConstraint : ConstraintBase 
+    public class LengthGreaterThan : ConstraintBase 
     {
-        public LengthLessThanConstraint()
+        public LengthGreaterThan()
         {
-            TreatMissingAsLengthZero = true;
-            TreatNullAsLengthZero = true;
-
             SetupDefaultResponses();
         }
 
-        public LengthLessThanConstraint(string propertyName, int length)
+        public LengthGreaterThan(string propertyName, int length)
         {
-            TreatMissingAsLengthZero = true;
-            TreatNullAsLengthZero = true;
-
-            PropertyName = propertyName;
-            MinimumLength = length;
-
-            SetupDefaultResponses();
-        }
-
-        public LengthLessThanConstraint(string propertyName, int length, bool treatMissingAsLengthZero, bool treatNullAsLengthZero)
-        {
-            TreatMissingAsLengthZero = treatMissingAsLengthZero;
-            TreatNullAsLengthZero = treatNullAsLengthZero;
-
             PropertyName = propertyName;
             MinimumLength = length;
 
@@ -45,7 +28,7 @@ namespace Moksy.Common.Constraints
 
         private void SetupDefaultResponses()
         {
-            LessThanResponse = LessThanResponseTemplate;
+            Response = GreaterThanResponseTemplate;
         }
 
         [JsonProperty(PropertyName="propertyName")]
@@ -53,12 +36,6 @@ namespace Moksy.Common.Constraints
 
         [JsonProperty(PropertyName="minimumLength")]
         public int MinimumLength { get; set; }
-
-        [JsonProperty(PropertyName = "treatMissingAsLengthZero")]
-        public bool TreatMissingAsLengthZero { get; set; }
-
-        [JsonProperty(PropertyName = "treatNullAsLengthZero")]
-        public bool TreatNullAsLengthZero { get; set; }
 
 
 
@@ -80,12 +57,6 @@ namespace Moksy.Common.Constraints
             var value = jobject[PropertyName];
             if (value == null)
             {
-                if (TreatMissingAsLengthZero)
-                {
-                    ActualLength = 0;
-                    return 0 < MinimumLength;
-                }
-
                 return false;
             }
             if (value.Type.ToString() == "Null")
@@ -96,8 +67,8 @@ namespace Moksy.Common.Constraints
             var length = value.ToString().Length;
             bool result = false;
 
-            result = (length < MinimumLength);
-          
+            result = (length > MinimumLength);
+
             ActualLength = length;
 
             return result;
@@ -106,9 +77,9 @@ namespace Moksy.Common.Constraints
         public override string GetState(JObject jobject)
         {
             string result = "";
-            
-            result = LessThanResponse;
-            
+
+            result = Response;
+
             Substitution s = new Substitution();
             Dictionary<string, string> pairs = new Dictionary<string, string>();
             pairs["PropertyName"] = PropertyName;
@@ -116,13 +87,13 @@ namespace Moksy.Common.Constraints
             pairs["PropertyHasValue"] = (jobject[PropertyName] != null).ToString().ToLower();
             pairs["MinimumLength"] = MinimumLength.ToString();
             pairs["ActualLength"] = ActualLength.ToString();
-            pairs["Kind"] = "LessThan";
+            pairs["Kind"] = "GreaterThan";
             result = s.Substitute(result, pairs);
             return result;
         }
 
-        public const string LessThanResponseTemplate = @"{""Name"":""Length"",""PropertyName"":""{PropertyName}"",""Kind"":""{Kind}"",""MinimumLength"":{MinimumLength},""ActualLength"":{ActualLength},""PropertyValue"":{PropertyValue},""PropertyHasValue"":{PropertyHasValue},""Description"":""The property '{PropertyName}' was expected to be less than '{MinimumLength}' characters.""}";
+        public const string GreaterThanResponseTemplate = @"{""Name"":""Length"",""PropertyName"":""{PropertyName}"",""Kind"":""{Kind}"",""MinimumLength"":{MinimumLength},""ActualLength"":{ActualLength},""PropertyValue"":{PropertyValue},""PropertyHasValue"":{PropertyHasValue},""Description"":""The property '{PropertyName}' was expected to be longer than '{MinimumLength}' characters.""}";
 
-        public string LessThanResponse { get; set; }
+        public string Response { get; set; }
     }
 }

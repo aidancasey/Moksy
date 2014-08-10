@@ -9,26 +9,45 @@ using System.Threading.Tasks;
 namespace Moksy.Common.Constraints
 {
     /// <summary>
-    /// Is a property greater than the given length. 
+    /// Is a property between a particular length inclusive. 
     /// </summary>
-    public class LengthGreaterThanConstraint : ConstraintBase 
+    public class LengthBetween : ConstraintBase 
     {
-        public LengthGreaterThanConstraint()
+        public LengthBetween()
         {
+            TreatMissingAsLengthZero = true;
+            TreatNullAsLengthZero = true;
+
             SetupDefaultResponses();
         }
 
-        public LengthGreaterThanConstraint(string propertyName, int length)
+        public LengthBetween(string propertyName, int minimum, int maximum)
         {
+            TreatMissingAsLengthZero = true;
+            TreatNullAsLengthZero = true;
+
             PropertyName = propertyName;
-            MinimumLength = length;
+            MinimumLength = minimum;
+            MaximumLength = maximum;
+
+            SetupDefaultResponses();
+        }
+
+        public LengthBetween(string propertyName, int minimum, int maximum, bool treatMissingAsLengthZero, bool treatNullAsLengthZero)
+        {
+            TreatMissingAsLengthZero = treatMissingAsLengthZero;
+            TreatNullAsLengthZero = treatNullAsLengthZero;
+
+            PropertyName = propertyName;
+            MinimumLength = minimum;
+            MaximumLength = maximum;
 
             SetupDefaultResponses();
         }
 
         private void SetupDefaultResponses()
         {
-            Response = GreaterThanResponseTemplate;
+            Response = BetweenResponseTemplate;
         }
 
         [JsonProperty(PropertyName="propertyName")]
@@ -36,6 +55,15 @@ namespace Moksy.Common.Constraints
 
         [JsonProperty(PropertyName="minimumLength")]
         public int MinimumLength { get; set; }
+
+        [JsonProperty(PropertyName="maximumLength")]
+        public int MaximumLength { get; set; }
+
+        [JsonProperty(PropertyName = "treatMissingAsLengthZero")]
+        public bool TreatMissingAsLengthZero { get; set; }
+
+        [JsonProperty(PropertyName = "treatNullAsLengthZero")]
+        public bool TreatNullAsLengthZero { get; set; }
 
 
 
@@ -57,17 +85,27 @@ namespace Moksy.Common.Constraints
             var value = jobject[PropertyName];
             if (value == null)
             {
+                if (TreatMissingAsLengthZero && MinimumLength == 0)
+                {
+                    return true;
+                }
+
                 return false;
             }
             if (value.Type.ToString() == "Null")
             {
+                if (TreatNullAsLengthZero && MinimumLength == 0)
+                {
+                    return true;
+                }
+
                 return false;
             }
 
             var length = value.ToString().Length;
             bool result = false;
 
-            result = (length > MinimumLength);
+            result = (length >= MinimumLength && length <= MaximumLength);
 
             ActualLength = length;
 
@@ -85,14 +123,17 @@ namespace Moksy.Common.Constraints
             pairs["PropertyName"] = PropertyName;
             pairs["PropertyValue"] = GetValue(jobject, PropertyName);
             pairs["PropertyHasValue"] = (jobject[PropertyName] != null).ToString().ToLower();
+
             pairs["MinimumLength"] = MinimumLength.ToString();
+            pairs["MaximumLength"] = MaximumLength.ToString();
+
             pairs["ActualLength"] = ActualLength.ToString();
-            pairs["Kind"] = "GreaterThan";
+            pairs["Kind"] = "Between";
             result = s.Substitute(result, pairs);
             return result;
         }
 
-        public const string GreaterThanResponseTemplate = @"{""Name"":""Length"",""PropertyName"":""{PropertyName}"",""Kind"":""{Kind}"",""MinimumLength"":{MinimumLength},""ActualLength"":{ActualLength},""PropertyValue"":{PropertyValue},""PropertyHasValue"":{PropertyHasValue},""Description"":""The property '{PropertyName}' was expected to be longer than '{MinimumLength}' characters.""}";
+        public const string BetweenResponseTemplate = @"{""Name"":""Length"",""PropertyName"":""{PropertyName}"",""Kind"":""{Kind}"",""MinimumLength"":{MinimumLength},""MaximumLength"":{MaximumLength},""ActualLength"":{ActualLength},""PropertyValue"":{PropertyValue},""PropertyHasValue"":{PropertyHasValue},""Description"":""The property '{PropertyName}' was expected to be between '{MinimumLength}' and '{MaximumLength}' characters in length (inclusive).""}";
 
         public string Response { get; set; }
     }

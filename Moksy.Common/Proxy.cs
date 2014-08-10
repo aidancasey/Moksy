@@ -30,6 +30,40 @@ namespace Moksy
         public readonly JsonSerializerSettings JsonSerializerSettings = new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Objects };
 
 
+
+        /// <summary>
+        /// Start Moksy on the given port. It is safe to call this method even if the service is running. 
+        /// If this method fails, troubleshoot by launching Moksy.Host.exe <port> from an elevated command prompt.
+        /// </summary>
+        public bool Start()
+        {
+            Proxy proxy = new Proxy(Port);
+            try
+            {
+                var all = GetAll();
+                return true;
+            }
+            catch (System.Net.WebException)
+            {
+            }
+
+            // Now we need to try and start the host. 
+            var folder = System.IO.Path.GetDirectoryName(typeof(Proxy).Assembly.Location);
+            var exeName = "Moksy.Host.Exe";
+
+            System.Diagnostics.ProcessStartInfo psi = new System.Diagnostics.ProcessStartInfo();
+            psi.Arguments = Port.ToString();
+            psi.WorkingDirectory = folder;
+            psi.FileName = System.IO.Path.Combine(folder, exeName);
+
+            psi.FileName = @"F:\Github\Moksy\Moksy.Host\bin\Debug\Moksy.Host.Exe";
+
+            var process = System.Diagnostics.Process.Start(psi);
+            return true;
+        }
+
+
+
         /// <summary>
         /// Fetch all simulations that are currently configured. 
         /// </summary>

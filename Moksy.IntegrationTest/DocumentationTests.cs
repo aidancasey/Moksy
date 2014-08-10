@@ -26,6 +26,7 @@ namespace Moksy.IntegrationTest
             Assert.AreEqual(1, processes.Length, "Moksy.Host is not running. Right click the Moksy.Host project, add 10011 to the Debug / Command Line Arguments and then run Moksy.Host without a debugger. Then try to run this test again. ");
 
             Proxy = new Proxy(PortNumber);
+            Assert.IsTrue(Proxy.Start(), string.Format("Moksy could not start. Try to manually launch 'Moksy.Host.exe {0}' from the Command Line. ", PortNumber));
             Proxy.DeleteAll();
         }
 

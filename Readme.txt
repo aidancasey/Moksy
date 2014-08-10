@@ -1,25 +1,29 @@
-MOKSY - V0.2 by Grey Ham (www.twitter.com/brek_it, www.brekit.com, www.havecomputerwillcode.com)
+MOKSY - V1.0 by Grey Ham (www.twitter.com/brek_it, www.brekit.com, www.havecomputerwillcode.com)
 ------------------------------------------------------------------------------------------------
 
 
 What is Moksy?
 --------------
-Moksy is an open source C# Application that lets you stub, fake and mock HTTP (typically Json-based REST API's) for Integration, Web Service and System Testing. Moksy creates a real end-point that you can hit from your browser, other services
-or your tests. 
+Moksy is an open source .Net library for stubbing, mocking and simulating web services. 
+
+Intended to be driven from MsTest (or your favorite testing framework), Moksy will create a real HTTP Server end-point that your system under test or other services can hit. 
+
+For example:
+
+		Moksy.Common.Proxy proxy = new Moksy.Common.Proxy(10011);
+		proxy.Start();
+
+		var simulation = SimulationFactory.When.I.Get().From("/TheEndpoint").Then.Return.Body("Hello World!").And.StatusCode(System.Net.HttpStatusCode.OK);
+		proxy.Add(simulation);
+
+Navigating to http://localhost:10011/TheEndpoint in your browser or hitting that Url from another service will return "Hello World!". 
+
+This release has a strong focus on testing JSON-based web services. 
 
 To get up and running quickly: see "How To Use Moksy In Your Own Integration Tests" below. 
 
-To use Moksy, you launch the Moksy.Host.EXE application. You then configure a 'Simulation' in your Integration Test (C#/MsTest) so that when a particular HTTP Method is invoked on a particular resource, 
-a specific response is returned. 
-
-For example - and assuming Moksy.Host is running on port 10011:
-
-       SimulationFactory.When.I.Get().From("/TheEndpoint").Then.Return.Body("Hello World!").And.StatusCode(System.Net.HttpStatusCode.OK);
-
-Navigating to http://localhost:10011/TheEndpoint in your browser or hitting that Url from another service would return "Hello World!". 
-
 While setting up canned responses for GET, PUT, DELETE, PATCH, POST and so forth is useful, the real power of Moksy comes with the use of the Imdb (In-Memory Database) 
-functions. By submitting Json, Moksy will create an in-memory store of your CRD functions and allow you to get your API up and running very quickly. 
+functions. By submitting Json, Moksy will create an in-memory store of your CRUD functions and allow you to get your API up and running very quickly. 
 
 For example: assuming a Pet Json structure that has a single property 'Kind':
 
@@ -27,7 +31,7 @@ For example: assuming a Pet Json structure that has a single property 'Kind':
     "Kind" : "Dog"
 }
 
-Moksy will support Create, Read and Delete functions (POST, GET, DELETEm PUT) on that end-point with these simulations and use Kind as the unique index:
+Moksy will support Create, Read, Update and Delete functions (POST, GET, DELETE, PUT) on that end-point with these simulations and use Kind as the unique index:
 
 		SimulationFactory.When.I.Post().ToImdb("/Pet").And.NotExists("Kind").Return.StatusCode(System.Net.HttpStatusCode.Created).And.AddToImdb();
 		SimulationFactory.When.I.Post().ToImdb("/Pet").And.Exists("Kind").Return.StatusCode(System.Net.HttpStatusCode.BadRequest).And.Body("A Pet of that kind already exists");
@@ -42,7 +46,7 @@ Moksy will support Create, Read and Delete functions (POST, GET, DELETEm PUT) on
 		SimulationFactory.When.I.Put().ToImdb("/Pet").And.NotExists("Kind").Return.StatusCode(System.Net.HttpStatusCode.Created).And.AddToImdb().And.Body("{value}");
 		SimulationFactory.When.I.Put().ToImdb("/Pet").And.Exists("Kind").Return.StatusCode(System.Net.HttpStatusCode.OK).And.AddToImdb().And.Body("{value}");
 
-Posting the Json structure to http://localhost:10011/Pet will add it to the in memory database; calling GET on http://localhost:10011 will return a comma-separated
+Posting the Json structure to http://localhost:10011/Pet will add it to the in memory database for that resource; calling GET on http://localhost:10011 will return a comma-separated
 list of the Json entries wrapped in [] to simulate an array. Of course, calling GET on http://localhost:10011/Dog will return just the above structure. 
 
 Moksy can be useful for:
@@ -59,15 +63,38 @@ Moksy can be useful for:
 
 How To Use Moksy In Your Own Integration Tests:
 -----------------------------------------------
-There is no Nuget package yet, so you need to do this:
+Using Moksy within your tests is easy:
 
-1. Add a reference to Moksy.Common. 
-2. You probably want to copy the TestBase.cs from Moksy.IntegrationTests and use that as your baseclass (or at least base your tests on it). 
-3. ...and launch Moksy.Host
+1. Add a reference to the Moksy NuGET Package: Install-Package Moksy
 
-Consider using the Moksy.IntegrationTests.DocumentationTests as your playpen; step through the tests in MsTest and follow the instructions :-) If you can get those
-tests to pass, you have everything you need to start using Moksy. 
+2. Create a Unit Test, create the Moksy instance and set up a simulation:
+
+   Proxy = new Proxy(10011);
+   Proxy.Start();
+
+   // Remove any existing simulations on this endpoint.
+   Proxy.DeleteAll();
+
+   var simulation = SimulationFactory.When.I.Get().From("/TheEndpoint").Then.Return.Body("Hello World!").And.StatusCode(System.Net.HttpStatusCode.OK);
+   proxy.Add(simulation);
+
+   // Now navigate to http://localhost:10011/TheEndpoint in your browser or hit that Url from another service to receive "Hello World!"
+
+Consider getting the source code and using the Moksy.IntegrationTests.DocumentationTests as your playpen; step through the tests in MsTest and follow the instructions :-) 
  
+
+
+ New in v0.3 [Experimental - Subject to change]
+ ----------------------------------------------
+ Constraints and violations can be set as part of your simulations. This is useful for returning error conditions if, for example, property conditions and constraints are not met.
+ For example:
+
+     When.I.Post().ToImdb("/Pet").With.Constraint(new LengthBetweenConstraint("Kind", 0, 255)).And.HasRuleViolations().Then.Return.StatusCode(System.Net.HttpStatusCode.BadRequest).And.Body("{violationResponses}");
+
+Notice the use of {violationResponses} - this is an array of zero or more respones from the constraints that were not met. Although a default is provided, a default response format can be specified as part of the Constraint to return custom error messages. ie:
+
+    var between = new LengthBetweenConstraint("Kind", 0, 255) { Response = @"{""ErrorType"":""OutOfRangeException"",""PropertyName"":{PropertyName},""AdditonalInformation"":""The 'Kind' property must be between 0 and 255 characters in length""}";
+    When.I.Post().ToImdb("/Pet").With.Constraint(between).And.HasRuleViolations().Then.Return.StatusCode(System.Net.HttpStatusCode.BadRequest).And.Body("{violationResponses}");
 
 
  New in V0.2:
@@ -148,6 +175,9 @@ Use Moksy with the .ToImdb() and .FromImdb() calls. Moksy will create an in-memo
 
 	When.I.Delete().FromImdb("/Pet('{Kind}')").And.NotExists().Then.Return.StatusCode(System.Net.HttpStatusCode.NoContent);
 	When.I.Delete().FromImdb("/Pet('{Kind}')").And.Exists().Then.Return.StatusCode(System.Net.HttpStatusCode.NoContent).And.RemoveFromImdb();
+
+	When.I.Put().ToImdb("/Pet").And.NotExists("Kind").Return.StatusCode(System.Net.HttpStatusCode.Created).And.AddToImdb().And.Body("{value}");
+	When.I.Put().ToImdb("/Pet").And.Exists("Kind").Return.StatusCode(System.Net.HttpStatusCode.OK).And.AddToImdb().And.Body("{value}");
 
 If I now submit the following string to /Pet:
 
@@ -230,6 +260,4 @@ Lots of words like When, I, With, Use, And are optional. Only methods are mandat
 
 KNOWN ISSUES:
 -------------
-Most of the code is several years old and has been re-cobbled together to work with the custom WebApi hosting: the code and tests need tidied up. 
-A lot of the tests return not-realistic error codes based on various conditions. This is for testing :-) See the DocumentationTests.cs for a thorough end-to-end sample
-of how to use Moksy
+See the DocumentationTests.cs for a thorough end-to-end sample of how to use Moksy

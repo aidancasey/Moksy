@@ -24,7 +24,7 @@ namespace Moksy.Test
         public void IsNullIsFalse()
         {
             var o = GetJ(@"{ ""TheProperty"" : ""TheValue"" }");
-            IsNullConstraint isnull = new IsNullConstraint("TheProperty");
+            IsNull isnull = new IsNull("TheProperty");
             Assert.IsFalse(isnull.Evaluate(o));
         }
 
@@ -34,7 +34,7 @@ namespace Moksy.Test
         public void IsNullIsTrue()
         {
             var o = GetJ(@"{ ""TheProperty"" : null }");
-            IsNullConstraint isnull = new IsNullConstraint("TheProperty");
+            IsNull isnull = new IsNull("TheProperty");
             Assert.IsTrue(isnull.Evaluate(o));
         }
 
@@ -42,14 +42,14 @@ namespace Moksy.Test
         public void IsNullPropertyNull()
         {
             var o = GetJ(@"{ ""TheProperty"" : null }");
-            IsNullConstraint isnull = new IsNullConstraint(null);
+            IsNull isnull = new IsNull(null);
             Assert.IsFalse(isnull.Evaluate(o));
         }
 
         [TestMethod]
         public void IsNullJobNull()
         {
-            IsNullConstraint isnull = new IsNullConstraint("TheProperty");
+            IsNull isnull = new IsNull("TheProperty");
             Assert.IsFalse(isnull.Evaluate(null)); 
         }
 
@@ -60,7 +60,7 @@ namespace Moksy.Test
         public void IsMissingIsTrue()
         {
             var o = GetJ(@"{ }");
-            IsMissingConstraint isnull = new IsMissingConstraint("TheProperty");
+            IsMissing isnull = new IsMissing("TheProperty");
             Assert.IsTrue(isnull.Evaluate(o));
         }
 
@@ -68,7 +68,7 @@ namespace Moksy.Test
         public void IsMissingPropertyNull()
         {
             var o = GetJ(@"{ ""TheProperty"" : null }");
-            IsMissingConstraint isnull = new IsMissingConstraint("TheProperty");
+            IsMissing isnull = new IsMissing("TheProperty");
             Assert.IsFalse(isnull.Evaluate(o));
         }
 
@@ -76,7 +76,7 @@ namespace Moksy.Test
         public void IsMissingPropertySet()
         {
             var o = GetJ(@"{ ""TheProperty"" : ""TheValue"" }");
-            IsMissingConstraint isnull = new IsMissingConstraint("TheProperty");
+            IsMissing isnull = new IsMissing("TheProperty");
             Assert.IsFalse(isnull.Evaluate(o));
         }
 
@@ -84,14 +84,14 @@ namespace Moksy.Test
         public void IsMissingPropertyNameNull()
         {
             var o = GetJ(@"{ ""TheProperty"" : null }");
-            IsMissingConstraint isnull = new IsMissingConstraint(null);
+            IsMissing isnull = new IsMissing(null);
             Assert.IsFalse(isnull.Evaluate(o));
         }
 
         [TestMethod]
         public void IsMissingJobNull()
         {
-            IsMissingConstraint isnull = new IsMissingConstraint("TheProperty");
+            IsMissing isnull = new IsMissing("TheProperty");
             Assert.IsFalse(isnull.Evaluate(null));
         }
 
@@ -101,7 +101,7 @@ namespace Moksy.Test
         public void LengthEqualsMissingImplicit()
         {
             var o = GetJ(@"{ }");
-            LengthEqualsConstraint isnull = new LengthEqualsConstraint("TheProperty", 0);
+            LengthEquals isnull = new LengthEquals("TheProperty", 0);
             Assert.IsTrue(isnull.Evaluate(o));
         }
 
@@ -109,7 +109,7 @@ namespace Moksy.Test
         public void LengthEqualsMissingNotImplicit()
         {
             var o = GetJ(@"{ }");
-            LengthEqualsConstraint isnull = new LengthEqualsConstraint("TheProperty", 0, false, true);
+            LengthEquals isnull = new LengthEquals("TheProperty", 0, false, true);
             Assert.IsFalse(isnull.Evaluate(o));
         }
 
@@ -117,7 +117,7 @@ namespace Moksy.Test
         public void LengthPropertyNullImplicit()
         {
             var o = GetJ(@"{ ""TheProperty"" : null }");
-            LengthEqualsConstraint isnull = new LengthEqualsConstraint("TheProperty", 0);
+            LengthEquals isnull = new LengthEquals("TheProperty", 0);
             Assert.IsTrue(isnull.Evaluate(o));
         }
 
@@ -125,7 +125,7 @@ namespace Moksy.Test
         public void LengthPropertyNullNotImplicit()
         {
             var o = GetJ(@"{ ""TheProperty"" : null }");
-            LengthEqualsConstraint isnull = new LengthEqualsConstraint("TheProperty", 0, false, false);
+            LengthEquals isnull = new LengthEquals("TheProperty", 0, false, false);
             Assert.IsFalse(isnull.Evaluate(o));
         }
 
@@ -133,14 +133,14 @@ namespace Moksy.Test
         public void LengthPropertyNameNull()
         {
             var o = GetJ(@"{ ""TheProperty"" : null }");
-            LengthEqualsConstraint isnull = new LengthEqualsConstraint(null, 0);
+            LengthEquals isnull = new LengthEquals(null, 0);
             Assert.IsFalse(isnull.Evaluate(o));
         }
 
         [TestMethod]
         public void LengthJobNull()
         {
-            LengthEqualsConstraint isnull = new LengthEqualsConstraint("TheProperty", 0);
+            LengthEquals isnull = new LengthEquals("TheProperty", 0);
             Assert.IsFalse(isnull.Evaluate(null));
             Assert.AreEqual(0, isnull.ActualLength);
         }
@@ -151,7 +151,7 @@ namespace Moksy.Test
         public void LengthEqualsPropertyEqual0()
         {
             var o = GetJ(@"{ ""TheProperty"" : """" }");
-            LengthEqualsConstraint isnull = new LengthEqualsConstraint("TheProperty", 0);
+            LengthEquals isnull = new LengthEquals("TheProperty", 0);
             Assert.IsTrue(isnull.Evaluate(o));
         }
 
@@ -159,24 +159,67 @@ namespace Moksy.Test
         public void LengthEqualsPropertyEqual4()
         {
             var o = GetJ(@"{ ""TheProperty"" : ""ABCD"" }");
-            LengthEqualsConstraint isnull = new LengthEqualsConstraint("TheProperty", 0);
+            LengthEquals isnull = new LengthEquals("TheProperty", 0);
+            Assert.IsFalse(isnull.Evaluate(o));
+        }
+
+
+
+        [TestMethod]
+        public void LengthNotEquals0MissingImplicit()
+        {
+            var o = GetJ(@"{}");
+            LengthNotEquals isnull = new LengthNotEquals("TheProperty", 0);
             Assert.IsFalse(isnull.Evaluate(o));
         }
 
         [TestMethod]
-        public void LengthNotEqualsPropertyEqual45()
+        public void LengthNotEquals0MissingExplicit()
         {
-            var o = GetJ(@"{ ""TheProperty"" : ""ABCDE"" }");
-            LengthLessThanOrGreaterThanConstraint isnull = new LengthNotEqualsConstraint("TheProperty", 4);
+            var o = GetJ(@"{}");
+            LengthNotEquals isnull = new LengthNotEquals("TheProperty", 0, false, true);
             Assert.IsTrue(isnull.Evaluate(o));
         }
 
         [TestMethod]
-        public void LengthNotEqualsPropertyEqual44()
+        public void LengthNotEquals0NullImplicit()
         {
-            var o = GetJ(@"{ ""TheProperty"" : ""ABCD"" }");
-            LengthLessThanOrGreaterThanConstraint isnull = new LengthNotEqualsConstraint("TheProperty", 4);
+            var o = GetJ(@"{""TheProperty"":null}");
+            LengthNotEquals isnull = new LengthNotEquals("TheProperty", 0);
             Assert.IsFalse(isnull.Evaluate(o));
+        }
+
+        [TestMethod]
+        public void LengthNotEquals0NullExplicit()
+        {
+            var o = GetJ(@"{""TheProperty"":null}");
+            LengthNotEquals isnull = new LengthNotEquals("TheProperty", 0, false, false);
+            Assert.IsTrue(isnull.Evaluate(o));
+        }
+
+
+
+        [TestMethod]
+        public void LengthNotEquals00()
+        {
+            var o = GetJ(@"{ ""TheProperty"" : """" }");
+            LengthNotEquals isnull = new LengthNotEquals("TheProperty", 0);
+            Assert.IsFalse(isnull.Evaluate(o));
+        }
+
+        [TestMethod]
+        public void LengthNotEqualsPropertyEqual1()
+        {
+            var o = GetJ(@"{ ""TheProperty"" : ""A"" }");
+            LengthNotEquals isnull = new LengthNotEquals("TheProperty", 1);
+            Assert.IsFalse(isnull.Evaluate(o));
+        }
+
+        public void LengthNotEqualsPropertyEqual12()
+        {
+            var o = GetJ(@"{ ""TheProperty"" : ""AB"" }");
+            LengthNotEquals isnull = new LengthNotEquals("TheProperty", 1);
+            Assert.IsTrue(isnull.Evaluate(o));
         }
 
 
@@ -185,7 +228,7 @@ namespace Moksy.Test
         public void LengthLessThan0MissingImplicit()
         {
             var o = GetJ(@"{}");
-            LengthLessThanConstraint isnull = new LengthLessThanConstraint("TheProperty", 0);
+            LengthLessThan isnull = new LengthLessThan("TheProperty", 0);
             Assert.IsFalse(isnull.Evaluate(o));
         }
 
@@ -193,7 +236,7 @@ namespace Moksy.Test
         public void LengthLessThan0MissingNotImplicit()
         {
             var o = GetJ(@"{}");
-            LengthLessThanConstraint isnull = new LengthLessThanConstraint("TheProperty", 0, false, true);
+            LengthLessThan isnull = new LengthLessThan("TheProperty", 0, false, true);
             Assert.IsFalse(isnull.Evaluate(o));
         }
 
@@ -201,7 +244,7 @@ namespace Moksy.Test
         public void LengthLessThan1MissingImplicit()
         {
             var o = GetJ(@"{ }");
-            LengthLessThanConstraint isnull = new LengthLessThanConstraint("TheProperty", 1);
+            LengthLessThan isnull = new LengthLessThan("TheProperty", 1);
             Assert.IsTrue(isnull.Evaluate(o));
         }
 
@@ -209,7 +252,7 @@ namespace Moksy.Test
         public void LengthLessThan1MissingNotImplicit()
         {
             var o = GetJ(@"{ }");
-            LengthLessThanConstraint isnull = new LengthLessThanConstraint("TheProperty", 1, false, true);
+            LengthLessThan isnull = new LengthLessThan("TheProperty", 1, false, true);
             Assert.IsFalse(isnull.Evaluate(o));
         }
 
@@ -217,7 +260,7 @@ namespace Moksy.Test
         public void LengthLessThan4PropertyEqual3()
         {
             var o = GetJ(@"{ ""TheProperty"" : ""ABC"" }");
-            LengthLessThanConstraint isnull = new LengthLessThanConstraint("TheProperty", 4);
+            LengthLessThan isnull = new LengthLessThan("TheProperty", 4);
             Assert.IsTrue(isnull.Evaluate(o));
         }
 
@@ -225,7 +268,7 @@ namespace Moksy.Test
         public void LengthLess4ThanPropertyEqual4()
         {
             var o = GetJ(@"{ ""TheProperty"" : ""ABCD"" }");
-            LengthLessThanConstraint isnull = new LengthLessThanConstraint("TheProperty", 4);
+            LengthLessThan isnull = new LengthLessThan("TheProperty", 4);
             Assert.IsFalse(isnull.Evaluate(o));
         }
 
@@ -233,7 +276,7 @@ namespace Moksy.Test
         public void LengthLess4ThanPropertyEqual5()
         {
             var o = GetJ(@"{ ""TheProperty"" : ""ABCDE"" }");
-            LengthLessThanConstraint isnull = new LengthLessThanConstraint("TheProperty", 4);
+            LengthLessThan isnull = new LengthLessThan("TheProperty", 4);
             Assert.IsFalse(isnull.Evaluate(o));
         }
 
@@ -243,7 +286,7 @@ namespace Moksy.Test
         public void LengthGreaterThan4PropertyEqual3()
         {
             var o = GetJ(@"{ ""TheProperty"" : ""ABC"" }");
-            LengthGreaterThanConstraint isnull = new LengthGreaterThanConstraint("TheProperty", 4);
+            LengthGreaterThan isnull = new LengthGreaterThan("TheProperty", 4);
             Assert.IsFalse(isnull.Evaluate(o));
         }
 
@@ -251,7 +294,7 @@ namespace Moksy.Test
         public void LengthGreater4ThanPropertyEqual4()
         {
             var o = GetJ(@"{ ""TheProperty"" : ""ABCD"" }");
-            LengthGreaterThanConstraint isnull = new LengthGreaterThanConstraint("TheProperty", 4);
+            LengthGreaterThan isnull = new LengthGreaterThan("TheProperty", 4);
             Assert.IsFalse(isnull.Evaluate(o));
         }
 
@@ -259,7 +302,7 @@ namespace Moksy.Test
         public void LengthLGreater4ThanPropertyEqual5()
         {
             var o = GetJ(@"{ ""TheProperty"" : ""ABCDE"" }");
-            LengthGreaterThanConstraint isnull = new LengthGreaterThanConstraint("TheProperty", 4);
+            LengthGreaterThan isnull = new LengthGreaterThan("TheProperty", 4);
             Assert.IsTrue(isnull.Evaluate(o));
         }
 
@@ -270,7 +313,7 @@ namespace Moksy.Test
         public void LengthLtgt07PropertyMissingImplicit()
         {
             var o = GetJ(@"{}");
-            LengthLessThanOrGreaterThanConstraint isnull = new LengthLessThanOrGreaterThanConstraint("TheProperty", 0, 7);
+            LengthLessThanOrGreaterThan isnull = new LengthLessThanOrGreaterThan("TheProperty", 0, 7);
             Assert.IsTrue(isnull.Evaluate(o));
             Assert.AreEqual(0, isnull.ActualLength);
         }
@@ -279,7 +322,7 @@ namespace Moksy.Test
         public void LengthLtgt07PropertyMissingNotImplicit()
         {
             var o = GetJ(@"{}");
-            LengthLessThanOrGreaterThanConstraint isnull = new LengthLessThanOrGreaterThanConstraint("TheProperty", 0, 7, false, true);
+            LengthLessThanOrGreaterThan isnull = new LengthLessThanOrGreaterThan("TheProperty", 0, 7, false, true);
             Assert.IsFalse(isnull.Evaluate(o));
             Assert.AreEqual(0, isnull.ActualLength);
         }
@@ -288,7 +331,7 @@ namespace Moksy.Test
         public void LengthLtgt17PropertyMissingImplicit()
         {
             var o = GetJ(@"{}");
-            LengthLessThanOrGreaterThanConstraint isnull = new LengthLessThanOrGreaterThanConstraint("TheProperty", 1, 7);
+            LengthLessThanOrGreaterThan isnull = new LengthLessThanOrGreaterThan("TheProperty", 1, 7);
             Assert.IsTrue(isnull.Evaluate(o));
             Assert.AreEqual(0, isnull.ActualLength);
         }
@@ -297,7 +340,7 @@ namespace Moksy.Test
         public void LengthLtgt17PropertyMissingNotImplicit()
         {
             var o = GetJ(@"{}");
-            LengthLessThanOrGreaterThanConstraint isnull = new LengthLessThanOrGreaterThanConstraint("TheProperty", 1, 7, false, true);
+            LengthLessThanOrGreaterThan isnull = new LengthLessThanOrGreaterThan("TheProperty", 1, 7, false, true);
             Assert.IsFalse(isnull.Evaluate(o));
             Assert.AreEqual(0, isnull.ActualLength);
         }
@@ -306,7 +349,7 @@ namespace Moksy.Test
         public void LengthLtgt07PropertyNullImplicit()
         {
             var o = GetJ(@"{""TheProperty"":null}");
-            LengthLessThanOrGreaterThanConstraint isnull = new LengthLessThanOrGreaterThanConstraint("TheProperty", 0, 7);
+            LengthLessThanOrGreaterThan isnull = new LengthLessThanOrGreaterThan("TheProperty", 0, 7);
             Assert.IsTrue(isnull.Evaluate(o));
             Assert.AreEqual(0, isnull.ActualLength);
         }
@@ -315,7 +358,7 @@ namespace Moksy.Test
         public void LengthLtgt07PropertyNullNotImplicit()
         {
             var o = GetJ(@"{""TheProperty"":null}");
-            LengthLessThanOrGreaterThanConstraint isnull = new LengthLessThanOrGreaterThanConstraint("TheProperty", 0, 7, false, false);
+            LengthLessThanOrGreaterThan isnull = new LengthLessThanOrGreaterThan("TheProperty", 0, 7, false, false);
             Assert.IsFalse(isnull.Evaluate(o));
             Assert.AreEqual(0, isnull.ActualLength);
         }
@@ -324,7 +367,7 @@ namespace Moksy.Test
         public void LengthLtgt17PropertyNullImplicit()
         {
             var o = GetJ(@"{""TheProperty"":null}");
-            LengthLessThanOrGreaterThanConstraint isnull = new LengthLessThanOrGreaterThanConstraint("TheProperty", 1, 7);
+            LengthLessThanOrGreaterThan isnull = new LengthLessThanOrGreaterThan("TheProperty", 1, 7);
             Assert.IsTrue(isnull.Evaluate(o));
             Assert.AreEqual(0, isnull.ActualLength);
         }
@@ -333,7 +376,7 @@ namespace Moksy.Test
         public void LengthLtgt17PropertyNullNotImplicit()
         {
             var o = GetJ(@"{""TheProperty"":null}");
-            LengthLessThanOrGreaterThanConstraint isnull = new LengthLessThanOrGreaterThanConstraint("TheProperty", 1, 7, false, false);
+            LengthLessThanOrGreaterThan isnull = new LengthLessThanOrGreaterThan("TheProperty", 1, 7, false, false);
             Assert.IsFalse(isnull.Evaluate(o));
             Assert.AreEqual(0, isnull.ActualLength);
         }
@@ -342,7 +385,7 @@ namespace Moksy.Test
         public void LengthLtgt47PropertyEqual3()
         {
             var o = GetJ(@"{ ""TheProperty"" : ""ABC"" }");
-            LengthLessThanOrGreaterThanConstraint isnull = new LengthLessThanOrGreaterThanConstraint("TheProperty", 4, 7);
+            LengthLessThanOrGreaterThan isnull = new LengthLessThanOrGreaterThan("TheProperty", 4, 7);
             Assert.IsTrue(isnull.Evaluate(o));
             Assert.AreEqual(3, isnull.ActualLength);
         }
@@ -351,7 +394,7 @@ namespace Moksy.Test
         public void LengthLtgt47PropertyEqual4()
         {
             var o = GetJ(@"{ ""TheProperty"" : ""ABCD"" }");
-            LengthLessThanOrGreaterThanConstraint isnull = new LengthLessThanOrGreaterThanConstraint("TheProperty", 4, 7);
+            LengthLessThanOrGreaterThan isnull = new LengthLessThanOrGreaterThan("TheProperty", 4, 7);
             Assert.IsFalse(isnull.Evaluate(o));
             Assert.AreEqual(4, isnull.ActualLength);
         }
@@ -360,7 +403,7 @@ namespace Moksy.Test
         public void LengthLtgt47PropertyEqual7()
         {
             var o = GetJ(@"{ ""TheProperty"" : ""ABCDEFG"" }");
-            LengthLessThanOrGreaterThanConstraint isnull = new LengthLessThanOrGreaterThanConstraint("TheProperty", 4, 7);
+            LengthLessThanOrGreaterThan isnull = new LengthLessThanOrGreaterThan("TheProperty", 4, 7);
             Assert.IsFalse(isnull.Evaluate(o));
             Assert.AreEqual(7, isnull.ActualLength);
         }
@@ -369,7 +412,7 @@ namespace Moksy.Test
         public void LengthLtgt47PropertyEqual8()
         {
             var o = GetJ(@"{ ""TheProperty"" : ""ABCDEFGH"" }");
-            LengthLessThanOrGreaterThanConstraint isnull = new LengthLessThanOrGreaterThanConstraint("TheProperty", 4, 7);
+            LengthLessThanOrGreaterThan isnull = new LengthLessThanOrGreaterThan("TheProperty", 4, 7);
             Assert.IsTrue(isnull.Evaluate(o));
             Assert.AreEqual(8, isnull.ActualLength);
         }
@@ -381,7 +424,7 @@ namespace Moksy.Test
         public void LengthBetween07PropertyMissingImplicit()
         {
             var o = GetJ(@"{}");
-            LengthBetweenConstraint isnull = new LengthBetweenConstraint("TheProperty", 0, 7);
+            LengthBetween isnull = new LengthBetween("TheProperty", 0, 7);
             Assert.IsTrue(isnull.Evaluate(o));
             Assert.AreEqual(0, isnull.ActualLength);
         }
@@ -390,7 +433,7 @@ namespace Moksy.Test
         public void LengthBetween07PropertyMissingNotImplicit()
         {
             var o = GetJ(@"{}");
-            LengthBetweenConstraint isnull = new LengthBetweenConstraint("TheProperty", 0, 7, false, true);
+            LengthBetween isnull = new LengthBetween("TheProperty", 0, 7, false, true);
             Assert.IsFalse(isnull.Evaluate(o));
             Assert.AreEqual(0, isnull.ActualLength);
         }
@@ -399,7 +442,7 @@ namespace Moksy.Test
         public void LengthBetween17PropertyMissingImplicit()
         {
             var o = GetJ(@"{}");
-            LengthBetweenConstraint isnull = new LengthBetweenConstraint("TheProperty", 1, 7);
+            LengthBetween isnull = new LengthBetween("TheProperty", 1, 7);
             Assert.IsFalse(isnull.Evaluate(o));
             Assert.AreEqual(0, isnull.ActualLength);
         }
@@ -408,7 +451,7 @@ namespace Moksy.Test
         public void LengthBetween17PropertyMissingNotImplicit()
         {
             var o = GetJ(@"{}");
-            LengthBetweenConstraint isnull = new LengthBetweenConstraint("TheProperty", 1, 7, false, true);
+            LengthBetween isnull = new LengthBetween("TheProperty", 1, 7, false, true);
             Assert.IsFalse(isnull.Evaluate(o));
             Assert.AreEqual(0, isnull.ActualLength);
         }
@@ -417,7 +460,7 @@ namespace Moksy.Test
         public void LengthBetween07PropertyNullImplicit()
         {
             var o = GetJ(@"{""TheProperty"":null}");
-            LengthBetweenConstraint isnull = new LengthBetweenConstraint("TheProperty", 0, 7);
+            LengthBetween isnull = new LengthBetween("TheProperty", 0, 7);
             Assert.IsTrue(isnull.Evaluate(o));
             Assert.AreEqual(0, isnull.ActualLength);
         }
@@ -426,7 +469,7 @@ namespace Moksy.Test
         public void LengthBetween07PropertyNullNotImplicit()
         {
             var o = GetJ(@"{""TheProperty"":null}");
-            LengthBetweenConstraint isnull = new LengthBetweenConstraint("TheProperty", 0, 7, false, false);
+            LengthBetween isnull = new LengthBetween("TheProperty", 0, 7, false, false);
             Assert.IsFalse(isnull.Evaluate(o));
             Assert.AreEqual(0, isnull.ActualLength);
         }
@@ -435,7 +478,7 @@ namespace Moksy.Test
         public void LengthBetween17PropertyNullImplicit()
         {
             var o = GetJ(@"{""TheProperty"":null}");
-            LengthBetweenConstraint isnull = new LengthBetweenConstraint("TheProperty", 1, 7);
+            LengthBetween isnull = new LengthBetween("TheProperty", 1, 7);
             Assert.IsFalse(isnull.Evaluate(o));
             Assert.AreEqual(0, isnull.ActualLength);
         }
@@ -444,7 +487,7 @@ namespace Moksy.Test
         public void LengthBetween17PropertyNullNotImplicit()
         {
             var o = GetJ(@"{""TheProperty"":null}");
-            LengthBetweenConstraint isnull = new LengthBetweenConstraint("TheProperty", 1, 7, false, false);
+            LengthBetween isnull = new LengthBetween("TheProperty", 1, 7, false, false);
             Assert.IsFalse(isnull.Evaluate(o));
             Assert.AreEqual(0, isnull.ActualLength);
         }
@@ -453,7 +496,7 @@ namespace Moksy.Test
         public void LengthBetween47PropertyEqual3()
         {
             var o = GetJ(@"{ ""TheProperty"" : ""ABC"" }");
-            LengthBetweenConstraint isnull = new LengthBetweenConstraint("TheProperty", 4, 7);
+            LengthBetween isnull = new LengthBetween("TheProperty", 4, 7);
             Assert.IsFalse(isnull.Evaluate(o));
             Assert.AreEqual(3, isnull.ActualLength);
         }
@@ -462,7 +505,7 @@ namespace Moksy.Test
         public void LengthBetween47PropertyEqual4()
         {
             var o = GetJ(@"{ ""TheProperty"" : ""ABCD"" }");
-            LengthBetweenConstraint isnull = new LengthBetweenConstraint("TheProperty", 4, 7);
+            LengthBetween isnull = new LengthBetween("TheProperty", 4, 7);
             Assert.IsTrue(isnull.Evaluate(o));
             Assert.AreEqual(4, isnull.ActualLength);
         }
@@ -471,7 +514,7 @@ namespace Moksy.Test
         public void LengthBetween47PropertyEqual7()
         {
             var o = GetJ(@"{ ""TheProperty"" : ""ABCDEFG"" }");
-            LengthBetweenConstraint isnull = new LengthBetweenConstraint("TheProperty", 4, 7);
+            LengthBetween isnull = new LengthBetween("TheProperty", 4, 7);
             Assert.IsTrue(isnull.Evaluate(o));
             Assert.AreEqual(7, isnull.ActualLength);
         }
@@ -480,7 +523,7 @@ namespace Moksy.Test
         public void LengthBetween47PropertyEqual8()
         {
             var o = GetJ(@"{ ""TheProperty"" : ""ABCDEFGH"" }");
-            LengthBetweenConstraint isnull = new LengthBetweenConstraint("TheProperty", 4, 7);
+            LengthBetween isnull = new LengthBetween("TheProperty", 4, 7);
             Assert.IsFalse(isnull.Evaluate(o));
             Assert.AreEqual(8, isnull.ActualLength);
         }
@@ -516,7 +559,7 @@ namespace Moksy.Test
         {
             var s = Moksy.Common.SimulationFactory.When.I.Get().From("/Pet");
 
-            LengthEqualsConstraint c = new LengthEqualsConstraint("TheProperty", 10);
+            LengthEquals c = new LengthEquals("TheProperty", 10);
             s.Constraint(c);
 
             Assert.AreEqual(1, s.Constraints.Count);
@@ -527,10 +570,10 @@ namespace Moksy.Test
         {
             var s = Moksy.Common.SimulationFactory.When.I.Get().From("/Pet");
 
-            LengthEqualsConstraint c = new LengthEqualsConstraint("TheProperty", 10);
+            LengthEquals c = new LengthEquals("TheProperty", 10);
             s.Constraint(c);
 
-            IsNullConstraint n = new IsNullConstraint("TheOtherProperty");
+            IsNull n = new IsNull("TheOtherProperty");
             s.Constraint(n);
 
             Assert.AreEqual(2, s.Constraints.Count);
@@ -559,7 +602,7 @@ namespace Moksy.Test
             var s = Moksy.Common.SimulationFactory.When.I.Get().From("/Pet");
 
             List<ConstraintBase> b = new List<ConstraintBase>();
-            b.Add(new IsNullConstraint("TheProperty"));
+            b.Add(new IsNull("TheProperty"));
             s.Constraint(b);
 
             Assert.AreEqual(1, s.Constraints.Count);            
@@ -570,7 +613,7 @@ namespace Moksy.Test
         [TestMethod]
         public void NullNoneMatchingConstraints()
         {
-            var s = Moksy.Common.SimulationFactory.When.I.Post().ToImdb("/Pet").With.Constraint(new LengthEqualsConstraint("TheProperty", 4));
+            var s = Moksy.Common.SimulationFactory.When.I.Post().ToImdb("/Pet").With.Constraint(new LengthEquals("TheProperty", 4));
             SimulationManager mgr = new SimulationManager();
             mgr.Add(s.Simulation);
             var result = mgr.FindMatchingConstraints(null, null);
@@ -580,7 +623,7 @@ namespace Moksy.Test
         [TestMethod]
         public void NullContentonstraints()
         {
-            var s = Moksy.Common.SimulationFactory.When.I.Post().ToImdb("/Pet").With.Constraint(new LengthEqualsConstraint("TheProperty", 4));
+            var s = Moksy.Common.SimulationFactory.When.I.Post().ToImdb("/Pet").With.Constraint(new LengthEquals("TheProperty", 4));
             SimulationManager mgr = new SimulationManager();
             mgr.Add(s.Simulation);
             var result = mgr.FindMatchingConstraints(new List<ConstraintBase>(), null);
@@ -595,7 +638,7 @@ namespace Moksy.Test
         [TestMethod]
         public void MatchesJsonNoViolation()
         {
-            var v = new LengthEqualsConstraint("TheProperty", 4);
+            var v = new LengthEquals("TheProperty", 4);
             var s = Moksy.Common.SimulationFactory.When.I.Post().ToImdb("/Pet").With.Constraint(v);
             SimulationManager mgr = new SimulationManager();
             mgr.Add(s.Simulation);
@@ -607,7 +650,7 @@ namespace Moksy.Test
         [TestMethod]
         public void MatchesJsonOneViolation()
         {
-            var v = new LengthEqualsConstraint("TheProperty", 4);
+            var v = new LengthEquals("TheProperty", 4);
             var s = Moksy.Common.SimulationFactory.When.I.Post().ToImdb("/Pet").With.Constraint(v);
             SimulationManager mgr = new SimulationManager();
             mgr.Add(s.Simulation);
@@ -622,7 +665,7 @@ namespace Moksy.Test
         [TestMethod]
         public void MatchesNoViolationsNoIndex()
         {
-            var s = Moksy.Common.SimulationFactory.When.I.Post().ToImdb("/Pet").With.Constraint(new LengthEqualsConstraint("TheProperty", 4));
+            var s = Moksy.Common.SimulationFactory.When.I.Post().ToImdb("/Pet").With.Constraint(new LengthEquals("TheProperty", 4));
             SimulationManager mgr = new SimulationManager();
             mgr.Add(s.Simulation);
             StringContent content = new StringContent(@"{""TheProperty"":""ABCDE""}");
@@ -633,7 +676,7 @@ namespace Moksy.Test
         [TestMethod]
         public void MatchesOneViolationsNoIndex()
         {
-            var s = Moksy.Common.SimulationFactory.When.I.Post().ToImdb("/Pet").With.Constraint(new LengthEqualsConstraint("TheProperty", 4));
+            var s = Moksy.Common.SimulationFactory.When.I.Post().ToImdb("/Pet").With.Constraint(new LengthEquals("TheProperty", 4));
             SimulationManager mgr = new SimulationManager();
             mgr.Add(s.Simulation);
             StringContent content = new StringContent(@"{""TheProperty"":""ABCD""}");
@@ -645,7 +688,7 @@ namespace Moksy.Test
         [TestMethod]
         public void MatchesNoViolationsIndex()
         {
-            var s = Moksy.Common.SimulationFactory.When.I.Post().ToImdb("/Pet").With.NotExists("Kind").Constraint(new LengthEqualsConstraint("TheProperty", 4));
+            var s = Moksy.Common.SimulationFactory.When.I.Post().ToImdb("/Pet").With.NotExists("Kind").Constraint(new LengthEquals("TheProperty", 4));
             SimulationManager mgr = new SimulationManager();
             mgr.Add(s.Simulation);
             StringContent content = new StringContent(@"{""TheProperty"":""ABCDE""}");
@@ -656,7 +699,7 @@ namespace Moksy.Test
         [TestMethod]
         public void MatchesOneViolationsIndex()
         {
-            var s = Moksy.Common.SimulationFactory.When.I.Post().ToImdb("/Pet").With.NotExists("Kind").Constraint(new LengthEqualsConstraint("TheProperty", 4));
+            var s = Moksy.Common.SimulationFactory.When.I.Post().ToImdb("/Pet").With.NotExists("Kind").Constraint(new LengthEquals("TheProperty", 4));
             SimulationManager mgr = new SimulationManager();
             mgr.Add(s.Simulation);
             StringContent content = new StringContent(@"{""TheProperty"":""ABCD""}");
@@ -668,7 +711,7 @@ namespace Moksy.Test
         [TestMethod]
         public void MatchesTwoViolationsIndex()
         {
-            var s = Moksy.Common.SimulationFactory.When.I.Post().ToImdb("/Pet").With.NotExists("Kind").Constraint(new LengthEqualsConstraint("TheProperty", 4)).Constraint(new IsMissingConstraint("Other"));
+            var s = Moksy.Common.SimulationFactory.When.I.Post().ToImdb("/Pet").With.NotExists("Kind").Constraint(new LengthEquals("TheProperty", 4)).Constraint(new IsMissing("Other"));
             SimulationManager mgr = new SimulationManager();
             mgr.Add(s.Simulation);
             StringContent content = new StringContent(@"{""TheProperty"":""ABCD""}");
@@ -680,7 +723,7 @@ namespace Moksy.Test
         [TestMethod]
         public void MatchesTwoViolationsOnlyOneIndex()
         {
-            var s = Moksy.Common.SimulationFactory.When.I.Post().ToImdb("/Pet").With.NotExists("Kind").Constraint(new LengthEqualsConstraint("TheProperty", 4)).Constraint(new IsNullConstraint("Other"));
+            var s = Moksy.Common.SimulationFactory.When.I.Post().ToImdb("/Pet").With.NotExists("Kind").Constraint(new LengthEquals("TheProperty", 4)).Constraint(new IsNull("Other"));
             SimulationManager mgr = new SimulationManager();
             mgr.Add(s.Simulation);
             StringContent content = new StringContent(@"{""TheProperty"":""ABCD""}");
@@ -691,7 +734,7 @@ namespace Moksy.Test
         [TestMethod]
         public void MatchesTwoViolationsIndexExists()
         {
-            var s = Moksy.Common.SimulationFactory.When.I.Post().ToImdb("/Pet").With.NotExists("Kind").Constraint(new LengthEqualsConstraint("TheProperty", 4)).Constraint(new IsMissingConstraint("Other"));
+            var s = Moksy.Common.SimulationFactory.When.I.Post().ToImdb("/Pet").With.NotExists("Kind").Constraint(new LengthEquals("TheProperty", 4)).Constraint(new IsMissing("Other"));
             SimulationManager mgr = new SimulationManager();
             mgr.Add(s.Simulation);
             StringContent content = new StringContent(@"{""TheProperty"":""ABCD""}");

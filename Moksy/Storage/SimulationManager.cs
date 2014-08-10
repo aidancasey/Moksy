@@ -355,7 +355,7 @@ namespace Moksy.Storage
                         if (match.Condition.Constraints.Count > 0 && matchingAssertions.Count() != match.Condition.Constraints.Count)
                         {
                             // This means that not every constraint that was specified was matched
-                            // If .HasAnyConstraintViolations() is specified, this means it is OK to continue matching. 
+                            // If .HasRuleViolations() is specified, this means it is OK to continue matching. 
                             if (match.Condition.HasAnyConstraintViolations)
                             {
                             }

@@ -49,14 +49,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Constraints\ConstraintBase.cs" />
-    <Compile Include="Constraints\LengthBetweenConstraint.cs" />
-    <Compile Include="Constraints\LengthGreaterThanConstraint.cs" />
-    <Compile Include="Constraints\LengthLessThanConstraint.cs" />
-    <Compile Include="Constraints\LengthNotEqualsConstraint.cs" />
-    <Compile Include="Constraints\LengthEqualsConstraint.cs" />
-    <Compile Include="Constraints\LengthLessThanOrGreaterThanConstraint.cs" />
-    <Compile Include="Constraints\IsMissingConstraint.cs" />
-    <Compile Include="Constraints\IsNullConstraint.cs" />
+    <Compile Include="Constraints\LengthBetween.cs" />
+    <Compile Include="Constraints\LengthGreaterThan.cs" />
+    <Compile Include="Constraints\LengthLessThan.cs" />
+    <Compile Include="Constraints\LengthNotEquals.cs" />
+    <Compile Include="Constraints\LengthEquals.cs" />
+    <Compile Include="Constraints\LengthLessThanOrGreaterThan.cs" />
+    <Compile Include="Constraints\IsMissing.cs" />
+    <Compile Include="Constraints\IsNull.cs" />
     <Compile Include="ContentKind.cs" />
     <Compile Include="Match.cs" />
     <Compile Include="Persistence.cs" />

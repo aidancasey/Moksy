@@ -49,12 +49,11 @@ namespace Moksy.Handlers
 
                 var evaluatedMatchingResponses = from T in simulation.EvaluatedMatchingConstraints select T.EvaluatedResponse;
                 var evaluatedMatchingResponsesAsString = string.Join(",", evaluatedMatchingResponses.ToArray());
-                vars["matchingConstraints"] = string.Format("[{0}]", evaluatedMatchingResponsesAsString);
+                vars["constraintResponses"] = string.Format("[{0}]", evaluatedMatchingResponsesAsString);
 
                 var evaluatedNoneMatchingResponses = from T in simulation.EvaluatedNoneMatchingConstraints select T.EvaluatedResponse;
                 var evaluatedNoneMatchingResponsesAsString = string.Join(",", evaluatedNoneMatchingResponses.ToArray());
-                vars["noneMatchingConstraints"] = string.Format("[{0}]", evaluatedNoneMatchingResponsesAsString);
-                vars["nonMatchingConstraints"] = string.Format("[{0}]", evaluatedNoneMatchingResponsesAsString);
+                vars["violationResponses"] = string.Format("[{0}]", evaluatedNoneMatchingResponsesAsString);
 
                 SubstituteHeaders(vars, match.Response.ResponseHeaders);
 

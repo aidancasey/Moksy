@@ -22,7 +22,7 @@ namespace Moksy.Test
         [TestMethod]
         public void IsMissingTrue()
         {
-            IsMissingConstraint c = new IsMissingConstraint("TheProperty");
+            IsMissing c = new IsMissing("TheProperty");
             var j = GetJ(@"{}");
             Assert.IsTrue(c.Evaluate(j));
             Assert.AreEqual(@"{""Name"":""IsMissing"",""PropertyName"":""TheProperty"",""PropertyValue"":null,""PropertyHasValue"":false,""Description"":""The property 'TheProperty' was not expected to be in the Json. ""}", c.GetState(j));
@@ -31,7 +31,7 @@ namespace Moksy.Test
         [TestMethod]
         public void IsMissingNull()
         {
-            IsMissingConstraint c = new IsMissingConstraint("TheProperty");
+            IsMissing c = new IsMissing("TheProperty");
             var j = GetJ(@"{""TheProperty"":null}");
             Assert.IsFalse(c.Evaluate(j));
             Assert.AreEqual(@"{""Name"":""IsMissing"",""PropertyName"":""TheProperty"",""PropertyValue"":null,""PropertyHasValue"":true,""Description"":""The property 'TheProperty' was not expected to be in the Json. ""}", c.GetState(j));
@@ -40,7 +40,7 @@ namespace Moksy.Test
         [TestMethod]
         public void IsMissingEmptyString()
         {
-            IsMissingConstraint c = new IsMissingConstraint("TheProperty");
+            IsMissing c = new IsMissing("TheProperty");
             var j = GetJ(@"{""TheProperty"":""""}");
             Assert.IsFalse(c.Evaluate(j));
             Assert.AreEqual(@"{""Name"":""IsMissing"",""PropertyName"":""TheProperty"",""PropertyValue"":"""",""PropertyHasValue"":true,""Description"":""The property 'TheProperty' was not expected to be in the Json. ""}", c.GetState(j));
@@ -49,7 +49,7 @@ namespace Moksy.Test
         [TestMethod]
         public void IsMissingValueString()
         {
-            IsMissingConstraint c = new IsMissingConstraint("TheProperty");
+            IsMissing c = new IsMissing("TheProperty");
             var j = GetJ(@"{""TheProperty"":""TheValue""}");
             Assert.IsFalse(c.Evaluate(j));
             Assert.AreEqual(@"{""Name"":""IsMissing"",""PropertyName"":""TheProperty"",""PropertyValue"":""TheValue"",""PropertyHasValue"":true,""Description"":""The property 'TheProperty' was not expected to be in the Json. ""}", c.GetState(j));
@@ -61,7 +61,7 @@ namespace Moksy.Test
         [TestMethod]
         public void IsNullFalse()
         {
-            IsNullConstraint c = new IsNullConstraint("TheProperty");
+            IsNull c = new IsNull("TheProperty");
             var j = GetJ(@"{}");
             Assert.IsFalse(c.Evaluate(j));
             Assert.AreEqual(@"{""Name"":""IsNull"",""PropertyName"":""TheProperty"",""PropertyValue"":null,""PropertyHasValue"":false,""Description"":""The property 'TheProperty' was expected to be Null.""}", c.GetState(j));
@@ -70,7 +70,7 @@ namespace Moksy.Test
         [TestMethod]
         public void IsNullNull()
         {
-            IsNullConstraint c = new IsNullConstraint("TheProperty");
+            IsNull c = new IsNull("TheProperty");
             var j = GetJ(@"{""TheProperty"":null}");
             Assert.IsTrue(c.Evaluate(j));
             Assert.AreEqual(@"{""Name"":""IsNull"",""PropertyName"":""TheProperty"",""PropertyValue"":null,""PropertyHasValue"":true,""Description"":""The property 'TheProperty' was expected to be Null.""}", c.GetState(j));
@@ -79,7 +79,7 @@ namespace Moksy.Test
         [TestMethod]
         public void IsNullEmptyString()
         {
-            IsNullConstraint c = new IsNullConstraint("TheProperty");
+            IsNull c = new IsNull("TheProperty");
             var j = GetJ(@"{""TheProperty"":""""}");
             Assert.IsFalse(c.Evaluate(j));
             Assert.AreEqual(@"{""Name"":""IsNull"",""PropertyName"":""TheProperty"",""PropertyValue"":"""",""PropertyHasValue"":true,""Description"":""The property 'TheProperty' was expected to be Null.""}", c.GetState(j));
@@ -88,7 +88,7 @@ namespace Moksy.Test
         [TestMethod]
         public void IsNullValueString()
         {
-            IsNullConstraint c = new IsNullConstraint("TheProperty");
+            IsNull c = new IsNull("TheProperty");
             var j = GetJ(@"{""TheProperty"":""TheValue""}");
             Assert.IsFalse(c.Evaluate(j));
             Assert.AreEqual(@"{""Name"":""IsNull"",""PropertyName"":""TheProperty"",""PropertyValue"":""TheValue"",""PropertyHasValue"":true,""Description"":""The property 'TheProperty' was expected to be Null.""}", c.GetState(j));
@@ -100,7 +100,7 @@ namespace Moksy.Test
         [TestMethod]
         public void LengthEqualsMissing()
         {
-            LengthEqualsConstraint c = new LengthEqualsConstraint("TheProperty", 4);
+            LengthEquals c = new LengthEquals("TheProperty", 4);
             var j = GetJ(@"{}");
             Assert.IsFalse(c.Evaluate(j));
             Assert.AreEqual(@"{""Name"":""Length"",""PropertyName"":""TheProperty"",""Kind"":""Equals"",""ExpectedLength"":4,""ActualLength"":0,""PropertyValue"":null,""PropertyHasValue"":false,""Description"":""The property 'TheProperty' was expected to be of length '4'.""}", c.GetState(j));
@@ -109,7 +109,7 @@ namespace Moksy.Test
         [TestMethod]
         public void LengthEqualsNull()
         {
-            LengthEqualsConstraint c = new LengthEqualsConstraint("TheProperty", 4);
+            LengthEquals c = new LengthEquals("TheProperty", 4);
             var j = GetJ(@"{""TheProperty"":null}");
             Assert.IsFalse(c.Evaluate(j));
             Assert.AreEqual(@"{""Name"":""Length"",""PropertyName"":""TheProperty"",""Kind"":""Equals"",""ExpectedLength"":4,""ActualLength"":0,""PropertyValue"":null,""PropertyHasValue"":true,""Description"":""The property 'TheProperty' was expected to be of length '4'.""}", c.GetState(j));
@@ -118,7 +118,7 @@ namespace Moksy.Test
         [TestMethod]
         public void LengthEqualsEmpty()
         {
-            LengthEqualsConstraint c = new LengthEqualsConstraint("TheProperty", 4);
+            LengthEquals c = new LengthEquals("TheProperty", 4);
             var j = GetJ(@"{""TheProperty"":""""}");
             Assert.IsFalse(c.Evaluate(j));
             Assert.AreEqual(@"{""Name"":""Length"",""PropertyName"":""TheProperty"",""Kind"":""Equals"",""ExpectedLength"":4,""ActualLength"":0,""PropertyValue"":"""",""PropertyHasValue"":true,""Description"":""The property 'TheProperty' was expected to be of length '4'.""}", c.GetState(j));
@@ -127,7 +127,7 @@ namespace Moksy.Test
         [TestMethod]
         public void LengthEqualsTrue()
         {
-            LengthEqualsConstraint c = new LengthEqualsConstraint("TheProperty", 4);
+            LengthEquals c = new LengthEquals("TheProperty", 4);
             var j = GetJ(@"{""TheProperty"":""ABCD""}");
             Assert.IsTrue(c.Evaluate(j));
             Assert.AreEqual(@"{""Name"":""Length"",""PropertyName"":""TheProperty"",""Kind"":""Equals"",""ExpectedLength"":4,""ActualLength"":4,""PropertyValue"":""ABCD"",""PropertyHasValue"":true,""Description"":""The property 'TheProperty' was expected to be of length '4'.""}", c.GetState(j));
@@ -136,7 +136,7 @@ namespace Moksy.Test
         [TestMethod]
         public void LengthEqualsFalse()
         {
-            LengthEqualsConstraint c = new LengthEqualsConstraint("TheProperty", 4);
+            LengthEquals c = new LengthEquals("TheProperty", 4);
             var j = GetJ(@"{""TheProperty"":""ABCDEF""}");
             Assert.IsFalse(c.Evaluate(j));
             Assert.AreEqual(@"{""Name"":""Length"",""PropertyName"":""TheProperty"",""Kind"":""Equals"",""ExpectedLength"":4,""ActualLength"":6,""PropertyValue"":""ABCDEF"",""PropertyHasValue"":true,""Description"":""The property 'TheProperty' was expected to be of length '4'.""}", c.GetState(j));
@@ -147,7 +147,7 @@ namespace Moksy.Test
         [TestMethod]
         public void LengthNotEqualsMissing()
         {
-            LengthLessThanOrGreaterThanConstraint c = new LengthNotEqualsConstraint("TheProperty", 4);
+            LengthNotEquals c = new LengthNotEquals("TheProperty", 4);
             var j = GetJ(@"{}");
             Assert.IsTrue(c.Evaluate(j));
             Assert.AreEqual(@"{""Name"":""Length"",""PropertyName"":""TheProperty"",""Kind"":""NotEquals"",""ExpectedLength"":4,""ActualLength"":0,""PropertyValue"":null,""PropertyHasValue"":false,""Description"":""The property 'TheProperty' was expected to not be of length '4'.""}", c.GetState(j));
@@ -156,7 +156,7 @@ namespace Moksy.Test
         [TestMethod]
         public void LengthNotEqualsNull()
         {
-            LengthLessThanOrGreaterThanConstraint c = new LengthNotEqualsConstraint("TheProperty", 4);
+            LengthNotEquals c = new LengthNotEquals("TheProperty", 4);
             var j = GetJ(@"{""TheProperty"":null}");
             Assert.IsTrue(c.Evaluate(j));
             Assert.AreEqual(@"{""Name"":""Length"",""PropertyName"":""TheProperty"",""Kind"":""NotEquals"",""ExpectedLength"":4,""ActualLength"":0,""PropertyValue"":null,""PropertyHasValue"":true,""Description"":""The property 'TheProperty' was expected to not be of length '4'.""}", c.GetState(j));
@@ -165,7 +165,7 @@ namespace Moksy.Test
         [TestMethod]
         public void LengthNotEqualsEmpty()
         {
-            LengthLessThanOrGreaterThanConstraint c = new LengthNotEqualsConstraint("TheProperty", 4);
+            LengthLessThanOrGreaterThan c = new LengthNotEquals("TheProperty", 4);
             var j = GetJ(@"{""TheProperty"":""""}");
             Assert.IsTrue(c.Evaluate(j));
             Assert.AreEqual(@"{""Name"":""Length"",""PropertyName"":""TheProperty"",""Kind"":""NotEquals"",""ExpectedLength"":4,""ActualLength"":0,""PropertyValue"":"""",""PropertyHasValue"":true,""Description"":""The property 'TheProperty' was expected to not be of length '4'.""}", c.GetState(j));
@@ -174,7 +174,7 @@ namespace Moksy.Test
         [TestMethod]
         public void LengthNotEqualsTrue()
         {
-            LengthLessThanOrGreaterThanConstraint c = new LengthNotEqualsConstraint("TheProperty", 4);
+            LengthLessThanOrGreaterThan c = new LengthNotEquals("TheProperty", 4);
             var j = GetJ(@"{""TheProperty"":""ABCD""}");
             Assert.IsFalse(c.Evaluate(j));
             Assert.AreEqual(@"{""Name"":""Length"",""PropertyName"":""TheProperty"",""Kind"":""NotEquals"",""ExpectedLength"":4,""ActualLength"":4,""PropertyValue"":""ABCD"",""PropertyHasValue"":true,""Description"":""The property 'TheProperty' was expected to not be of length '4'.""}", c.GetState(j));
@@ -183,7 +183,7 @@ namespace Moksy.Test
         [TestMethod]
         public void LengthNotEqualsFalse()
         {
-            LengthLessThanOrGreaterThanConstraint c = new LengthNotEqualsConstraint("TheProperty", 4);
+            LengthLessThanOrGreaterThan c = new LengthNotEquals("TheProperty", 4);
             var j = GetJ(@"{""TheProperty"":""ABCDEF""}");
             Assert.IsTrue(c.Evaluate(j));
             Assert.AreEqual(@"{""Name"":""Length"",""PropertyName"":""TheProperty"",""Kind"":""NotEquals"",""ExpectedLength"":4,""ActualLength"":6,""PropertyValue"":""ABCDEF"",""PropertyHasValue"":true,""Description"":""The property 'TheProperty' was expected to not be of length '4'.""}", c.GetState(j));
@@ -194,7 +194,7 @@ namespace Moksy.Test
         [TestMethod]
         public void LengthGreaterThanMissing()
         {
-            LengthGreaterThanConstraint c = new LengthGreaterThanConstraint("TheProperty", 4);
+            LengthGreaterThan c = new LengthGreaterThan("TheProperty", 4);
             var j = GetJ(@"{}");
             Assert.IsFalse(c.Evaluate(j));
             Assert.AreEqual(@"{""Name"":""Length"",""PropertyName"":""TheProperty"",""Kind"":""GreaterThan"",""MinimumLength"":4,""ActualLength"":0,""PropertyValue"":null,""PropertyHasValue"":false,""Description"":""The property 'TheProperty' was expected to be longer than '4' characters.""}", c.GetState(j));
@@ -203,7 +203,7 @@ namespace Moksy.Test
         [TestMethod]
         public void LengthGreaterThanNull()
         {
-            LengthGreaterThanConstraint c = new LengthGreaterThanConstraint("TheProperty", 4);
+            LengthGreaterThan c = new LengthGreaterThan("TheProperty", 4);
             var j = GetJ(@"{""TheProperty"":null}");
             Assert.IsFalse(c.Evaluate(j));
             Assert.AreEqual(@"{""Name"":""Length"",""PropertyName"":""TheProperty"",""Kind"":""GreaterThan"",""MinimumLength"":4,""ActualLength"":0,""PropertyValue"":null,""PropertyHasValue"":true,""Description"":""The property 'TheProperty' was expected to be longer than '4' characters.""}", c.GetState(j));
@@ -212,7 +212,7 @@ namespace Moksy.Test
         [TestMethod]
         public void LengthGreaterThanEmpty()
         {
-            LengthGreaterThanConstraint c = new LengthGreaterThanConstraint("TheProperty", 4);
+            LengthGreaterThan c = new LengthGreaterThan("TheProperty", 4);
             var j = GetJ(@"{""TheProperty"":""""}");
             Assert.IsFalse(c.Evaluate(j));
             Assert.AreEqual(@"{""Name"":""Length"",""PropertyName"":""TheProperty"",""Kind"":""GreaterThan"",""MinimumLength"":4,""ActualLength"":0,""PropertyValue"":"""",""PropertyHasValue"":true,""Description"":""The property 'TheProperty' was expected to be longer than '4' characters.""}", c.GetState(j));
@@ -221,7 +221,7 @@ namespace Moksy.Test
         [TestMethod]
         public void LengthGreaterThan44()
         {
-            LengthGreaterThanConstraint c = new LengthGreaterThanConstraint("TheProperty", 4);
+            LengthGreaterThan c = new LengthGreaterThan("TheProperty", 4);
             var j = GetJ(@"{""TheProperty"":""ABCD""}");
             Assert.IsFalse(c.Evaluate(j));
             Assert.AreEqual(@"{""Name"":""Length"",""PropertyName"":""TheProperty"",""Kind"":""GreaterThan"",""MinimumLength"":4,""ActualLength"":4,""PropertyValue"":""ABCD"",""PropertyHasValue"":true,""Description"":""The property 'TheProperty' was expected to be longer than '4' characters.""}", c.GetState(j));
@@ -230,7 +230,7 @@ namespace Moksy.Test
         [TestMethod]
         public void LengthGreaterThan45()
         {
-            LengthGreaterThanConstraint c = new LengthGreaterThanConstraint("TheProperty", 4);
+            LengthGreaterThan c = new LengthGreaterThan("TheProperty", 4);
             var j = GetJ(@"{""TheProperty"":""ABCDE""}");
             Assert.IsTrue(c.Evaluate(j));
             Assert.AreEqual(@"{""Name"":""Length"",""PropertyName"":""TheProperty"",""Kind"":""GreaterThan"",""MinimumLength"":4,""ActualLength"":5,""PropertyValue"":""ABCDE"",""PropertyHasValue"":true,""Description"":""The property 'TheProperty' was expected to be longer than '4' characters.""}", c.GetState(j));
@@ -241,7 +241,7 @@ namespace Moksy.Test
         [TestMethod]
         public void LengthLessThanMissing()
         {
-            LengthLessThanConstraint c = new LengthLessThanConstraint("TheProperty", 4);
+            LengthLessThan c = new LengthLessThan("TheProperty", 4);
             var j = GetJ(@"{}");
             Assert.IsTrue(c.Evaluate(j));
             Assert.AreEqual(@"{""Name"":""Length"",""PropertyName"":""TheProperty"",""Kind"":""LessThan"",""MinimumLength"":4,""ActualLength"":0,""PropertyValue"":null,""PropertyHasValue"":false,""Description"":""The property 'TheProperty' was expected to be less than '4' characters.""}", c.GetState(j));
@@ -250,7 +250,7 @@ namespace Moksy.Test
         [TestMethod]
         public void LengthLessThanNull()
         {
-            LengthLessThanConstraint c = new LengthLessThanConstraint("TheProperty", 4);
+            LengthLessThan c = new LengthLessThan("TheProperty", 4);
             var j = GetJ(@"{""TheProperty"":null}");
             Assert.IsFalse(c.Evaluate(j));
             Assert.AreEqual(@"{""Name"":""Length"",""PropertyName"":""TheProperty"",""Kind"":""LessThan"",""MinimumLength"":4,""ActualLength"":0,""PropertyValue"":null,""PropertyHasValue"":true,""Description"":""The property 'TheProperty' was expected to be less than '4' characters.""}", c.GetState(j));
@@ -259,7 +259,7 @@ namespace Moksy.Test
         [TestMethod]
         public void LengthLessThanEmpty()
         {
-            LengthLessThanConstraint c = new LengthLessThanConstraint("TheProperty", 4);
+            LengthLessThan c = new LengthLessThan("TheProperty", 4);
             var j = GetJ(@"{""TheProperty"":""""}");
             Assert.IsTrue(c.Evaluate(j));
             Assert.AreEqual(@"{""Name"":""Length"",""PropertyName"":""TheProperty"",""Kind"":""LessThan"",""MinimumLength"":4,""ActualLength"":0,""PropertyValue"":"""",""PropertyHasValue"":true,""Description"":""The property 'TheProperty' was expected to be less than '4' characters.""}", c.GetState(j));
@@ -268,7 +268,7 @@ namespace Moksy.Test
         [TestMethod]
         public void LengthLessThan34()
         {
-            LengthLessThanConstraint c = new LengthLessThanConstraint("TheProperty", 4);
+            LengthLessThan c = new LengthLessThan("TheProperty", 4);
             var j = GetJ(@"{""TheProperty"":""ABC""}");
             Assert.IsTrue(c.Evaluate(j));
             Assert.AreEqual(@"{""Name"":""Length"",""PropertyName"":""TheProperty"",""Kind"":""LessThan"",""MinimumLength"":4,""ActualLength"":3,""PropertyValue"":""ABC"",""PropertyHasValue"":true,""Description"":""The property 'TheProperty' was expected to be less than '4' characters.""}", c.GetState(j));
@@ -277,7 +277,7 @@ namespace Moksy.Test
         [TestMethod]
         public void LengthLessThan44()
         {
-            LengthLessThanConstraint c = new LengthLessThanConstraint("TheProperty", 4);
+            LengthLessThan c = new LengthLessThan("TheProperty", 4);
             var j = GetJ(@"{""TheProperty"":""ABCD""}");
             Assert.IsFalse(c.Evaluate(j));
             Assert.AreEqual(@"{""Name"":""Length"",""PropertyName"":""TheProperty"",""Kind"":""LessThan"",""MinimumLength"":4,""ActualLength"":4,""PropertyValue"":""ABCD"",""PropertyHasValue"":true,""Description"":""The property 'TheProperty' was expected to be less than '4' characters.""}", c.GetState(j));
@@ -288,7 +288,7 @@ namespace Moksy.Test
         [TestMethod]
         public void LengthLtGtMissing()
         {
-            LengthLessThanOrGreaterThanConstraint c = new LengthLessThanOrGreaterThanConstraint("TheProperty", 4, 8);
+            LengthLessThanOrGreaterThan c = new LengthLessThanOrGreaterThan("TheProperty", 4, 8);
             var j = GetJ(@"{}");
             Assert.IsTrue(c.Evaluate(j));
             Assert.AreEqual(@"{""Name"":""Length"",""PropertyName"":""TheProperty"",""Kind"":""LessThanOrGreaterThan"",""MinimumLength"":4,""MaximumLength"":8,""ActualLength"":0,""PropertyValue"":null,""PropertyHasValue"":false,""Description"":""The property 'TheProperty' was expected to be less than '4' characters or greater than '8' characters in length.""}", c.GetState(j));
@@ -297,7 +297,7 @@ namespace Moksy.Test
         [TestMethod]
         public void LengthLtGtMissing0()
         {
-            LengthLessThanOrGreaterThanConstraint c = new LengthLessThanOrGreaterThanConstraint("TheProperty", 0, 8);
+            LengthLessThanOrGreaterThan c = new LengthLessThanOrGreaterThan("TheProperty", 0, 8);
             var j = GetJ(@"{}");
             Assert.IsTrue(c.Evaluate(j));
             Assert.AreEqual(@"{""Name"":""Length"",""PropertyName"":""TheProperty"",""Kind"":""LessThanOrGreaterThan"",""MinimumLength"":0,""MaximumLength"":8,""ActualLength"":0,""PropertyValue"":null,""PropertyHasValue"":false,""Description"":""The property 'TheProperty' was expected to be less than '0' characters or greater than '8' characters in length.""}", c.GetState(j));
@@ -306,7 +306,7 @@ namespace Moksy.Test
         [TestMethod]
         public void LengthLtGtNull()
         {
-            LengthLessThanOrGreaterThanConstraint c = new LengthLessThanOrGreaterThanConstraint("TheProperty", 4, 8);
+            LengthLessThanOrGreaterThan c = new LengthLessThanOrGreaterThan("TheProperty", 4, 8);
             var j = GetJ(@"{""TheProperty"":null}");
             Assert.IsTrue(c.Evaluate(j));
             Assert.AreEqual(@"{""Name"":""Length"",""PropertyName"":""TheProperty"",""Kind"":""LessThanOrGreaterThan"",""MinimumLength"":4,""MaximumLength"":8,""ActualLength"":0,""PropertyValue"":null,""PropertyHasValue"":true,""Description"":""The property 'TheProperty' was expected to be less than '4' characters or greater than '8' characters in length.""}", c.GetState(j));
@@ -315,7 +315,7 @@ namespace Moksy.Test
         [TestMethod]
         public void LengthLtGtNull0()
         {
-            LengthLessThanOrGreaterThanConstraint c = new LengthLessThanOrGreaterThanConstraint("TheProperty", 0, 8);
+            LengthLessThanOrGreaterThan c = new LengthLessThanOrGreaterThan("TheProperty", 0, 8);
             var j = GetJ(@"{""TheProperty"":null}");
             Assert.IsTrue(c.Evaluate(j));
             Assert.AreEqual(@"{""Name"":""Length"",""PropertyName"":""TheProperty"",""Kind"":""LessThanOrGreaterThan"",""MinimumLength"":0,""MaximumLength"":8,""ActualLength"":0,""PropertyValue"":null,""PropertyHasValue"":true,""Description"":""The property 'TheProperty' was expected to be less than '0' characters or greater than '8' characters in length.""}", c.GetState(j));
@@ -324,7 +324,7 @@ namespace Moksy.Test
         [TestMethod]
         public void LengthLtGtEmpty()
         {
-            LengthLessThanOrGreaterThanConstraint c = new LengthLessThanOrGreaterThanConstraint("TheProperty", 4, 8);
+            LengthLessThanOrGreaterThan c = new LengthLessThanOrGreaterThan("TheProperty", 4, 8);
             var j = GetJ(@"{""TheProperty"":""""}");
             Assert.IsTrue(c.Evaluate(j));
             Assert.AreEqual(@"{""Name"":""Length"",""PropertyName"":""TheProperty"",""Kind"":""LessThanOrGreaterThan"",""MinimumLength"":4,""MaximumLength"":8,""ActualLength"":0,""PropertyValue"":"""",""PropertyHasValue"":true,""Description"":""The property 'TheProperty' was expected to be less than '4' characters or greater than '8' characters in length.""}", c.GetState(j));
@@ -333,7 +333,7 @@ namespace Moksy.Test
         [TestMethod]
         public void LengthLtGtEmpty0()
         {
-            LengthLessThanOrGreaterThanConstraint c = new LengthLessThanOrGreaterThanConstraint("TheProperty", 0, 8);
+            LengthLessThanOrGreaterThan c = new LengthLessThanOrGreaterThan("TheProperty", 0, 8);
             var j = GetJ(@"{""TheProperty"":""""}");
             Assert.IsFalse(c.Evaluate(j));
             Assert.AreEqual(@"{""Name"":""Length"",""PropertyName"":""TheProperty"",""Kind"":""LessThanOrGreaterThan"",""MinimumLength"":0,""MaximumLength"":8,""ActualLength"":0,""PropertyValue"":"""",""PropertyHasValue"":true,""Description"":""The property 'TheProperty' was expected to be less than '0' characters or greater than '8' characters in length.""}", c.GetState(j));
@@ -342,7 +342,7 @@ namespace Moksy.Test
         [TestMethod]
         public void LengthLtGtEmpty483()
         {
-            LengthLessThanOrGreaterThanConstraint c = new LengthLessThanOrGreaterThanConstraint("TheProperty", 4, 8);
+            LengthLessThanOrGreaterThan c = new LengthLessThanOrGreaterThan("TheProperty", 4, 8);
             var j = GetJ(@"{""TheProperty"":""ABC""}");
             Assert.IsTrue(c.Evaluate(j));
             Assert.AreEqual(@"{""Name"":""Length"",""PropertyName"":""TheProperty"",""Kind"":""LessThanOrGreaterThan"",""MinimumLength"":4,""MaximumLength"":8,""ActualLength"":3,""PropertyValue"":""ABC"",""PropertyHasValue"":true,""Description"":""The property 'TheProperty' was expected to be less than '4' characters or greater than '8' characters in length.""}", c.GetState(j));
@@ -351,7 +351,7 @@ namespace Moksy.Test
         [TestMethod]
         public void LengthLtGtEmpty484()
         {
-            LengthLessThanOrGreaterThanConstraint c = new LengthLessThanOrGreaterThanConstraint("TheProperty", 4, 8);
+            LengthLessThanOrGreaterThan c = new LengthLessThanOrGreaterThan("TheProperty", 4, 8);
             var j = GetJ(@"{""TheProperty"":""ABCD""}");
             Assert.IsFalse(c.Evaluate(j));
             Assert.AreEqual(@"{""Name"":""Length"",""PropertyName"":""TheProperty"",""Kind"":""LessThanOrGreaterThan"",""MinimumLength"":4,""MaximumLength"":8,""ActualLength"":4,""PropertyValue"":""ABCD"",""PropertyHasValue"":true,""Description"":""The property 'TheProperty' was expected to be less than '4' characters or greater than '8' characters in length.""}", c.GetState(j));
@@ -360,7 +360,7 @@ namespace Moksy.Test
         [TestMethod]
         public void LengthLtGtEmpty488()
         {
-            LengthLessThanOrGreaterThanConstraint c = new LengthLessThanOrGreaterThanConstraint("TheProperty", 4, 8);
+            LengthLessThanOrGreaterThan c = new LengthLessThanOrGreaterThan("TheProperty", 4, 8);
             var j = GetJ(@"{""TheProperty"":""ABCDEFGH""}");
             Assert.IsFalse(c.Evaluate(j));
             Assert.AreEqual(@"{""Name"":""Length"",""PropertyName"":""TheProperty"",""Kind"":""LessThanOrGreaterThan"",""MinimumLength"":4,""MaximumLength"":8,""ActualLength"":8,""PropertyValue"":""ABCDEFGH"",""PropertyHasValue"":true,""Description"":""The property 'TheProperty' was expected to be less than '4' characters or greater than '8' characters in length.""}", c.GetState(j));
@@ -369,7 +369,7 @@ namespace Moksy.Test
         [TestMethod]
         public void LengthLtGtEmpty489()
         {
-            LengthLessThanOrGreaterThanConstraint c = new LengthLessThanOrGreaterThanConstraint("TheProperty", 4, 8);
+            LengthLessThanOrGreaterThan c = new LengthLessThanOrGreaterThan("TheProperty", 4, 8);
             var j = GetJ(@"{""TheProperty"":""ABCDEFGHI""}");
             Assert.IsTrue(c.Evaluate(j));
             Assert.AreEqual(@"{""Name"":""Length"",""PropertyName"":""TheProperty"",""Kind"":""LessThanOrGreaterThan"",""MinimumLength"":4,""MaximumLength"":8,""ActualLength"":9,""PropertyValue"":""ABCDEFGHI"",""PropertyHasValue"":true,""Description"":""The property 'TheProperty' was expected to be less than '4' characters or greater than '8' characters in length.""}", c.GetState(j));
