@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<package>
+  <metadata>
+    <id>Moksy</id>
+    <version>1.0.17</version>
+    <authors>BrekIT</authors>
+    <owners>BrekIT</owners>
+    <licenseUrl>http://www.brekit.com/moksy/license.txt</licenseUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <projectUrl>http://www.brekit.com/moksy</projectUrl>
+    <description>Moksy</description>
+    <releaseNotes>Web Service Mocking/Faking/Simulation Framework</releaseNotes>
+    <copyright>Copyright (c)2014</copyright>
+    <tags>
+    </tags>
+    <dependencies>
+      <dependency id="Newtonsoft.Json" version="6.0.3" />
+      <dependency id="RestSharp" version="104.4.0" />
+    </dependencies>
+  </metadata>
+</package>

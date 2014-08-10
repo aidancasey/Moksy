@@ -14,4 +14,4 @@ packages/
 NugetStage/
 TestResults/
 *.exe
-*.nuspec
+
