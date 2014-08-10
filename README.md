@@ -1,21 +1,27 @@
-Moksy v0.2
+Moksy v1.0
 ----------
-An open source library for stubbing, faking, mocking and simulating Web Service calls.
-
-See www.twitter.com/brek_it, www.havecomputerwillcode.com and www.brekit.com for more information. 
+See http:/www.brekit.com/moksy for more information. 
 
 
 Why?
 ----
-For test automation, I write my integration tests against REST API Services using a combination of RestSharp and Json.NET. However, I often end up calling third party services - either directly or indirectly - through those API Calls. These services might be incomplete, unreliable or unavailable for testing. I have typically got around this problem by writing simple Http services that return canned responses so that I can continue testing.
+Moksy is an open source .Net library for stubbing, mocking and simulating web services. 
 
-Moksy tries to make this easier by providing a Fluent API around 'Simulations' on how a service should work. As part of your Integration test, you set up a Simulation for a particular endpoint and then - either directly or indirectly through another service call - hit the endpoint specified in that Simulation. The simulation is invoked and a predictable response is returned.
+Intended to be driven from MsTest (or your favorite testing framework), Moksy will create a real HTTP Server end-point that your system under test or other services can hit. 
 
-A Simulation consists of a Condition and a Response. In its simplest use case, a Condition includes a resource such as /Pet. For example:
+For example:
 
-    Moksy.Common.SimulationFactory.When.I.Get.From("/Pet").Then.Return.Body("Hello World!").With.StatusCode(System.Net.HttpStatusCode.OK);
+		Moksy.Common.Proxy proxy = new Moksy.Common.Proxy(10011);
+		proxy.Start();
 
-When we navigate to http://localhost:10011/Pet in a browser [or whichever port Moksy is running on] we will get back 'Hello World!'. Of course, the real motivation is to call other services which then hit /Pet!
+		var simulation = SimulationFactory.When.I.Get().From("/TheEndpoint").Then.Return.Body("Hello World!").And.StatusCode(System.Net.HttpStatusCode.OK);
+		proxy.Add(simulation);
+
+Navigating to http://localhost:10011/TheEndpoint in your browser or hitting that Url from another service will return "Hello World!". 
+
+This release has a strong focus on testing JSON-based web services. 
+
+To get up and running quickly: see "How To Use Moksy In Your Own Integration Tests" below. 
 
 
 In-Memory Database:
@@ -61,31 +67,45 @@ With that in mind, we can 'round trip' by returning the object using that Identi
 
 	When.I.Get().FromImdb("/Pet/{Id}").And.Exists("Id").Then.Return.StatusCode(System.Net.HttpStatusCode.OK).And.Body("{value}");
 
-Variables are referenced in the Body using {...} notation. There are four variables that are always present to every simulation:
+Variables are referenced in the Body using {...} notation. There are five variables that are always present to every simulation:
 
 	{requestscheme}			- ie: http
 	{requesthost}			- ie: localhost
 	{requestport}			- ie: 10011
 	{requestroot}			- ie: http://localhost:10011
+	{value}                 - The value of an object from the Imdb. 
 
-This information can be used (for example) in 'inject' the Location of an object in a Response header:
+This information can be used (for example) in 'inject' the Location of an object in a Body or Response header. For example:
 
 	When.I.Post().ToImdb("/Pet").And.NotExists("Kind").Then.Return.StatusCode(System.Net.HttpStatusCode.Created).With.Variable("Identity").OverrideProperty("Id", "{Identity}").AddToImdb().Body("{Identity}").With.Header("Location", "{uriroot}/Pet/{Identity}");
 
 
 
-To use for your Integration Tests:
-----------------------------------
-Read the Readme.txt to get started (after you have Cloned this Git repository!). 
+How To Use Moksy In Your Own Integration Tests:
+-----------------------------------------------
+Using Moksy within your tests is easy:
 
-There is currently no NuGET library so you will need to clone and build the solution. Reference Moksy.Common to use the Proxy class. This will be streamlined in future versions.
+1. Add a reference to the Moksy NuGET Package: Install-Package Moksy
+
+2. Create a Unit Test, create the Moksy instance and set up a simulation:
+
+   Proxy = new Proxy(10011);
+   Proxy.Start();
+
+   // Remove any existing simulations on this endpoint.
+   Proxy.DeleteAll();
+
+   var simulation = SimulationFactory.When.I.Get().From("/TheEndpoint").Then.Return.Body("Hello World!").And.StatusCode(System.Net.HttpStatusCode.OK);
+   proxy.Add(simulation);
+
+   // Now navigate to http://localhost:10011/TheEndpoint in your browser or hit that Url from another service to receive "Hello World!"
+
+Consider getting the source code and using the Moksy.IntegrationTests.DocumentationTests as your playpen; step through the tests in MsTest and follow the instructions :-) 
 
 
 
 Limitations:
 ------------
-Many! This is literally v0.1 and does the bare minimum. And the code is a bit of mess - it was cobbled together from an old application but to use the WebApi SelfHost libraries.
+Many! 
 
-However, it is usable - I am using it :-)
-
-See the readme.txt for a key list of limitations. 
+Please see the Readme.txt file for a fuller list of features, limitations and use cases. 
