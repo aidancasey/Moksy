@@ -2,7 +2,7 @@
 <package>
   <metadata>
     <id>Moksy</id>
-    <version>1.0.17</version>
+    <version>1.0.30</version>
     <authors>BrekIT</authors>
     <owners>BrekIT</owners>
     <licenseUrl>http://www.brekit.com/moksy/license.txt</licenseUrl>
@@ -14,6 +14,7 @@
     <tags>
     </tags>
     <dependencies>
+      <dependency id="Microsoft.AspNet.WebApi.SelfHost" version="5.2.0" />
       <dependency id="Newtonsoft.Json" version="6.0.3" />
       <dependency id="RestSharp" version="104.4.0" />
     </dependencies>

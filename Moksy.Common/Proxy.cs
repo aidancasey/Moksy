@@ -30,12 +30,20 @@ namespace Moksy
         public readonly JsonSerializerSettings JsonSerializerSettings = new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Objects };
 
 
-
         /// <summary>
         /// Start Moksy on the given port. It is safe to call this method even if the service is running. 
         /// If this method fails, troubleshoot by launching Moksy.Host.exe <port> from an elevated command prompt.
         /// </summary>
         public bool Start()
+        {
+            return Start(5);
+        }
+
+        /// <summary>
+        /// Start Moksy on the given port. It is safe to call this method even if the service is running. 
+        /// If this method fails, troubleshoot by launching Moksy.Host.exe <port> from an elevated command prompt.
+        /// </summary>
+        public bool Start(uint timeoutInSeconds)
         {
             Proxy proxy = new Proxy(Port);
             try
@@ -56,9 +64,57 @@ namespace Moksy
             psi.WorkingDirectory = folder;
             psi.FileName = System.IO.Path.Combine(folder, exeName);
 
-            psi.FileName = @"F:\Github\Moksy\Moksy.Host\bin\Debug\Moksy.Host.Exe";
-
             var process = System.Diagnostics.Process.Start(psi);
+            try
+            {
+                for (uint i = 0; i < timeoutInSeconds; i++)
+                {
+                    try
+                    {
+                        var all = GetAll();
+                        return true;
+                    }
+                    catch (System.Net.WebException ex)
+                    {
+                    }
+
+                    System.Threading.Thread.Sleep(1000);
+                    if (process.HasExited) break;
+                }
+
+                process.WaitForInputIdle();
+            }
+            catch
+            {
+            }
+            if (process.HasExited && process.ExitCode == 123)
+            {
+                string s = "Moksy launches a real HTTP Server and opens up a HTTP Endpoint so that your";
+                s += "tests and other services can hit it. ";
+                s += "\r\n";
+                s += ("By default, only applications launched as Administrator are allowed to");
+                s += ("launch the HTTP Server and create the end-point. ");
+                s += "\r\n";
+                s += ("You are not running as Administrator. ");
+                s += "\r\n";
+                s += ("There are two ways to proceed:");
+                s += "\r\n";
+                s += ("1. Launch Moksy.Host.Exe as Administrator. ");
+                s += "\r\n";
+                s += ("2. Or perform the following operation once from an Administrator Command Prompt");
+                s += ("   to create the reservation that will allow everyone to launch a HTTP Server");
+                s += ("   and open up the end-point: ");
+                s += "\r\n";
+                s += (string.Format(@"      netsh http add urlacl url=http://+:{0}/ sddl=""D:(A;;GX;;;WD)""", Port));
+                s += "\r\n";
+                s += ("   Then re-run Moksy.Host.Exe as an ordinary user. ");
+                s += "\r\n";
+                throw new System.ApplicationException(s);
+            }
+            if (process.HasExited && process.ExitCode != 0)
+            {
+                throw new System.ApplicationException(string.Format("ERROR: Unexpected error launching {0}. ExitCode={1}. Launch '{0} {2}' from a command prompt for more information. ", psi.FileName,process.ExitCode,Port.ToString()));
+            }
             return true;
         }
 

@@ -14,10 +14,14 @@ IF EXIST "NugetStage" (
 )
 
 MKDIR NugetStage
+MKDIR NugetStage\content
+MKDIR NugetStage\tools
 MKDIR NugetStage\lib
 MKDIR NugetStage\lib\net40
 COPY Moksy.Host\bin\Release\Moksy*.dll NugetStage\lib\net40\
 COPY Moksy.Host\bin\Release\Moksy*.exe NugetStage\lib\net40\
+COPY Moksy.Host\bin\Release\Moksy*.exe.config NugetStage\content\
+COPY Install.ps1 NugetStage\tools
 
 COPY Package.nuspec NugetStage\Moksy.nuspec
 COPY License.txt NugetStage\License.txt

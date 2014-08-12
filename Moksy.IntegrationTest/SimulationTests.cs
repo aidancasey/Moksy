@@ -1016,7 +1016,7 @@ namespace Moksy.IntegrationTest
 
         #region Start
 
-        [TestMethod]
+        //[TestMethod]
         public void StartNotRunning()
         {
             Proxy proxy = new Proxy(20000);
