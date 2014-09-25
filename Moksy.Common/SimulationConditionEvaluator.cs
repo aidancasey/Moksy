@@ -78,15 +78,55 @@ namespace Moksy.Common
             if (condition == null) return false;
 
             if (headers == null) return true;
-            if (headers.Count() == 0) return true;
+
+            if (condition.IsGroupedByImdbHeaderDiscriminator)
+            {
+                // The header must exist in the request.
+                var match = headers.FirstOrDefault(f => f.Name == condition.ImdbHeaderDiscriminator);
+                if (null == match) return false;
+            }
+
             if (headers.Count() > 0 && condition.RequestHeaders.Count == 0) return true;
 
             foreach (var h in condition.RequestHeaders)
             {
-                var match = headers.FirstOrDefault(f => f.Name == h.Name && f.Value == h.Value);
-                if (match == null) return false;
-            }
+                // If the condition is set to "none" its the same as not providing the headers at all. 
+                if (h.Persistence == Persistence.None) continue;
 
+                Header match = null;
+
+                if (h.HasValue)
+                {
+                    if (h.Persistence == Persistence.NotExists)
+                    {
+                        match = headers.FirstOrDefault(f => f.Name == h.Name && f.Value == h.Value);
+                        if (match != null) return false;
+                        if (match == null) continue;
+                    }
+                    if (h.Persistence == Persistence.Exists)
+                    {
+                        match = headers.FirstOrDefault(f => f.Name == h.Name && f.Value == h.Value);
+                        if (match != null) continue;
+                        if (match == null) return false;
+                    }
+                }
+                else
+                {
+                    if (h.Persistence == Persistence.NotExists)
+                    {
+                        match = headers.FirstOrDefault(f => f.Name == h.Name);
+                        if (match != null) return false;
+                        if (match == null) continue;
+                    }
+                    if (h.Persistence == Persistence.Exists)
+                    {
+                        match = headers.FirstOrDefault(f => f.Name == h.Name);
+                        if (match != null) continue;
+                        if (match == null) return false;
+                    }
+                }
+
+            }
             return true;
         }
 
@@ -139,7 +179,8 @@ namespace Moksy.Common
             if (null == simulations) return null;
             if (simulations.Count() == 0) return null;
 
-            var match = simulations.FirstOrDefault(f => Matches(f, method, path, headers) == true);
+            var matches = simulations.Where(f => Matches(f, method, path, headers) == true);
+            var match = matches.FirstOrDefault();
             return match;
         }
 

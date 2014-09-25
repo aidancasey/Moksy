@@ -1,4 +1,4 @@
-MOKSY - V1.0 by Grey Ham (www.twitter.com/brek_it, www.brekit.com, www.havecomputerwillcode.com)
+MOKSY - V1.1 by Grey Ham (www.twitter.com/brek_it, www.brekit.com, www.havecomputerwillcode.com)
 ------------------------------------------------------------------------------------------------
 
 
@@ -84,7 +84,7 @@ Consider getting the source code and using the Moksy.IntegrationTests.Documentat
  
 
 
- New in v0.3 [Experimental - Subject to change]
+[Experimental - Subject to change]
  ----------------------------------------------
  Constraints and violations can be set as part of your simulations. This is useful for returning error conditions if, for example, property conditions and constraints are not met.
  For example:
@@ -95,15 +95,6 @@ Notice the use of {violationResponses} - this is an array of zero or more respon
 
     var between = new LengthBetweenConstraint("Kind", 0, 255) { Response = @"{""ErrorType"":""OutOfRangeException"",""PropertyName"":{PropertyName},""AdditonalInformation"":""The 'Kind' property must be between 0 and 255 characters in length""}";
     When.I.Post().ToImdb("/Pet").With.Constraint(between).And.HasRuleViolations().Then.Return.StatusCode(System.Net.HttpStatusCode.BadRequest).And.Body("{violationResponses}");
-
-
- New in V0.2:
-------------
-- Simulations can now inject values (typically Guids or nested objects) into your Json structures before committing them to the Imdb. Useful for href, identity etc. 
-- Use Variables and Properties to return (for example) the Location of the submitted object in the POST Response header.
-- Refactored a lot of code to do with the parsing
-- PUT is now supported
-
 
 
 LIMITATIONS:
@@ -189,7 +180,19 @@ Obviously, building up test data is part of the problem - you need to be able to
 
 Similarly with Delete. 
 
-PUT and PATCH is currently not supported for the Imdb. 
+PATCH is currently not supported for the Imdb. 
+
+
+Grouping By Header:
+-------------------
+The Problem:
+Storing data in an Imdb and retrieving it is convenient but quite often an additional discriminator - such as the header - is used to logically group the data. 
+Moksy supports using a named header as a grouping mechanism for data. For example: if we use a header called "Owner":
+
+    When.I.Post().ToImdb("/Pet", "Owner").And.NotExists("Kind").Then.Return.StatusCode(System.Net.HttpStatusCode.Created).And.AddToImdb();
+	When.I.Post().ToImdb("/Pet", "Owner").And.Exists("Kind").Then.Return.StatusCode(System.Net.HttpStatusCode.BadRequest);
+
+All GET, PUT, DELETE and POST operations now group operations based on the value of the header. 
 
 
 

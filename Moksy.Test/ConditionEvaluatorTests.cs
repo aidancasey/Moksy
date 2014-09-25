@@ -97,14 +97,11 @@ namespace Moksy.Test
         }
 
         [TestMethod]
-        public void EmptyHeadersAlwaysMatches()
+        public void EmptyHeadersAndConditionAlwaysMatches()
         {
             List<Header> headers = new List<Header>();
             SimulationCondition c = new SimulationCondition();
-            Assert.IsTrue(Evaluator.Matches(c, headers));
-
-            c.Header("TheHeader", "Woo");
-            Assert.IsTrue(Evaluator.Matches(c, headers));
+            Assert.IsTrue(Evaluator.Matches(c, headers)); 
         }
 
         [TestMethod]
@@ -157,6 +154,112 @@ namespace Moksy.Test
 
 
 
+        [TestMethod]
+        public void HeaderAndValueNone()
+        {
+            List<Header> headers = new List<Header>();
+            headers.Add(new Header("TheHeader", "TheValue", Persistence.None));
 
+            SimulationCondition c = new SimulationCondition();
+            c.Header("TheHeader", "TheValue", Persistence.None);
+
+            Assert.IsTrue(Evaluator.Matches(c, headers));
+        }
+
+        [TestMethod]
+        public void HeaderAndValueImplicitExists()
+        {
+            List<Header> headers = new List<Header>();
+            headers.Add(new Header("TheHeader", "TheValue"));
+
+            SimulationCondition c = new SimulationCondition();
+            c.Header("TheHeader", "TheValue");
+
+            Assert.IsTrue(Evaluator.Matches(c, headers));
+        }
+
+        [TestMethod]
+        public void HeaderAndValueImplicitNoneIsSkipped()
+        {
+            List<Header> headers = new List<Header>();
+            headers.Add(new Header("TheHeader", "TheValue"));
+
+            SimulationCondition c = new SimulationCondition();
+            c.Header("TheHeader", "TheValue", Persistence.None);
+
+            Assert.IsTrue(Evaluator.Matches(c, headers));
+        }
+
+        [TestMethod]
+        public void HeaderAndValueConditionNotExistsButExists()
+        {
+            List<Header> headers = new List<Header>();
+            headers.Add(new Header("TheHeader", "TheValue"));
+
+            SimulationCondition c = new SimulationCondition();
+            c.Header("TheHeader", "TheValue", Persistence.NotExists);
+
+            Assert.IsFalse(Evaluator.Matches(c, headers));
+        }
+
+        [TestMethod]
+        public void HeaderAndValueConditionNotExistsButNotExists()
+        {
+            List<Header> headers = new List<Header>();
+
+            SimulationCondition c = new SimulationCondition();
+            c.Header("TheHeader", "TheValue", Persistence.NotExists);
+
+            Assert.IsTrue(Evaluator.Matches(c, headers));
+        }
+
+        [TestMethod]
+        public void HeaderAndValueConditionNotExistsButNotExists2()
+        {
+            List<Header> headers = new List<Header>();
+            headers.Add(new Header("TheHeader", "TheValue2"));
+
+            SimulationCondition c = new SimulationCondition();
+            c.Header("TheHeader", "TheValue", Persistence.NotExists);
+
+            Assert.IsTrue(Evaluator.Matches(c, headers));
+        }
+
+
+
+        [TestMethod]
+        public void HeaderOnlyExistsImplicit()
+        {
+            List<Header> headers = new List<Header>();
+            headers.Add(new Header("TheHeader", "TheValue"));
+
+            SimulationCondition c = new SimulationCondition();
+            c.Header("TheHeader");
+
+            Assert.IsTrue(Evaluator.Matches(c, headers));
+        }
+
+        [TestMethod]
+        public void HeaderOnlyNotExists()
+        {
+            List<Header> headers = new List<Header>();
+            headers.Add(new Header("TheHeader", "TheValue"));
+
+            SimulationCondition c = new SimulationCondition();
+            c.Header("TheHeader", Persistence.NotExists);
+
+            Assert.IsFalse(Evaluator.Matches(c, headers));
+        }
+
+        [TestMethod]
+        public void HeaderOnlyNotExistsImplicitNoHeaders()
+        {
+            List<Header> headers = new List<Header>();
+
+            SimulationCondition c = new SimulationCondition();
+            c.Header("TheHeader");
+
+            Assert.IsFalse(Evaluator.Matches(c, headers));
+        }
     }
 }

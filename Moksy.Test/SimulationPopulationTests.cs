@@ -72,7 +72,7 @@ namespace Moksy.Test
         [TestMethod]
         public void WithHeaderPopulatedAsNull()
         {
-            var simulation = SimulationFactory.When.Get().From("/Product").With.Header(null);
+            var simulation = SimulationFactory.When.Get().From("/Product").With.Header( (string) null);
             Assert.IsNotNull(simulation);
         }
 
@@ -511,6 +511,40 @@ namespace Moksy.Test
             Assert.AreEqual(1, s.Properties.Count);
             Assert.AreEqual("A", s.Properties[0].Name);
             Assert.AreEqual("B", s.Properties[0].Value);
+        }
+
+
+
+        [TestMethod]
+        public void ImdbDiscriminatorTo()
+        {
+            var s = SimulationFactory.When.I.Post().ToImdb("/Pet");
+            Assert.IsFalse(s.IsGroupedByImdbHeaderDiscriminator);
+            Assert.AreEqual(null, s.ImdbHeaderDiscriminator);
+        }
+
+        [TestMethod]
+        public void ImdbDiscriminatorToSet()
+        {
+            var s = SimulationFactory.When.I.Post().ToImdb("/Pet", "clinic");
+            Assert.IsTrue(s.IsGroupedByImdbHeaderDiscriminator);
+            Assert.AreEqual("clinic", s.ImdbHeaderDiscriminator);
+        }
+
+        [TestMethod]
+        public void ImdbDiscriminatorFrom()
+        {
+            var s = SimulationFactory.When.I.Get().FromImdb("/Pet");
+            Assert.IsFalse(s.IsGroupedByImdbHeaderDiscriminator);
+            Assert.AreEqual(null, s.ImdbHeaderDiscriminator);
+        }
+
+        [TestMethod]
+        public void ImdbDiscriminatorFromSet()
+        {
+            var s = SimulationFactory.When.I.Get().FromImdb("/Pet", "clinic");
+            Assert.IsTrue(s.IsGroupedByImdbHeaderDiscriminator);
+            Assert.AreEqual("clinic", s.ImdbHeaderDiscriminator);
         }
     }
 }

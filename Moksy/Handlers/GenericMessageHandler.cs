@@ -34,6 +34,7 @@ namespace Moksy.Handlers
             Simulation match = null;
             Substitution s = new Substitution();
 
+
             var simulation = Storage.SimulationManager.Instance.Match(request.Method, request.Content, path, headers, true);
             if(simulation != null)
             {
@@ -41,6 +42,8 @@ namespace Moksy.Handlers
             }
             if (match != null)
             {
+                var discriminator = GetDiscriminator(headers, match.Condition.ImdbHeaderDiscriminator);
+
                 var vars = CreateVariables("", match);
                 vars["requestscheme"] = request.RequestUri.Scheme;
                 vars["requesthost"] = request.RequestUri.Host;
@@ -74,13 +77,13 @@ namespace Moksy.Handlers
 
                             contentAsString = new System.Text.ASCIIEncoding().GetString(task.Result);
 
-                            contentAsString = SubstituteProperties(contentAsString, vars, match.Response.Properties);
+                            contentAsString = SubstituteProperties(contentAsString, path, match, vars, match.Response.Properties);
                             vars["value"] = contentAsString;
                         }
 
                         if (match.Response.AddImdb)
                         {
-                            Storage.SimulationManager.Instance.AddToImdb(match, path, contentAsString);
+                            Storage.SimulationManager.Instance.AddToImdb(match, path, match.Condition.Pattern, contentAsString, discriminator);
                         }
 
                         // We now need to populate the response with any variables that have been set up. 
@@ -104,14 +107,14 @@ namespace Moksy.Handlers
                             task.Wait();
 
                             contentAsString = new System.Text.ASCIIEncoding().GetString(task.Result);
-                            contentAsString = SubstituteProperties(contentAsString, vars, match.Response.Properties);
+                            contentAsString = SubstituteProperties(contentAsString, path, match, vars, match.Response.Properties);
                         }
 
                         if (match.Response.AddImdb)
                         {
                             // This rule has been set up with Put().ToImdb() and .AddToImdb() is in the Response. 
                             // We need to extract the body of the Request (which we assume to be Json) and add it to the Imdb. 
-                            Storage.SimulationManager.Instance.AddToImdb(match, path, contentAsString);
+                            Storage.SimulationManager.Instance.AddToImdb(match, path, match.Condition.Pattern, contentAsString, discriminator);
                         }
 
                         var responseBody = match.Response.Content;
@@ -144,12 +147,12 @@ namespace Moksy.Handlers
 
                             if (match.Condition.ContentKind == ContentKind.Text)
                             {
-                                content = Storage.SimulationManager.Instance.GetFromImdbAsText(match, path);
+                                content = Storage.SimulationManager.Instance.GetFromImdbAsText(match, path, discriminator);
                             }
                             else
                             {
                                 // We are Imdb. Each entry is a Json fragment. We concatenate them together and separate them with ,
-                                content = Storage.SimulationManager.Instance.GetFromImdbAsJson(match, path);
+                                content = Storage.SimulationManager.Instance.GetFromImdbAsJson(match, path, discriminator);
                             }
                             if (content != null)
                             {
@@ -185,7 +188,7 @@ namespace Moksy.Handlers
                         else
                         {
                             // The Path of the Simulation might be of the form /TheResource('{id}') where there is at least one placeholder. 
-                            var jobject = Storage.SimulationManager.Instance.GetFromImdb(HttpMethod.Get, path, headers);
+                            var jobject = Storage.SimulationManager.Instance.GetFromImdb(HttpMethod.Get, path, headers, discriminator);
                             string candidateValue = "";
                             if (jobject != null)
                             {
@@ -221,12 +224,12 @@ namespace Moksy.Handlers
                     else if (match.Condition.HttpMethod == HttpMethod.Delete && match.Condition.Persistence == Persistence.Exists)
                     {
                         // We need to remove the item IF it exists. 
-                        var existing = Storage.SimulationManager.Instance.GetFromImdb(match, path);
+                        var existing = Storage.SimulationManager.Instance.GetFromImdb(match, path, discriminator);
                         if (existing != null)
                         {
                             if (match.Response.RemoveImdb)
                             {
-                                Storage.SimulationManager.Instance.DeleteFromImdb(HttpMethod.Delete, path, match.Condition.Pattern, headers);
+                                Storage.SimulationManager.Instance.DeleteFromImdb(HttpMethod.Delete, path, match.Condition.Pattern, headers, discriminator);
                             }
                             string candidateValue = "";
                             var variables = s.GetVariables(match.Response.Content);
@@ -265,6 +268,18 @@ namespace Moksy.Handlers
             return response;
         }
 
+        protected string GetDiscriminator(IEnumerable<Header> headers, string key)
+        {
+            if (null == headers) return null;
+            if (headers.Count() == 0) return null;
+            if (null == key) return null;
+
+            var match = headers.FirstOrDefault(f => f.Name == key);
+            if (null == match) return null;
+
+            return match.Value;
+        }
+
         protected Dictionary<string, string> CreateVariables(string value, Simulation s)
         {
             Dictionary<string, string> vars = new Dictionary<string, string>();
@@ -279,11 +294,13 @@ namespace Moksy.Handlers
             return vars;
         }
 
-        protected string SubstituteProperties(string content, Dictionary<string, string> variables, IEnumerable<Property> properties)
+        protected string SubstituteProperties(string content, string path, Simulation match, Dictionary<string, string> variables, IEnumerable<Property> properties)
         {
             if (null == properties || properties.Count() == 0) return content;
 
             var result = content;
+
+            var tokens = RouteParser.Parse(match.Condition.Pattern);
 
             JsonHelpers helpers = new JsonHelpers();
             Substitution s = new Substitution();
@@ -293,6 +310,25 @@ namespace Moksy.Handlers
                 result = helpers.SetProperty(p.Name, value, result);
             }
 
+            var regex = RouteParser.ConvertPatternToRegularExpression(match.Condition.Pattern);
+
+            System.Text.RegularExpressions.Regex rex = new System.Text.RegularExpressions.Regex(regex);
+            var regexResult = rex.Match(path);
+            if (regexResult.Groups.Count == 4)
+            {
+                if (regexResult.Groups[2].Captures.Count > 0)
+                {
+                    // We can pull out the value of the property we are looking for. This will be the second token. 
+                    var propertyToken = tokens.FirstOrDefault(f => f.Kind == RouteTokenKind.Property);
+                    if(propertyToken != null)
+                    {
+                        var propertyName = propertyToken.Value;
+
+                        var value = s.Substitute(regexResult.Groups[2].Captures[0].Value, variables);
+                        result = helpers.SetProperty(propertyName, value, result);
+                    }
+                }
+            }
             return result;
         }
 

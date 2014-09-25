@@ -71,9 +71,18 @@ namespace Moksy.IntegrationTest
 
         protected RestSharp.IRestResponse Post(string url, string json)
         {
+            return Post(url, json, new List<Header>());
+        }
+
+        protected RestSharp.IRestResponse Post(string url, string json, IEnumerable<Header> headers)
+        {
             RestSharp.IRestClient client = new RestSharp.RestClient(Root);
             RestSharp.IRestRequest request = new RestSharp.RestRequest(url, RestSharp.Method.POST);
             request.AddParameter("application/json", json, RestSharp.ParameterType.RequestBody);
+            foreach (var header in headers)
+            {
+                request.AddParameter(header.Name, header.Value, RestSharp.ParameterType.HttpHeader);
+            }
             request.RequestFormat = RestSharp.DataFormat.Json;
             var response = client.Execute(request);
             return response;
@@ -87,9 +96,19 @@ namespace Moksy.IntegrationTest
 
         protected RestSharp.IRestResponse Put(string url, string json)
         {
+            List<Header> headers = new List<Header>();
+            return Put(url, json, headers);
+        }
+
+        protected RestSharp.IRestResponse Put(string url, string json, IEnumerable<Header> headers)
+        {
             RestSharp.IRestClient client = new RestSharp.RestClient(Root);
             RestSharp.IRestRequest request = new RestSharp.RestRequest(url, RestSharp.Method.PUT);
             request.AddParameter("application/json", json, RestSharp.ParameterType.RequestBody);
+            foreach (var header in headers)
+            {
+                request.AddParameter(header.Name, header.Value, RestSharp.ParameterType.HttpHeader);
+            }
             request.RequestFormat = RestSharp.DataFormat.Json;
             var response = client.Execute(request);
             return response;

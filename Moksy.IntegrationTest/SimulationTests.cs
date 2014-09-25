@@ -1025,5 +1025,66 @@ namespace Moksy.IntegrationTest
         }
 
         #endregion
+
+        #region Header Exists and Not Exists
+
+        [TestMethod]
+        public void HeaderAndValueExists()
+        {
+            var simulation = Moksy.Common.SimulationFactory.New("Pf").Get().From("/Something").With.Header("MyHeader", "MyValue").Return.StatusCode(System.Net.HttpStatusCode.NotModified);
+            Proxy.Add(simulation);
+
+            var response = Get("/Something", new List<Header>() { new Header("MyHeader", "MyValue") });
+            Assert.AreEqual(System.Net.HttpStatusCode.NotModified, response.StatusCode);          
+        }
+
+        [TestMethod]
+        public void HeaderAndValueBothNotExists()
+        {
+            var simulation = Moksy.Common.SimulationFactory.New("Pf").Get().From("/Something").With.Header("MyHeader", "MyValue", Persistence.NotExists).Return.StatusCode(System.Net.HttpStatusCode.NotModified);
+            Proxy.Add(simulation);
+
+            simulation = Moksy.Common.SimulationFactory.New("Pf").Get().From("/Something").With.Header("MyHeader", "MyValue").Return.StatusCode(System.Net.HttpStatusCode.NotModified);
+            Proxy.Add(simulation);
+
+            var response = Get("/Something", new List<Header>() { new Header("A", "B") });
+            Assert.AreNotEqual(System.Net.HttpStatusCode.NotImplemented, response.StatusCode);
+        }
+
+        [TestMethod]
+        public void HeaderDoesNotExist()
+        {
+            var simulation = Moksy.Common.SimulationFactory.New("Pf").Get().From("/Something").With.Header("MyHeader", Persistence.NotExists).Return.StatusCode(System.Net.HttpStatusCode.HttpVersionNotSupported).With.Body("MyHeader is missing");
+            Proxy.Add(simulation);
+
+            simulation = Moksy.Common.SimulationFactory.New("Pf").Get().From("/Something").With.Header("MyHeader", "MyValue", Persistence.NotExists).Return.StatusCode(System.Net.HttpStatusCode.NotModified);
+            Proxy.Add(simulation);
+
+            simulation = Moksy.Common.SimulationFactory.New("Pf").Get().From("/Something").With.Header("MyHeader", "MyValue").Return.StatusCode(System.Net.HttpStatusCode.NotModified);
+            Proxy.Add(simulation);
+
+            var response = Get("/Something");
+            Assert.AreEqual(System.Net.HttpStatusCode.HttpVersionNotSupported, response.StatusCode);
+            Assert.AreEqual("MyHeader is missing", response.Content);
+        }
+
+        [TestMethod]
+        public void HeaderDoesExistDoesNotMatchMissingRule()
+        {
+            var simulation = Moksy.Common.SimulationFactory.New("Pf").Get().From("/Something").With.Header("MyHeader", Persistence.NotExists).Return.StatusCode(System.Net.HttpStatusCode.HttpVersionNotSupported).With.Body("MyHeader is missing");
+            Proxy.Add(simulation);
+
+            simulation = Moksy.Common.SimulationFactory.New("Pf").Get().From("/Something").With.Header("MyHeader", "MyValue", Persistence.NotExists).Return.StatusCode(System.Net.HttpStatusCode.NotModified);
+            Proxy.Add(simulation);
+
+            simulation = Moksy.Common.SimulationFactory.New("Pf").Get().From("/Something").With.Header("MyHeader", "MyValue").Return.StatusCode(System.Net.HttpStatusCode.NotModified);
+            Proxy.Add(simulation);
+
+            var response = Get("/Something", new List<Header>() { new Header("A", "B") });
+            Assert.AreNotEqual(System.Net.HttpStatusCode.NotImplemented, response.StatusCode);
+        }
+
+
+        #endregion
     }
 }

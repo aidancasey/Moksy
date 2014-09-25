@@ -173,6 +173,20 @@ namespace Moksy.Common
             return Condition;
         }
 
+        /// <summary>
+        /// Send information to the Imdb for the resource. The Imdb will be grouped by the discriminator (the header). 
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns></returns>
+        public SimulationCondition ToImdb(string path, string discriminator)
+        {
+            To(path);
+            Condition.ImdbHeaderDiscriminator = discriminator;
+            Condition.IsImdb = true;
+            Condition.ContentKind = ContentKind.Json;
+            return Condition;
+        }
+
 
         /// <summary>
         /// Indicates the target of the operation. 
@@ -198,6 +212,20 @@ namespace Moksy.Common
         public SimulationCondition FromImdb(string path)
         {
             From(path);
+            Condition.IsImdb = true;
+            Condition.ContentKind = ContentKind.Json;
+            return Condition;
+        }
+
+        /// <summary>
+        /// Retrieve from Imdb. 
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns></returns>
+        public SimulationCondition FromImdb(string path, string discriminator)
+        {
+            From(path);
+            Condition.ImdbHeaderDiscriminator = discriminator;
             Condition.IsImdb = true;
             Condition.ContentKind = ContentKind.Json;
             return Condition;

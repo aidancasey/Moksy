@@ -38,6 +38,45 @@ namespace Moksy.Common
         /// <summary>
         /// Adds a single header to the request. This becomes part of the condition: the header must be present in the Request for the Simulation to be performed. 
         /// </summary>
+        /// <param name="name">Must be none-null. For example: Content-Type</param>
+        /// <returns></returns>
+        public SimulationCondition Header(string name)
+        {
+            Header header = new Header(name);
+            RequestHeadersStorage.Add(header);
+            return this;
+        }
+
+        /// <summary>
+        /// Adds a single header to the request. This becomes part of the condition: the header must be present in the Request for the Simulation to be performed. 
+        /// </summary>
+        /// <param name="name">Must be none-null. For example: Content-Type</param>
+        /// <param name="persistence">Indicates whether the header must be present or not for the condition to evaluate. </param>
+        /// <returns></returns>
+        public SimulationCondition Header(string name, Moksy.Common.Persistence persistence)
+        {
+            Header header = new Header(name, persistence);
+            RequestHeadersStorage.Add(header);
+            return this;
+        }
+
+        /// <summary>
+        /// Adds a single header to the request. This becomes part of the condition: the header must be present in the Request for the Simulation to be performed. 
+        /// </summary>
+        /// <param name="name">Must be none-null. For example: Content-Type</param>
+        /// <param name="value">Can be empty or null (will be placed as empty in the request). </param>
+        /// <param name="persistence">Indicates whether the header must be present or not for the condition to evaluate. </param>
+        /// <returns></returns>
+        public SimulationCondition Header(string name, string value, Moksy.Common.Persistence persistence)
+        {
+            Header header = new Header(name, value, persistence);
+            RequestHeadersStorage.Add(header);
+            return this;
+        }
+
+        /// <summary>
+        /// Adds a single header to the request. This becomes part of the condition: the header must be present in the Request for the Simulation to be performed. 
+        /// </summary>
         /// <param name="header">The header (name/value pair) that must be present in the request for the response to occur. </param>
         /// <returns></returns>
         public SimulationCondition Header(Header header)
@@ -141,6 +180,30 @@ namespace Moksy.Common
             Pattern = path;
             HttpMethod = System.Net.Http.HttpMethod.Head;
             return this;
+        }
+
+        /// <summary>
+        /// If not null, then anything posted to the Imdb will be grouped by the value of the header provided. The header 
+        /// must be part of the submission 
+        /// </summary>
+        [JsonProperty(PropertyName = "imdbDiscriminator")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public string ImdbHeaderDiscriminator { get; set; }
+
+        /// <summary>
+        /// Returns true if this condition is grouped by a header value. If true, then ImdbHeaderGroup will contain the header that 
+        /// groups any posted data. This allows you to logically group your Imdbs based on a discriminator (ie: the value of the given
+        /// header). 
+        /// </summary>
+        [JsonIgnore]
+        public bool IsGroupedByImdbHeaderDiscriminator
+        {
+            get
+            {
+                if (!IsImdb) return false;
+
+                return ImdbHeaderDiscriminator != null && ImdbHeaderDiscriminator != "";
+            }
         }
 
         /// <summary>

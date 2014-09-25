@@ -57,19 +57,29 @@ namespace Moksy.Storage
 
 
 
-
         /// <summary>
         /// Match the very first rule given the path and the headers. 
         /// </summary>
         /// <param name="path"></param>
         /// <param name="headers"></param>
         /// <returns></returns>
-        public Simulation Match(System.Net.Http.HttpMethod method, string path, IEnumerable<Header> headers, bool decrement)
+        public Simulation Match(System.Net.Http.HttpMethod method, string path, IEnumerable<Header> headers, bool decrement, string discriminator)
         {
             lock (Storage.SyncRoot)
             {
+                
                 SimulationConditionEvaluator e = new SimulationConditionEvaluator();
-                var match = e.Match(Storage, method, path, headers);
+
+                Simulation match = null;
+                match = e.Match(Storage, method, path, headers);
+                if (method == HttpMethod.Get)
+                {
+                    Common.Match match2 = SimulationManager.Instance.Match(method, null, path, headers, decrement);
+                    if (match2 != null)
+                    {
+                        match = match2.Simulation;
+                    }
+                }
                 if (match != null)
                 {
                     if (method == HttpMethod.Get)
@@ -77,7 +87,7 @@ namespace Moksy.Storage
                         var vars = new Substitution().GetVariables(match.Condition.Pattern);
                         if (vars.Count() > 0)
                         {
-                            var result = MatchesGetFromImdb(match, path, vars.First().Name);
+                            var result = MatchesGetFromImdb(match, path, vars.First().Name, discriminator);
                             return result;
                         }
                     }
@@ -95,7 +105,9 @@ namespace Moksy.Storage
             }
         }
 
-        protected Simulation MatchesGetFromImdb(Simulation match, string path, string variable)
+
+
+        protected Simulation MatchesGetFromImdb(Simulation match, string path, string variable, string discriminator)
         {
             var resourceName = RouteParser.GetFirstResource(path, match.Condition.Pattern);
             if (null == resourceName) return null;
@@ -127,7 +139,7 @@ namespace Moksy.Storage
             var value = path.Substring(result.Groups[2].Index, result.Groups[2].Length);
             if (value == null) return null;
 
-            var existingJson = FindMatch(path, match.Condition.Pattern, variable, value);
+            var existingJson = FindMatch(path, match.Condition.Pattern, variable, value, discriminator);
             if (match.Condition.Persistence == Persistence.NotExists)
             {
                 if (existingJson == null)
@@ -152,6 +164,7 @@ namespace Moksy.Storage
         }
 
 
+
         /// <summary>
         /// Look up an object given a path - such as /Pet('Dog'). 
         /// </summary>
@@ -159,19 +172,19 @@ namespace Moksy.Storage
         /// <returns>Null if an object does not exist; otherwise, the JObject (json) of the object indexes by that property. </returns>
         /// <remarks>This will look at all paths currently in the system (based on the method) 
         /// </remarks>
-        public JObject GetFromImdb(System.Net.Http.HttpMethod method, string path, IEnumerable<Header> headers)
+        public JObject GetFromImdb(System.Net.Http.HttpMethod method, string path, IEnumerable<Header> headers, string discriminator)
         {
             if (null == path) return null;
             if (null == headers) headers = new List<Header>();
 
             lock (Storage.SyncRoot)
             {
-                var match = Match(method, path, headers, false);
+                var match = Match(method, path, headers, false, discriminator);
                 if (match == null) return null;
 
                 if (method == HttpMethod.Get)
                 {
-                    return GetFromImdb(match, path);
+                    return GetFromImdb(match, path, discriminator);
                 }
             }
 
@@ -186,7 +199,7 @@ namespace Moksy.Storage
         /// <param name="match"></param>
         /// <param name="path"></param>
         /// <returns></returns>
-        public JObject GetFromImdb(Simulation match, string path)
+        public JObject GetFromImdb(Simulation match, string path, string discriminator)
         {
             lock (Storage.SyncRoot)
             {
@@ -212,7 +225,7 @@ namespace Moksy.Storage
                 var value = path.Substring(result.Groups[2].Index, result.Groups[2].Length);
                 if (value == null) return null;
 
-                var existingJson = FindMatch(path, match.Condition.Pattern, vars.First().Name, value);
+                var existingJson = FindMatch(path, match.Condition.Pattern, vars.First().Name, value, discriminator);
                 return existingJson;
             }
         }
@@ -226,7 +239,7 @@ namespace Moksy.Storage
         /// <returns>true if the object was deleted; false otherwise. </returns>
         /// <remarks>This will look at all paths currently in the system (based on the method) 
         /// </remarks>
-        public bool DeleteFromImdb(System.Net.Http.HttpMethod method, string path, string pattern, IEnumerable<Header> headers)
+        public bool DeleteFromImdb(System.Net.Http.HttpMethod method, string path, string pattern, IEnumerable<Header> headers, string discriminator)
         {
             // TODO: Refactor. Like GetFromImdb
             if (null == path) return false;
@@ -234,7 +247,7 @@ namespace Moksy.Storage
 
             lock (Storage.SyncRoot)
             {
-                var match = Match(method, path, headers, false);
+                var match = Match(method, path, headers, false, discriminator);
                 if (match == null) return false;
 
                 if (method == HttpMethod.Delete)
@@ -261,7 +274,7 @@ namespace Moksy.Storage
                     var value = path.Substring(result.Groups[2].Index, result.Groups[2].Length);
                     if (value == null) return false;
 
-                    var removed = Remove(path, pattern, vars.First().Name, value);
+                    var removed = Remove(path, pattern, vars.First().Name, value, discriminator);
                     return removed;
                 }
             }
@@ -278,8 +291,9 @@ namespace Moksy.Storage
         /// <param name="pattern"></param>
         /// <param name="propertyName"></param>
         /// <param name="propertyValue"></param>
+        /// <param name="discriminator"></param>
         /// <returns></returns>
-        public bool Remove(string path, string pattern, string propertyName, string propertyValue)
+        public bool Remove(string path, string pattern, string propertyName, string propertyValue, string discriminator)
         {
             if (!Database.ContainsResource(path, pattern)) return false;
             if (null == propertyName) return false;
@@ -287,7 +301,7 @@ namespace Moksy.Storage
             var resource = Database.LookupResource(path, pattern);
             if (null == resource) return false;
 
-            foreach (var e in resource.Data)
+            foreach (var e in resource.Data(discriminator))
             {
                 try
                 {
@@ -305,7 +319,7 @@ namespace Moksy.Storage
 
                     if (System.Convert.ToString((value as JValue).Value) == propertyValue)
                     {
-                        Database.Remove(path, pattern, propertyName, propertyValue);
+                        Database.Remove(path, pattern, propertyName, propertyValue, discriminator);
                         return true;
                     }
                 }
@@ -350,7 +364,7 @@ namespace Moksy.Storage
                             contentAsString = new System.Text.ASCIIEncoding().GetString(task.Result);
                         }
 
-                        var matchingAssertions = FindMatchingConstraints(match.Condition.Constraints, contentAsString);
+                        var matchingAssertions = FindMatchingConstraints(match.Condition.Constraints, contentAsString, GetDiscriminator(headers, match.Condition.ImdbHeaderDiscriminator));
                         var noneMatchingAsserations = FindNoneMatchingConstraints(match.Condition.Constraints, contentAsString);
                         if (match.Condition.Constraints.Count > 0 && matchingAssertions.Count() != match.Condition.Constraints.Count)
                         {
@@ -376,7 +390,7 @@ namespace Moksy.Storage
                             // NOTE: IndexProperty != null implies that a uniqueness constraint has been applied. 
 
                             // Can we add this new object?
-                            bool canAddObject = CanAddObject(match, path, match.Condition.IndexProperty, contentAsString);
+                            bool canAddObject = CanAddObject(match, path, match.Condition.IndexProperty, contentAsString, GetDiscriminator(headers, match.Condition.ImdbHeaderDiscriminator));
                             if (match.Condition.Persistence == Persistence.NotExists)
                             {
                                 if (canAddObject)
@@ -423,7 +437,7 @@ namespace Moksy.Storage
                         var vars = new Substitution().GetVariables(match.Condition.Pattern);
                         if (vars.Count() > 0)
                         {
-                            var result = MatchesGetFromImdb(match, path, vars.First().Name);
+                            var result = MatchesGetFromImdb(match, path, vars.First().Name, GetDiscriminator(headers, match.Condition.ImdbHeaderDiscriminator));
                             if (null == result)
                             {
                                 continue;
@@ -438,7 +452,7 @@ namespace Moksy.Storage
                         var vars = new Substitution().GetVariables(match.Condition.Pattern);
                         if (vars.Count() > 0)
                         {
-                            var result = MatchesGetFromImdb(match, path, vars.First().Name);
+                            var result = MatchesGetFromImdb(match, path, vars.First().Name, GetDiscriminator(headers, match.Condition.ImdbHeaderDiscriminator));
                             if (null == result)
                             {
                                 continue;
@@ -468,6 +482,20 @@ namespace Moksy.Storage
 
 
 
+        protected string GetDiscriminator(IEnumerable<Header> headers, string key)
+        {
+            if (null == headers) return null;
+            if (headers.Count() == 0) return null;
+            if (null == key) return null;
+
+            var match = headers.FirstOrDefault(f => f.Name == key);
+            if (null == match) return null;
+
+            return match.Value;
+        }
+
+
+
         /// <summary>
         /// Add the simulation. The name must be unqiue by the Name (case insensitive). 
         /// </summary>
@@ -488,10 +516,6 @@ namespace Moksy.Storage
         }
 
 
-        public void AddToImdb(Simulation simulation, string path, string content)
-        {
-            AddToImdb(simulation, path, path, content);
-        }
 
         /// <summary>
         /// Add the content to the end point (path) specified in the simulation. 
@@ -499,7 +523,7 @@ namespace Moksy.Storage
         /// <param name="simulation"></param>
         /// <param name="path"></param>
         /// <param name="content"></param>
-        public void AddToImdb(Simulation simulation, string path, string pattern, string content)
+        public void AddToImdb(Simulation simulation, string path, string pattern, string content, string discriminator)
         {
             if (null == simulation) throw new System.ArgumentNullException("simulation");
 
@@ -508,9 +532,12 @@ namespace Moksy.Storage
                 var resourceName = RouteParser.GetFirstResource(path, simulation.Condition.Pattern);
                 if (null == resourceName) return;
 
-                Database.AddJson(path, pattern, simulation.Condition.IndexProperty, content);
+                Database.AddJson(path, pattern, simulation.Condition.IndexProperty, content, discriminator);
             }
         }
+
+
+
 
         /// <summary>
         /// Return true if the object represented by Json can be added. False otherwise. If the property is not present in the Json,
@@ -521,7 +548,7 @@ namespace Moksy.Storage
         /// <param name="propertyName"></param>
         /// <param name="json"></param>
         /// <returns></returns>
-        public bool CanAddObject(Simulation simulation, string path, string propertyName, string json)
+        public bool CanAddObject(Simulation simulation, string path, string propertyName, string json, string discriminator)
         {
             if (null == json) { json = ""; }
 
@@ -531,7 +558,7 @@ namespace Moksy.Storage
                 if (null == job) return false;
 
                 var value = GetPropertyValueFromJson(json, propertyName);
-                return CanAdd(simulation, path, propertyName, value);
+                return CanAdd(simulation, path, propertyName, value, discriminator);
             }
             catch
             {
@@ -579,11 +606,13 @@ namespace Moksy.Storage
         /// <param name="candidatePropertyValue"></param>
         /// <param name="propertyName"></param>
         /// <returns></returns>
-        public bool CanAdd(Simulation simulation, string path, string propertyName, string candidatePropertyValue)
+        public bool CanAdd(Simulation simulation, string path, string propertyName, string candidatePropertyValue, string discriminator)
         {
-            var match = FindMatch(simulation, path, propertyName, candidatePropertyValue);
+            var match = FindMatch(simulation, path, propertyName, candidatePropertyValue, discriminator);
             return (null == match);
         }
+
+
 
         /// <summary>
         /// Finds a match (or returns Null) for the given simulation Path. If a propertyName with candidatePropertyValue exists, this will return the
@@ -594,7 +623,7 @@ namespace Moksy.Storage
         /// <param name="propertyName"></param>
         /// <param name="candidatePropertyValue"></param>
         /// <returns></returns>
-        public JObject FindMatch(Simulation simulation, string path, string propertyName, string candidatePropertyValue)
+        public JObject FindMatch(Simulation simulation, string path, string propertyName, string candidatePropertyValue, string discriminator)
         {
             if (null == simulation) throw new System.ArgumentNullException("simulation");
 
@@ -604,7 +633,7 @@ namespace Moksy.Storage
             var resource = Database.LookupResource(path, simulation.Condition.Pattern);
             if (null == resource) return null;
 
-            foreach (var e in resource.Data)
+            foreach (var e in resource.Data(discriminator))
             {
                 try
                 {
@@ -630,6 +659,8 @@ namespace Moksy.Storage
             return null;
         }
 
+
+
         /// <summary>
         /// Find a match in the database using the path (typically: just the resource name), the propertyName that is used as the key and the propertyValue to match. 
         /// </summary>
@@ -637,7 +668,7 @@ namespace Moksy.Storage
         /// <param name="propertyName"></param>
         /// <param name="propertyValue"></param>
         /// <returns></returns>
-        public JObject FindMatch(string path, string pattern, string propertyName, string propertyValue)
+        public JObject FindMatch(string path, string pattern, string propertyName, string propertyValue, string discriminator)
         {
             if (!Database.ContainsResource(path, pattern)) return null;
             if (null == propertyName) return null;
@@ -645,7 +676,7 @@ namespace Moksy.Storage
             var resource = Database.LookupResource(path, pattern);
             if (null == resource) return null;
 
-            foreach (var e in resource.Data)
+            foreach (var e in resource.Data(discriminator))
             {
                 try
                 {
@@ -672,12 +703,13 @@ namespace Moksy.Storage
         }
 
 
+
         /// <summary>
         /// Return a list of (possibly empty) list of keys in the given path. 
         /// </summary>
         /// <param name="path"></param>
         /// <returns></returns>
-        public IEnumerable<string> GetKeysFor(string path, string pattern, string propertyName)
+        public IEnumerable<string> GetKeysFor(string path, string pattern, string propertyName, string discriminator)
         {
             List<string> result = new List<string>();
             if (null == path) return result;
@@ -689,7 +721,7 @@ namespace Moksy.Storage
             var resource = Database.LookupResource(path, pattern);
             if (null == resource) return result;
 
-            foreach (var p in resource.Data)
+            foreach (var p in resource.Data(discriminator))
             {
                 var key = GetPropertyValueFromJson(p, propertyName);
                 if (null == key) continue;
@@ -700,12 +732,14 @@ namespace Moksy.Storage
             return result;
         }
 
+
+
         /// <summary>
         /// Return all of the entries for the given path in the Imdb. 
         /// </summary>
         /// <param name="simulation"></param>
         /// <returns></returns>
-        public string GetFromImdbAsText(Simulation simulation, string path)
+        public string GetFromImdbAsText(Simulation simulation, string path, string discriminator)
         {
             if (null == simulation) throw new System.ArgumentNullException("simulation");
 
@@ -718,7 +752,7 @@ namespace Moksy.Storage
                 if (null == resource) return null;
 
                 StringBuilder builder = new StringBuilder();
-                foreach (var e in resource.Data)
+                foreach (var e in resource.Data(discriminator))
                 {
                     builder.Append(e);
                 }
@@ -726,12 +760,14 @@ namespace Moksy.Storage
             }
         }
 
+
+
         /// <summary>
         /// Return all of the entries for the given path in the Imdb in Json format (this does NOT wrap the output; it just returns the entries separated by a ,
         /// </summary>
         /// <param name="simulation"></param>
         /// <returns></returns>
-        public string GetFromImdbAsJson(Simulation simulation, string path)
+        public string GetFromImdbAsJson(Simulation simulation, string path, string discriminator)
         {
             if (null == simulation) throw new System.ArgumentNullException("simulation");
 
@@ -744,7 +780,7 @@ namespace Moksy.Storage
                 if (null == resource) return null;
 
                 List<string> components = new List<string>();
-                foreach (var e in resource.Data)
+                foreach (var e in resource.Data(discriminator))
                 {
                     components.Add(e);
                 }
@@ -803,12 +839,14 @@ namespace Moksy.Storage
             }
         }
 
+
+
         /// <summary>
         /// Will match 
         /// </summary>
         /// <param name="content"></param>
         /// <returns></returns>
-        public IEnumerable<ConstraintBase> FindMatchingConstraints(IEnumerable<ConstraintBase> constraints, string content)
+        public IEnumerable<ConstraintBase> FindMatchingConstraints(IEnumerable<ConstraintBase> constraints, string content, string discriminator)
         {
             List<ConstraintBase> result = new List<ConstraintBase>();
             if (constraints == null) return result;

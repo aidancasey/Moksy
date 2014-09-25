@@ -22,6 +22,11 @@ namespace Moksy.Storage
             Resources = new List<Resource>();
         }
 
+        public bool AddJson(string path, string pattern, string propertyName, string data)
+        {
+            return AddJson(path, pattern, propertyName, data, null);
+        }
+
         /// <summary>
         /// Add an entry to the database for the given path and pattern. That data will be validated as Json. 
         /// </summary>
@@ -29,9 +34,12 @@ namespace Moksy.Storage
         /// <param name="pattern">ie: /Pet, /Pet/{Kind}</param>
         /// <param name="propertyName">The property name (and its value) to use as the unique identifier in the object. Both the property name and contents are case sensitive. </param>
         /// <param name="data">The data to add. Can be null. </param>
+        /// <param name="discriminator">Optional discriminator if multiple databases are allowed (ie: via the header)</param>
         /// <returns>true - Added; false - not added. </returns>
-        public bool AddJson(string path, string pattern, string propertyName, string data)
+        public bool AddJson(string path, string pattern, string propertyName, string data, string discriminator)
         {
+            if (discriminator == null) discriminator = "";
+
             var tokens = RouteParser.Parse(path, pattern).ToArray();
             if (tokens.Count() == 0) return false;
 
@@ -57,19 +65,24 @@ namespace Moksy.Storage
                     propertyValue = jobjectPropertyValue.ToString();
                 }
 
-                var existingIndex = FindIndexOf(resource, propertyName, propertyValue);
+                var existingIndex = FindIndexOf(resource, propertyName, propertyValue, discriminator);
                 if (existingIndex != -1)
                 {
-                    resource.Data.RemoveAt(existingIndex);
+                    resource.Data(discriminator).RemoveAt(existingIndex);
                 }
 
-                resource.Data.Add(data);
+                resource.Data(discriminator).Add(data);
             }
 
             return true;
         }
 
 
+
+        public string Lookup(string path, string pattern, string propertyName, string value)
+        {
+            return Lookup(path, pattern, propertyName, value, null);
+        }
 
         /// <summary>
         /// Lookup the data stored at the given path using the specified propertyName and value (case sensitive).
@@ -78,9 +91,12 @@ namespace Moksy.Storage
         /// <param name="pattern"></param>
         /// <param name="propertyName"></param>
         /// <param name="value"></param>
+        /// <param name="discriminator"></param>
         /// <returns></returns>
-        public string Lookup(string path, string pattern, string propertyName, string value)
+        public string Lookup(string path, string pattern, string propertyName, string value, string discriminator)
         {
+            if (null == discriminator) discriminator = "";
+
             var tokens = RouteParser.Parse(path, pattern).ToArray();
             if (tokens.Count() == 0) return null;
 
@@ -94,15 +110,25 @@ namespace Moksy.Storage
             var index = FindIndexOf(match, propertyName, value);
             if (index == -1) return null;
 
-            return match.Data[index];
+            return match.Data(discriminator)[index];
+        }
+
+
+
+
+        public bool Exists(string path, string pattern, string propertyName, string value)
+        {
+            return Exists(path, pattern, propertyName, value, null);
         }
 
         /// <summary>
         /// Returns true if a record exists; false otherwise. See Lookup for parameter information. 
         /// </summary>
-        public bool Exists(string path, string pattern, string propertyName, string value)
+        public bool Exists(string path, string pattern, string propertyName, string value, string discriminator)
         {
-            return Lookup(path, pattern, propertyName, value) != null;
+            if (discriminator == null) discriminator = "";
+
+            return Lookup(path, pattern, propertyName, value, discriminator) != null;
         }
 
 
@@ -117,12 +143,19 @@ namespace Moksy.Storage
 
 
 
+        public bool Remove(string path, string pattern, string propertyName, string value)
+        {
+            return Remove(path, pattern, propertyName, value, null);
+        }
+
         /// <summary>
         /// Removes the first object that has a property name with the given value. See Lookup for parameter information. 
         /// </summary>
         /// <remarks>True true if the object was removed; false otherwise. </remarks>
-        public bool Remove(string path, string pattern, string propertyName, string value)
+        public bool Remove(string path, string pattern, string propertyName, string value, string discriminator)
         {
+            if (null == discriminator) discriminator = "";
+
             var tokens = RouteParser.Parse(path, pattern).ToArray();
             if (tokens.Count() == 0) return false;
 
@@ -133,10 +166,10 @@ namespace Moksy.Storage
             var match = Resources.FirstOrDefault(f => f.Name == token.Value);
             if (match == null) return false;
 
-            var index = FindIndexOf(match, propertyName, value);
+            var index = FindIndexOf(match, propertyName, value, discriminator);
             if (index == -1) return false;
 
-            match.Data.RemoveAt(index);
+            match.Data(discriminator).RemoveAt(index);
             return true;
         }
 
@@ -250,18 +283,26 @@ namespace Moksy.Storage
 
 
 
+
+        protected int FindIndexOf(Resource resource, string propertyName, string value)
+        {
+            return FindIndexOf(resource, propertyName, value, null);
+        }
+
         /// <summary>
         /// Returns the 0-based index of the data in the resource where propertyName is equal to value (case sensitive). 
         /// </summary>
         /// <param name="resource"></param>
         /// <param name="propertyName"></param>
         /// <param name="value"></param>
+        /// <param name="discriminator"></param>
         /// <returns></returns>
-        protected int FindIndexOf(Resource resource, string propertyName, string value)
+        protected int FindIndexOf(Resource resource, string propertyName, string value, string discriminator)
         {
+            if (null == discriminator) discriminator = "";
             if (null == propertyName) return -1;
 
-            foreach (var d in resource.Data)
+            foreach (var d in resource.Data(discriminator))
             {
                 JObject jobject = JsonConvert.DeserializeObject(d) as JObject;
                 if (null == jobject) continue;
@@ -269,11 +310,11 @@ namespace Moksy.Storage
                 var currentValue = jobject[propertyName];
                 if (currentValue != null && currentValue.ToString() == value)
                 {
-                    return resource.Data.IndexOf(d);
+                    return resource.Data(discriminator).IndexOf(d);
                 }
                 if (currentValue == null && value == null)
                 {
-                    return resource.Data.IndexOf(d);
+                    return resource.Data(discriminator).IndexOf(d);
                 }
             }
 
