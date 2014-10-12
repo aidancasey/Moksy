@@ -37,6 +37,18 @@ namespace Moksy.Common
         }
 
         /// <summary>
+        /// Sets up a partial match / content rule. 
+        /// </summary>
+        /// <param name="content">The content to match. Can be null. </param>
+        /// <returns></returns>
+        public SimulationCondition Contains(string content)
+        {
+            ContentRule rule = new ContentRule(content);
+            ContainsStorage.Add(rule);
+            return this;
+        }
+
+        /// <summary>
         /// Adds a single header to the request. This becomes part of the condition: the header must be present in the Request for the Simulation to be performed. 
         /// </summary>
         /// <param name="name">Must be none-null. For example: Content-Type</param>
@@ -306,6 +318,44 @@ namespace Moksy.Common
                 ParametersStorage = new List<Parameter>();
                 if (null == value) return;
                 ParametersStorage.AddRange(value);
+            }
+        }
+
+
+
+        [JsonIgnore]
+        public List<ContentRule> ContentRules
+        {
+            get
+            {
+                var result = new List<ContentRule>(ContainsStorage);
+                return result;
+            }
+            set
+            {
+                if (value == null)
+                {
+                    ContainsStorage = new List<ContentRule>();
+                    return;
+                }
+
+                ContainsStorage.Clear();
+                ContainsStorage.AddRange(value);
+            }
+        }
+
+        [JsonProperty("contains")]
+        public ContentRule[] ContainsForJson
+        {
+            get
+            {
+                return ContainsStorage.ToArray();
+            }
+            set
+            {
+                ContainsStorage = new List<ContentRule>();
+                if (null == value) return;
+                ContainsStorage.AddRange(value);
             }
         }
 
@@ -671,5 +721,10 @@ namespace Moksy.Common
         /// Storage for all constraints. 
         /// </summary>
         private List<ConstraintBase> ConstraintStorage = new List<ConstraintBase>();
+
+        /// <summary>
+        /// Storage for all content rules
+        /// </summary>
+        private List<ContentRule> ContainsStorage = new List<ContentRule>();
     }
 }

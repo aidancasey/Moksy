@@ -185,7 +185,10 @@ namespace Moksy.Common
             var match = Matches(condition, method);
             if (!match) return false;
 
-            match = Matches(condition, content);
+            match = MatchesParameters(condition, content);
+            if (!match) return false;
+
+            match = MatchesContentRules(condition, content);
             if (!match) return false;
 
             match = Matches(condition, path);
@@ -203,10 +206,11 @@ namespace Moksy.Common
         /// <param name="condition"></param>
         /// <param name="content"></param>
         /// <returns></returns>
-        public bool Matches(SimulationCondition condition, HttpContent content)
+        public bool MatchesParameters(SimulationCondition condition, HttpContent content)
         {
             if (null == content) return true;
-            if (condition.Parameters.Count == 0) return true;
+            var bodyParameters = condition.Parameters.Where(f => f.ParameterType == ParameterType.BodyParameter);
+            if (bodyParameters.Count() == 0) return true;
 
             try
             {
@@ -234,8 +238,38 @@ namespace Moksy.Common
             {
                 return false;
             }
+        }
 
-            return true;
+        /// <summary>
+        /// Returns true if the ContentRules match in the condition. 
+        /// </summary>
+        /// <param name="condition"></param>
+        /// <param name="content"></param>
+        /// <returns></returns>
+        public bool MatchesContentRules(SimulationCondition condition, HttpContent content)
+        {
+            if (content == null) return true;
+            if (condition.ContentRules.Count == 0) return true;
+
+            try
+            {
+                var t = content.ReadAsStringAsync();
+                t.Wait();
+                var s = t.Result;
+                if (null == s) return false;
+
+                foreach (var rule in condition.ContentRules)
+                {
+                    if (!s.Contains(rule.Content)) return false;
+                }
+
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+
         }
 
         /// <summary>

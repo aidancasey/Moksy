@@ -1130,5 +1130,39 @@ namespace Moksy.IntegrationTest
         }
 
         #endregion
+
+        #region Content
+
+        [TestMethod]
+        public void NoContentRulesMatch()
+        {
+            var s = Moksy.Common.SimulationFactory.When.I.Post().To("/Pet").Then.Return.StatusCode(System.Net.HttpStatusCode.MultipleChoices);
+            Proxy.Add(s);
+
+            var response = Post("/Pet", @"something");
+            Assert.AreEqual(System.Net.HttpStatusCode.MultipleChoices, response.StatusCode);
+        }
+
+        [TestMethod]
+        public void OneContentRuleDoesNotMatch()
+        {
+            var s = Moksy.Common.SimulationFactory.When.I.Post().To("/Pet").Contains("nothing").Then.Return.StatusCode(System.Net.HttpStatusCode.MultipleChoices);
+            Proxy.Add(s);
+
+            var response = Post("/Pet", @"something");
+            Assert.AreEqual(System.Net.HttpStatusCode.NotImplemented, response.StatusCode);
+        }
+
+        [TestMethod]
+        public void OneContentRuleDoesMatch()
+        {
+            var s = Moksy.Common.SimulationFactory.When.I.Post().To("/Pet").Contains("thing").Then.Return.StatusCode(System.Net.HttpStatusCode.MultipleChoices);
+            Proxy.Add(s);
+
+            var response = Post("/Pet", @"something");
+            Assert.AreEqual(System.Net.HttpStatusCode.MultipleChoices, response.StatusCode);
+        }
+
+        #endregion Content
     }
 }

@@ -57,9 +57,11 @@
     <Compile Include="Constraints\LengthLessThanOrGreaterThan.cs" />
     <Compile Include="Constraints\IsMissing.cs" />
     <Compile Include="Constraints\IsNull.cs" />
+    <Compile Include="ContentRule.cs" />
     <Compile Include="ContentKind.cs" />
     <Compile Include="Match.cs" />
     <Compile Include="Parameter.cs" />
+    <Compile Include="ParameterType.cs" />
     <Compile Include="Persistence.cs" />
     <Compile Include="Property.cs" />
     <Compile Include="Proxy.cs" />

@@ -334,7 +334,7 @@ namespace Moksy.Test
             SimulationConditionEvaluator e = new SimulationConditionEvaluator();
             SimulationCondition c = new SimulationCondition();
 
-            Assert.IsTrue(e.Matches(c, (System.Net.Http.HttpContent) null));
+            Assert.IsTrue(e.MatchesParameters(c, (System.Net.Http.HttpContent) null));
         }
 
         [TestMethod]
@@ -346,7 +346,7 @@ namespace Moksy.Test
 
             System.Net.Http.HttpContent content = new System.Net.Http.StringContent("", Encoding.UTF8, "application/json");
 
-            Assert.IsTrue(e.Matches(c, content));
+            Assert.IsTrue(e.MatchesParameters(c, content));
         }
 
         [TestMethod]
@@ -358,7 +358,7 @@ namespace Moksy.Test
 
             System.Net.Http.HttpContent content = new System.Net.Http.StringContent("a=b", Encoding.UTF8, "application/json");
 
-            Assert.IsTrue(e.Matches(c, content));
+            Assert.IsTrue(e.MatchesParameters(c, content));
         }
 
         [TestMethod]
@@ -371,7 +371,7 @@ namespace Moksy.Test
 
             System.Net.Http.HttpContent content = new System.Net.Http.StringContent("a=b", Encoding.UTF8, "application/json");
 
-            Assert.IsTrue(e.Matches(c, content));
+            Assert.IsTrue(e.MatchesParameters(c, content));
         }
 
         [TestMethod]
@@ -384,7 +384,7 @@ namespace Moksy.Test
 
             System.Net.Http.HttpContent content = new System.Net.Http.StringContent("a=b", Encoding.UTF8, "application/json");
 
-            Assert.IsFalse(e.Matches(c, content));
+            Assert.IsFalse(e.MatchesParameters(c, content));
         }
 
         [TestMethod]
@@ -398,7 +398,7 @@ namespace Moksy.Test
 
             System.Net.Http.HttpContent content = new System.Net.Http.StringContent("a=b", Encoding.UTF8, "application/json");
 
-            Assert.IsFalse(e.Matches(c, content));
+            Assert.IsFalse(e.MatchesParameters(c, content));
         }
 
         [TestMethod]
@@ -412,7 +412,7 @@ namespace Moksy.Test
 
             System.Net.Http.HttpContent content = new System.Net.Http.StringContent("a=b&c=d", Encoding.UTF8, "application/json");
 
-            Assert.IsTrue(e.Matches(c, content));
+            Assert.IsTrue(e.MatchesParameters(c, content));
         }
 
         [TestMethod]
@@ -426,7 +426,7 @@ namespace Moksy.Test
 
             System.Net.Http.HttpContent content = new System.Net.Http.StringContent("a=b&c=d&e=f", Encoding.UTF8, "application/json");
 
-            Assert.IsTrue(e.Matches(c, content));
+            Assert.IsTrue(e.MatchesParameters(c, content));
         }
 
         [TestMethod]
@@ -441,7 +441,72 @@ namespace Moksy.Test
 
             System.Net.Http.HttpContent content = new System.Net.Http.StringContent("a=b&c=d&e=f", Encoding.UTF8, "application/json");
 
-            Assert.IsFalse(e.Matches(c, content));
+            Assert.IsFalse(e.MatchesParameters(c, content));
+        }
+
+        #endregion
+
+        #region Contains
+
+        [TestMethod]
+        public void NoContentRulesAlwaysEvaluatesAsTrue()
+        {
+            SimulationConditionEvaluator e = new SimulationConditionEvaluator();
+            SimulationCondition c = new SimulationCondition();
+
+            System.Net.Http.HttpContent content = new System.Net.Http.StringContent("something", Encoding.UTF8, "application/json");
+
+            Assert.IsTrue(e.MatchesContentRules(c, content));
+        }
+
+        [TestMethod]
+        public void OneContentRulesMatches()
+        {
+            SimulationConditionEvaluator e = new SimulationConditionEvaluator();
+            SimulationCondition c = new SimulationCondition();
+            c.Contains("thin");
+
+            System.Net.Http.HttpContent content = new System.Net.Http.StringContent("something", Encoding.UTF8, "application/json");
+
+            Assert.IsTrue(e.MatchesContentRules(c, content));
+        }
+
+        [TestMethod]
+        public void OneContentRuleDoesNotMatch()
+        {
+            SimulationConditionEvaluator e = new SimulationConditionEvaluator();
+            SimulationCondition c = new SimulationCondition();
+            c.Contains("nothing");
+
+            System.Net.Http.HttpContent content = new System.Net.Http.StringContent("something", Encoding.UTF8, "application/json");
+
+            Assert.IsFalse(e.MatchesContentRules(c, content));
+        }
+
+        [TestMethod]
+        public void OneContentRuleMatchesOneDoesNotMatch()
+        {
+            SimulationConditionEvaluator e = new SimulationConditionEvaluator();
+            SimulationCondition c = new SimulationCondition();
+            c.Contains("nothing");
+            c.Contains("something");
+
+            System.Net.Http.HttpContent content = new System.Net.Http.StringContent("some", Encoding.UTF8, "application/json");
+
+            Assert.IsFalse(e.MatchesContentRules(c, content));
+        }
+
+        [TestMethod]
+        public void TwoMatches()
+        {
+            SimulationConditionEvaluator e = new SimulationConditionEvaluator();
+            SimulationCondition c = new SimulationCondition();
+            c.Contains("some");
+            c.Contains("thing");
+
+            System.Net.Http.HttpContent content = new System.Net.Http.StringContent("something", Encoding.UTF8, "application/json");
+
+            Assert.IsTrue(e.MatchesContentRules(c, content));
         }
 
         #endregion

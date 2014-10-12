@@ -565,5 +565,22 @@ namespace Moksy.Test
             Assert.AreEqual("theparam", t.Name);
             Assert.AreEqual("thevalue", t.Value);
         }
+
+
+
+        [TestMethod]
+        public void NoContent()
+        {
+            var s = SimulationFactory.When.I.Get().From("/Pet").Return.StatusCode(System.Net.HttpStatusCode.OK);
+            Assert.AreEqual(0, s.Simulation.Condition.ContentRules.Count);
+        }
+
+        [TestMethod]
+        public void OneContent()
+        {
+            var s = SimulationFactory.When.I.Get().From("/Pet").Contains("something").Return.StatusCode(System.Net.HttpStatusCode.OK);
+            Assert.AreEqual(1, s.Simulation.Condition.ContentRules.Count);
+            Assert.AreEqual("something", s.Simulation.Condition.ContentRules[0].Content);
+        }
     }
 }

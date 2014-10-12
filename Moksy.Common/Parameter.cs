@@ -29,6 +29,7 @@ namespace Moksy.Common
 
             this.Name = name;
             this.Value = value;
+            this.ParameterType = ParameterType.BodyParameter;
         }
 
         /// <summary>
@@ -40,5 +41,10 @@ namespace Moksy.Common
         /// Parameter Value. 
         /// </summary>
         public string Value { get; set; }
+
+        /// <summary>
+        /// The type of parameter. 
+        /// </summary>
+        public ParameterType ParameterType { get; set; }
     }
 }
