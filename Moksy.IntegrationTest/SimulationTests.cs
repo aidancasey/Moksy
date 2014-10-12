@@ -1129,6 +1129,19 @@ namespace Moksy.IntegrationTest
             Assert.AreEqual(System.Net.HttpStatusCode.MultipleChoices, response.StatusCode);
         }
 
+        [TestMethod]
+        public void SecondValueMatchesRule()
+        {
+            var s = Moksy.Common.SimulationFactory.When.I.Post().To("/Pet").Parameter("a", "b").Then.Return.StatusCode(System.Net.HttpStatusCode.MultipleChoices);
+            Proxy.Add(s);
+
+            s = Moksy.Common.SimulationFactory.When.I.Post().To("/Pet").Parameter("a", "g").Then.Return.StatusCode(System.Net.HttpStatusCode.NotAcceptable);
+            Proxy.Add(s);
+
+            var response = Post("/Pet", @"a=g");
+            Assert.AreEqual(System.Net.HttpStatusCode.NotAcceptable, response.StatusCode); 
+        }
+
         #endregion
 
         #region Content

@@ -418,7 +418,6 @@ namespace Moksy.Test
         [TestMethod]
         public void ContentWithTwoOfThreeMatchingPairMatches()
         {
-            // Will always match
             SimulationConditionEvaluator e = new SimulationConditionEvaluator();
             SimulationCondition c = new SimulationCondition();
             c.Parameter("c", "d");
@@ -427,6 +426,24 @@ namespace Moksy.Test
             System.Net.Http.HttpContent content = new System.Net.Http.StringContent("a=b&c=d&e=f", Encoding.UTF8, "application/json");
 
             Assert.IsTrue(e.MatchesParameters(c, content));
+        }
+
+        [TestMethod]
+        public void TwoConditionsSecondOneMatches()
+        {
+            SimulationConditionEvaluator e = new SimulationConditionEvaluator();
+            SimulationCondition c1 = new SimulationCondition();
+            c1.Parameter("c", "d");
+            c1.Parameter("g", "h");
+
+            SimulationCondition c2 = new SimulationCondition();
+            c2.Parameter("c", "d");
+            c2.Parameter("e", "f");
+
+            System.Net.Http.HttpContent content = new System.Net.Http.StringContent("a=b&c=d&e=f", Encoding.UTF8, "application/json");
+
+            Assert.IsFalse(e.MatchesParameters(c1, content));
+            Assert.IsTrue(e.MatchesParameters(c2, content)); 
         }
 
         [TestMethod]

@@ -148,7 +148,7 @@ namespace Moksy.Common
             {
                 Parameter match = null;
 
-                match = headers.FirstOrDefault(f => f.Name == h.Name);
+                match = headers.FirstOrDefault(f => f.Name == h.Name && f.Value == h.Value);
                 if (match != null) continue;
                 if (match == null) return false;
 
