@@ -152,5 +152,29 @@ namespace Moksy.IntegrationTest
             Assert.AreEqual(System.Net.HttpStatusCode.OK, response.StatusCode);
             Assert.AreEqual(@"", response.Content);
         }
+
+
+
+        [TestMethod]
+        public void ProxyExit()
+        {
+            var all = Proxy.GetAll();
+            Assert.IsNotNull(all);
+
+            Proxy.Exit();
+
+            try
+            {
+                all = Proxy.GetAll();
+                Assert.Fail("It was expected the service would be finished by now. ");
+            }
+            catch (System.Net.WebException wex)
+            {
+
+            }
+        }
+
+
+        public TestContext TestContext { get; set; }
     }
 }

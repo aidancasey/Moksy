@@ -22,6 +22,20 @@ namespace Moksy.Common
             Repeat = Int64.MaxValue;
         }
 
+
+        /// <summary>
+        /// Adds a single conditional parameter to the request. The parameter must exist (default: in the body, as a name=value pair. 
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public SimulationCondition Parameter(string name, string value)
+        {
+            Parameter p = new Parameter(name, value);
+            ParametersStorage.Add(p);
+            return this;
+        }
+
         /// <summary>
         /// Adds a single header to the request. This becomes part of the condition: the header must be present in the Request for the Simulation to be performed. 
         /// </summary>
@@ -256,6 +270,42 @@ namespace Moksy.Common
                 RequestHeadersStorage = new List<Header>();
                 if (null == value) return;
                 RequestHeadersStorage.AddRange(value);
+            }
+        }
+
+        [JsonIgnore]
+        public List<Parameter> Parameters
+        {
+            get
+            {
+                var result = new List<Parameter>(ParametersStorage);
+                return result;
+            }
+            set
+            {
+                if (value == null)
+                {
+                    ParametersStorage = new List<Parameter>();
+                    return;
+                }
+
+                ParametersStorage.Clear();
+                ParametersStorage.AddRange(value);
+            }
+        }
+
+        [JsonProperty("parameters")]
+        public Parameter[] ParametersForJson
+        {
+            get
+            {
+                return ParametersStorage.ToArray();
+            }
+            set
+            {
+                ParametersStorage = new List<Parameter>();
+                if (null == value) return;
+                ParametersStorage.AddRange(value);
             }
         }
 
@@ -611,6 +661,11 @@ namespace Moksy.Common
         /// Storage for the header
         /// </summary>
         private List<Header> RequestHeadersStorage = new List<Header>();
+
+        /// <summary>
+        /// Storage for the parameters. 
+        /// </summary>
+        private List<Parameter> ParametersStorage = new List<Parameter>();
 
         /// <summary>
         /// Storage for all constraints. 

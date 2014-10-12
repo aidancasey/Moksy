@@ -100,7 +100,7 @@ namespace Moksy.Common
         /// <param name="path">The actual path. For example: /Pet(Dog)/Toy(Bone)</param>
         /// <param name="pattern">The pattern. ie: /Pet({Kind})/Toy({Name}</param>
         /// <returns>A list of individual tokens. For example: Pet; Kind; Toy; Name</returns>
-        public static IEnumerable<RouteToken> Parse(string path, string pattern)
+        public static IEnumerable<RouteToken>  Parse(string path, string pattern)
         {
             List<RouteToken> result = new List<RouteToken>();
             if (null == path || null == pattern) return result;
@@ -108,6 +108,7 @@ namespace Moksy.Common
             if (path == pattern)
             {
                 RouteToken token = new RouteToken() { Kind = RouteTokenKind.Resource, Value = SanitizeResource(path) };
+                token.Name = token.Value;
                 result.Add(token);
 
                 return result;
@@ -116,17 +117,21 @@ namespace Moksy.Common
             var regex = ConvertPatternToRegularExpression(pattern);
 
             System.Text.RegularExpressions.Regex r = new System.Text.RegularExpressions.Regex(regex);
-            var matches = r.Matches(path);
-            if (matches.Count != 1) return result;
+            var pathMatches = r.Matches(path);
+            if (pathMatches.Count != 1) return result;
+
+            System.Text.RegularExpressions.Regex r2 = new Regex(regex);
+            var patternMatches = r2.Matches(pattern);
+            if (patternMatches.Count != 1) return result;
             
             // There should be a single match. 
             // The Groups will be of the form: Full
             //                                 ResourceName
             //                                 ResourceIdentifier
             //                                 Tail
-            if (matches[0].Groups.Count == 1) return result;
+            if (pathMatches[0].Groups.Count == 1) return result;
 
-            var full = matches[0].Groups[0].Value;
+            var full = pathMatches[0].Groups[0].Value;
 
             int offset = 1;
 
@@ -134,7 +139,7 @@ namespace Moksy.Common
             // resourceName
             // resourceIdentifier
             // tail
-            while (offset < matches[0].Groups.Count)
+            while (offset < pathMatches[0].Groups.Count)
             {
                 // var resourceName = m.Groups["resourceName"];
                 // var resourceIdentifier = m.Groups["resourceIdentifier"];
@@ -143,25 +148,27 @@ namespace Moksy.Common
                 string resourceIdentifier = "";
                 string tail = "";
 
-                if (offset != matches[0].Groups.Count)
+                if (offset != pathMatches[0].Groups.Count)
                 {
-                    resourceName = matches[0].Groups[offset].Value;
+                    resourceName = pathMatches[0].Groups[offset].Value;
 
                     RouteToken token = new RouteToken() { Kind = RouteTokenKind.Resource, Value = SanitizeResource(resourceName) };
+                    token.Name = token.Value;
                     result.Add(token);
 
                     offset++;
                 }
-                if (offset != matches[0].Groups.Count)
+                if (offset != pathMatches[0].Groups.Count)
                 {
-                    resourceIdentifier = matches[0].Groups[offset].Value;
+                    resourceIdentifier = pathMatches[0].Groups[offset].Value;
 
                     RouteToken token = new RouteToken() { Kind = RouteTokenKind.Property, Value = resourceIdentifier };
+                    token.Name = patternMatches[0].Groups[offset].Value.Replace("{", "").Replace("}", "");
                     result.Add(token);
 
                     offset++;
                 }
-                if (offset != matches[0].Groups.Count)
+                if (offset != pathMatches[0].Groups.Count)
                 {
                     // Tail. 
                     offset++;
@@ -171,6 +178,9 @@ namespace Moksy.Common
             return result;
         }
 
+        /// <summary>
+        /// Will match the URL. 
+        /// </summary>
         public const string RegularExpression = "(?<resourceName>/[^{]+)(?<resourceIdentifier>[{][^}]+[}])(?<tail>[^/]*)|(?<resourceName>/[^{]+)";
 
         /// <summary>

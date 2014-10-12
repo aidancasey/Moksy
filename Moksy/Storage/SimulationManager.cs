@@ -346,7 +346,7 @@ namespace Moksy.Storage
             lock (Storage.SyncRoot)
             {
                 SimulationConditionEvaluator e = new SimulationConditionEvaluator();
-                var matches = e.Matches(Storage, method, path, headers);
+                var matches = e.Matches(Storage, content, method, path, headers);
                 if (matches.Count() == 0) return null;
 
                 foreach(var match in matches)

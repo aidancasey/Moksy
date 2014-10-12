@@ -69,6 +69,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Moksy.Common\Moksy.Common.csproj">
+      <Project>{ec4f06d9-1674-4a30-9bb8-0ea8a389086a}</Project>
+      <Name>Moksy.Common</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Moksy\Moksy.csproj">
       <Project>{d5351d49-f2d9-4ef4-93b0-a42101973d89}</Project>
       <Name>Moksy</Name>

@@ -7,11 +7,11 @@ using System.Threading.Tasks;
 
 namespace Moksy.Host
 {
-    class Program
+    public class Program
     {
         static void Main(string[] args)
         {
-            if (args == null || args.Length != 1)
+            if (args == null || args.Length < 1 || args.Length > 2)
             {
                 Usage();
                 System.Environment.Exit(1);
@@ -23,6 +23,23 @@ namespace Moksy.Host
             {
                 Usage();
                 System.Environment.Exit(1);
+            }
+
+            bool simulationsSpecified = false;
+            string simulationsPath = null;
+            Moksy.Common.SimulationCollection simulations = new Common.SimulationCollection();
+            if (args.Length == 2)
+            {
+                simulationsSpecified = true;
+                simulationsPath = args[1];
+            }
+
+            if (simulationsSpecified)
+            {
+                var contents = System.IO.File.ReadAllText(simulationsPath);
+                simulations = Newtonsoft.Json.JsonConvert.DeserializeObject<Moksy.Common.SimulationCollection>(contents);
+
+                // ASSERTION: We have loaded the simulations into memory. 
             }
 
             try
@@ -40,6 +57,22 @@ namespace Moksy.Host
                 Console.WriteLine();
                 Console.WriteLine(string.Format("Running Moksy on Port {0}. ", port));
                 Console.WriteLine(string.Format("Navigate to: http://localhost:{0} for a sanity test.", port));
+
+                if (simulationsSpecified)
+                {
+                    Task.Factory.StartNew(() =>
+                    {
+                        Proxy proxy = new Proxy(port);
+                        proxy.Wait(20);
+
+                        // We need to wait until the service has started. 
+                        foreach (var simulation in simulations)
+                        {
+                            proxy.Add(simulation);
+                        }
+                    }, TaskCreationOptions.LongRunning
+                    );
+                }
 
                 Console.WriteLine("Press a key to exit...");
                 Console.ReadKey();
@@ -87,9 +120,10 @@ namespace Moksy.Host
 
         static void Usage()
         {
-            System.Console.WriteLine("Usage: Moksy.Host <PortNumber>");
+            System.Console.WriteLine("Usage: Moksy.Host <PortNumber> [SimulationFile.json]");
             System.Console.WriteLine();
             System.Console.WriteLine("   eg: Moksy.Host 10011");
+            System.Console.WriteLine(@"   eg: Moksy.Host 10011 C:\Temp\MySimulations.json");
             System.Console.WriteLine();
             System.Console.WriteLine("NOTE: To simplify matters, run the host as an Administrator so that no reservation needs to be created manually for the port. ");
         }

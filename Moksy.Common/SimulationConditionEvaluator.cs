@@ -131,17 +131,61 @@ namespace Moksy.Common
         }
 
         /// <summary>
+        /// Returns True if the simulation condition contains those headers. An empty (or null) headers collection will always return true.
+        /// </summary>
+        /// <param name="condition"></param>
+        /// <param name="headers"></param>
+        /// <returns></returns>
+        public bool Matches(SimulationCondition condition, IEnumerable<Parameter> headers)
+        {
+            if (condition == null) return false;
+
+            if (headers == null) return true;
+
+            if (headers.Count() > 0 && condition.Parameters.Count == 0) return true;
+
+            foreach (var h in condition.Parameters)
+            {
+                Parameter match = null;
+
+                match = headers.FirstOrDefault(f => f.Name == h.Name);
+                if (match != null) continue;
+                if (match == null) return false;
+
+            }
+            return true;
+        }
+
+        /// <summary>
         /// Matches the condition against the path and the headers.
         /// </summary>
         /// <param name="condition"></param>
+        /// <param name="method"></param>
         /// <param name="path"></param>
         /// <param name="headers"></param>
         /// <returns></returns>
         public bool Matches(SimulationCondition condition, System.Net.Http.HttpMethod method, string path, IEnumerable<Header> headers)
         {
+            return Matches(condition, null, method, path, headers);
+        }
+
+        /// <summary>
+        /// Matches the condition against the path and the headers.
+        /// </summary>
+        /// <param name="condition"></param>
+        /// <param name="content"></param>
+        /// <param name="method"></param>
+        /// <param name="path"></param>
+        /// <param name="headers"></param>
+        /// <returns></returns>
+        public bool Matches(SimulationCondition condition, HttpContent content, System.Net.Http.HttpMethod method, string path, IEnumerable<Header> headers)
+        {
             if (null == condition) return false;
 
             var match = Matches(condition, method);
+            if (!match) return false;
+
+            match = Matches(condition, content);
             if (!match) return false;
 
             match = Matches(condition, path);
@@ -154,17 +198,73 @@ namespace Moksy.Common
         }
 
         /// <summary>
+        /// Determine if the condition (typically: the Parameters) matches the given content. 
+        /// </summary>
+        /// <param name="condition"></param>
+        /// <param name="content"></param>
+        /// <returns></returns>
+        public bool Matches(SimulationCondition condition, HttpContent content)
+        {
+            if (null == content) return true;
+            if (condition.Parameters.Count == 0) return true;
+
+            try
+            {
+                var t = content.ReadAsStringAsync();
+                t.Wait();
+                var s = t.Result;
+                if (null == s) return false;
+                if ("" == s) return false;
+
+                // We have converted the content to a string; now split on & and = to create our parameters list. 
+                // TODO: Decode/Encode
+                List<Parameter> ps = new List<Parameter>();
+                var nameValuePairs = s.Split('&');
+                foreach (var pair in nameValuePairs)
+                {
+                    var nv = pair.Split('=');
+                    if (2 != nv.Length) continue;
+
+                    ps.Add(new Parameter() { Name = nv[0], Value = nv[1] });
+                }
+
+                return Matches(condition, ps);
+            }
+            catch
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
         /// Determines if the path and headers match for this simulation. This is a helper method around the Simulation.Condition property. 
         /// </summary>
         /// <param name="simulation"></param>
+        /// <param name="method"></param>
         /// <param name="path"></param>
         /// <param name="headers"></param>
         /// <returns></returns>
         public bool Matches(Simulation simulation, System.Net.Http.HttpMethod method, string path, IEnumerable<Header> headers)
         {
+            return Matches(simulation, null, method, path, headers);
+        }
+
+        /// <summary>
+        /// Determines if the path and headers match for this simulation. This is a helper method around the Simulation.Condition property. 
+        /// </summary>
+        /// <param name="simulation"></param>
+        /// <param name="content"></param>
+        /// <param name="method"></param>
+        /// <param name="path"></param>
+        /// <param name="headers"></param>
+        /// <returns></returns>
+        public bool Matches(Simulation simulation, HttpContent content, System.Net.Http.HttpMethod method, string path, IEnumerable<Header> headers)
+        {
             if (null == simulation) return false;
 
-            return Matches(simulation.Condition, method, path, headers);
+            return Matches(simulation.Condition, content, method, path, headers);
         }
 
         /// <summary>
@@ -188,16 +288,31 @@ namespace Moksy.Common
         /// Returns all matches in the order in which they were added. 
         /// </summary>
         /// <param name="simulations">The collection of simulations. Can be null or empty. </param>
+        /// <param name="method"></param>
         /// <param name="path"></param>
         /// <param name="headers"></param>
         /// <returns></returns>
         public IEnumerable<Simulation> Matches(SimulationCollection simulations, System.Net.Http.HttpMethod method, string path, IEnumerable<Header> headers)
         {
+            return Matches(simulations, null, method, path, headers);
+        }
+
+        /// <summary>
+        /// Returns all matches in the order in which they were added. 
+        /// </summary>
+        /// <param name="simulations">The collection of simulations. Can be null or empty. </param>
+        /// <param name="content"></param>
+        /// <param name="method"></param>
+        /// <param name="path"></param>
+        /// <param name="headers"></param>
+        /// <returns></returns>
+        public IEnumerable<Simulation> Matches(SimulationCollection simulations, HttpContent content, System.Net.Http.HttpMethod method, string path, IEnumerable<Header> headers)
+        {
             IEnumerable<Simulation> matches = new List<Simulation>();
             if (null == simulations) return matches;
             if (simulations.Count() == 0) return matches;
 
-            matches = simulations.Where(f => Matches(f, method, path, headers) == true);
+            matches = simulations.Where(f => Matches(f, content, method, path, headers) == true);
             return matches;
         }
     }

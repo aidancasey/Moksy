@@ -21,7 +21,12 @@ namespace Moksy.Common
         public RouteTokenKind Kind { get; set; }
 
         /// <summary>
-        /// The value of this token. 
+        /// The name of the token. If this token is a Resource, the Name and Value are the same.
+        /// </summary>
+        public string Name { get; set; }
+
+        /// <summary>
+        /// The value of this token. If this token is a Resource, the Name and Value are the same. 
         /// </summary>
         public string Value { get; set; }
     }

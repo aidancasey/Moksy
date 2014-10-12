@@ -300,8 +300,6 @@ namespace Moksy.Handlers
 
             var result = content;
 
-            var tokens = RouteParser.Parse(match.Condition.Pattern);
-
             JsonHelpers helpers = new JsonHelpers();
             Substitution s = new Substitution();
             foreach (var p in properties)
@@ -310,25 +308,13 @@ namespace Moksy.Handlers
                 result = helpers.SetProperty(p.Name, value, result);
             }
 
-            var regex = RouteParser.ConvertPatternToRegularExpression(match.Condition.Pattern);
-
-            System.Text.RegularExpressions.Regex rex = new System.Text.RegularExpressions.Regex(regex);
-            var regexResult = rex.Match(path);
-            if (regexResult.Groups.Count == 4)
+            var tokens = RouteParser.Parse(path, match.Condition.Pattern).Where(f => f.Kind == RouteTokenKind.Property);
+            foreach (var token in tokens)
             {
-                if (regexResult.Groups[2].Captures.Count > 0)
-                {
-                    // We can pull out the value of the property we are looking for. This will be the second token. 
-                    var propertyToken = tokens.FirstOrDefault(f => f.Kind == RouteTokenKind.Property);
-                    if(propertyToken != null)
-                    {
-                        var propertyName = propertyToken.Value;
-
-                        var value = s.Substitute(regexResult.Groups[2].Captures[0].Value, variables);
-                        result = helpers.SetProperty(propertyName, value, result);
-                    }
-                }
+                var value = s.Substitute(token.Value, variables);
+                result = helpers.SetProperty(token.Name, value, result);
             }
+
             return result;
         }
 

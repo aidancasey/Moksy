@@ -121,6 +121,38 @@ namespace Moksy
 
 
         /// <summary>
+        /// Wait up to timeoutInSeconds for the Proxy to become available. 
+        /// </summary>
+        /// <param name="timeoutInSeconds"></param>
+        /// <returns></returns>
+        public bool Wait(int timeoutInSeconds)
+        {
+            try
+            {
+                for (uint i = 0; i < timeoutInSeconds; i++)
+                {
+                    try
+                    {
+                        var all = GetAll();
+                        return true;
+                    }
+                    catch (System.Net.WebException ex)
+                    {
+                    }
+
+                    System.Threading.Thread.Sleep(1000);
+                }
+            }
+            catch
+            {
+            }
+
+            return false;
+        }
+
+
+
+        /// <summary>
         /// Fetch all simulations that are currently configured. 
         /// </summary>
         /// <returns></returns>
@@ -240,6 +272,31 @@ namespace Moksy
             if (null == response) throw new System.ArgumentNullException("response");
             if (null == response.Simulation) throw new System.ArgumentOutOfRangeException("ERROR: The .Simulation property on response must reference the owner Simulation. ");
             return Add(response.Simulation);
+        }
+
+
+
+        /// <summary>
+        /// Terminate the running proxy. 
+        /// </summary>
+        public void Exit()
+        {
+            try
+            {
+                var all = GetAll();
+
+                // If we get to here, the proxy is running; we need to bail out. 
+                RestSharp.IRestClient client = new RestSharp.RestClient(Root);
+                RestSharp.IRestRequest request = new RestSharp.RestRequest(GetSimulationResource(), RestSharp.Method.DELETE);
+                request.AddHeader("moksy-exit", "true");
+                var response = client.Execute(request);
+                // The response will not return; the service will bail out. 
+            }
+            catch (System.Net.WebException)
+            {
+                // The service is not running - return. 
+                return;
+            }
         }
 
 

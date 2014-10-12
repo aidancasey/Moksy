@@ -546,5 +546,24 @@ namespace Moksy.Test
             Assert.IsTrue(s.IsGroupedByImdbHeaderDiscriminator);
             Assert.AreEqual("clinic", s.ImdbHeaderDiscriminator);
         }
+
+
+
+        [TestMethod]
+        public void NoParameters()
+        {
+            var s = SimulationFactory.When.I.Get().From("/Pet").Return.StatusCode(System.Net.HttpStatusCode.OK);
+            Assert.AreEqual(0, s.Simulation.Condition.ParametersForJson.Length);
+        }
+
+        [TestMethod]
+        public void OneParameter()
+        {
+            var s = SimulationFactory.When.I.Get().From("/Pet").Parameter("theparam", "thevalue").Return.StatusCode(System.Net.HttpStatusCode.OK);
+            Assert.AreEqual(1, s.Simulation.Condition.ParametersForJson.Length);
+            var t = s.Simulation.Condition.ParametersForJson[0];
+            Assert.AreEqual("theparam", t.Name);
+            Assert.AreEqual("thevalue", t.Value);
+        }
     }
 }

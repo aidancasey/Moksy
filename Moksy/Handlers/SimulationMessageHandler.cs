@@ -52,6 +52,10 @@ namespace Moksy.Handlers
             }
             else if (request.Method == HttpMethod.Delete)
             {
+                if (request.Headers.Contains("moksy-exit"))
+                {
+                    System.Environment.Exit(0);
+                }
                 return DeleteByName(parser.Identity, request, cancellationToken);   
             }
 

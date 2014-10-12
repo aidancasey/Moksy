@@ -261,5 +261,189 @@ namespace Moksy.Test
 
             Assert.IsFalse(Evaluator.Matches(c, headers));
         }
+
+
+
+        #region BodyParameters
+
+        // Body Parameters are passed as a=b&c=d in the Body of the request. 
+        [TestMethod]
+        public void NoBodyParametersMatches()
+        {
+            List<Parameter> ps = new List<Parameter>();
+
+            SimulationCondition c = new SimulationCondition();
+
+            Assert.IsTrue(Evaluator.Matches(c, ps));
+        }
+
+        [TestMethod]
+        public void ExactlyOneParameterMatch()
+        {
+             List<Parameter> ps = new List<Parameter>();
+             ps.Add(new Parameter("thename", "thevalue"));
+
+            SimulationCondition c = new SimulationCondition();
+            c.Parameter("thename", "thevalue");
+
+            Assert.IsTrue(Evaluator.Matches(c, ps));
+        }
+
+        [TestMethod]
+        public void OneParameterButNotAMatch()
+        {
+            List<Parameter> ps = new List<Parameter>();
+            ps.Add(new Parameter("thename2", "thevalue2"));
+
+            SimulationCondition c = new SimulationCondition();
+            c.Parameter("thename", "thevalue");
+
+            Assert.IsFalse(Evaluator.Matches(c, ps));
+        }
+
+        [TestMethod]
+        public void OneConditionButNoParameters()
+        {
+            List<Parameter> ps = new List<Parameter>();
+
+            SimulationCondition c = new SimulationCondition();
+            c.Parameter("thename", "thevalue");
+
+            Assert.IsFalse(Evaluator.Matches(c, ps));
+        }
+
+        [TestMethod]
+        public void OneParameterButNoCondition()
+        {
+            List<Parameter> ps = new List<Parameter>();
+            ps.Add(new Parameter("thename2", "thevalue2"));
+
+            SimulationCondition c = new SimulationCondition();
+
+            Assert.IsTrue(Evaluator.Matches(c, ps));
+        }
+
+        #endregion
+
+        #region Parameters - With Content
+
+        [TestMethod]
+        public void NullContentAlwaysMatches()
+        {
+            // Will always match
+            SimulationConditionEvaluator e = new SimulationConditionEvaluator();
+            SimulationCondition c = new SimulationCondition();
+
+            Assert.IsTrue(e.Matches(c, (System.Net.Http.HttpContent) null));
+        }
+
+        [TestMethod]
+        public void EmptyContentAlwaysMatches()
+        {
+            // Will always match
+            SimulationConditionEvaluator e = new SimulationConditionEvaluator();
+            SimulationCondition c = new SimulationCondition();
+
+            System.Net.Http.HttpContent content = new System.Net.Http.StringContent("", Encoding.UTF8, "application/json");
+
+            Assert.IsTrue(e.Matches(c, content));
+        }
+
+        [TestMethod]
+        public void ContentWithPairMatchesBecauseNoParameters()
+        {
+            // Will always match
+            SimulationConditionEvaluator e = new SimulationConditionEvaluator();
+            SimulationCondition c = new SimulationCondition();
+
+            System.Net.Http.HttpContent content = new System.Net.Http.StringContent("a=b", Encoding.UTF8, "application/json");
+
+            Assert.IsTrue(e.Matches(c, content));
+        }
+
+        [TestMethod]
+        public void ContentWithMatchingPairMatches()
+        {
+            // Will always match
+            SimulationConditionEvaluator e = new SimulationConditionEvaluator();
+            SimulationCondition c = new SimulationCondition();
+            c.Parameters.Add(new Parameter("a", "b"));
+
+            System.Net.Http.HttpContent content = new System.Net.Http.StringContent("a=b", Encoding.UTF8, "application/json");
+
+            Assert.IsTrue(e.Matches(c, content));
+        }
+
+        [TestMethod]
+        public void ContentWithNoMatchingPairMatches()
+        {
+            // Will always match
+            SimulationConditionEvaluator e = new SimulationConditionEvaluator();
+            SimulationCondition c = new SimulationCondition();
+            c.Parameter("c", "d");
+
+            System.Net.Http.HttpContent content = new System.Net.Http.StringContent("a=b", Encoding.UTF8, "application/json");
+
+            Assert.IsFalse(e.Matches(c, content));
+        }
+
+        [TestMethod]
+        public void ContentWithOneOfTwoMatchingPairMatches()
+        {
+            // Will always match
+            SimulationConditionEvaluator e = new SimulationConditionEvaluator();
+            SimulationCondition c = new SimulationCondition();
+            c.Parameter("c", "d");
+            c.Parameter("a", "b");
+
+            System.Net.Http.HttpContent content = new System.Net.Http.StringContent("a=b", Encoding.UTF8, "application/json");
+
+            Assert.IsFalse(e.Matches(c, content));
+        }
+
+        [TestMethod]
+        public void ContentWithTwoExactMatchingPairMatches()
+        {
+            // Will always match
+            SimulationConditionEvaluator e = new SimulationConditionEvaluator();
+            SimulationCondition c = new SimulationCondition();
+            c.Parameter("c", "d");
+            c.Parameter("a", "b");
+
+            System.Net.Http.HttpContent content = new System.Net.Http.StringContent("a=b&c=d", Encoding.UTF8, "application/json");
+
+            Assert.IsTrue(e.Matches(c, content));
+        }
+
+        [TestMethod]
+        public void ContentWithTwoOfThreeMatchingPairMatches()
+        {
+            // Will always match
+            SimulationConditionEvaluator e = new SimulationConditionEvaluator();
+            SimulationCondition c = new SimulationCondition();
+            c.Parameter("c", "d");
+            c.Parameter("a", "b");
+
+            System.Net.Http.HttpContent content = new System.Net.Http.StringContent("a=b&c=d&e=f", Encoding.UTF8, "application/json");
+
+            Assert.IsTrue(e.Matches(c, content));
+        }
+
+        [TestMethod]
+        public void ContentWithTwoMatchesButOneNotMatching()
+        {
+            // Will always match
+            SimulationConditionEvaluator e = new SimulationConditionEvaluator();
+            SimulationCondition c = new SimulationCondition();
+            c.Parameter("c", "d");
+            c.Parameter("a", "b");
+            c.Parameter("m", "n");
+
+            System.Net.Http.HttpContent content = new System.Net.Http.StringContent("a=b&c=d&e=f", Encoding.UTF8, "application/json");
+
+            Assert.IsFalse(e.Matches(c, content));
+        }
+
+        #endregion
     }
 }

@@ -59,6 +59,7 @@
     <Compile Include="Constraints\IsNull.cs" />
     <Compile Include="ContentKind.cs" />
     <Compile Include="Match.cs" />
+    <Compile Include="Parameter.cs" />
     <Compile Include="Persistence.cs" />
     <Compile Include="Property.cs" />
     <Compile Include="Proxy.cs" />

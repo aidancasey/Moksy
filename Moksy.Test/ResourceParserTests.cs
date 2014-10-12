@@ -52,6 +52,7 @@ namespace Moksy.Test
             var result = RouteParser.Parse("/Pet", "/Pet").ToArray();
             Assert.AreEqual(1, result.Count());
             Assert.AreEqual("Pet", result[0].Value);
+            Assert.AreEqual("Pet", result[0].Name);
             Assert.AreEqual(RouteTokenKind.Resource, result[0].Kind);
         }
 
@@ -62,9 +63,11 @@ namespace Moksy.Test
             Assert.AreEqual(2, result.Count());
 
             Assert.AreEqual("Pet", result[0].Value);
+            Assert.AreEqual("Pet", result[0].Name);
             Assert.AreEqual(RouteTokenKind.Resource, result[0].Kind);
 
             Assert.AreEqual("Dog", result[1].Value);
+            Assert.AreEqual("Kind", result[1].Name);
             Assert.AreEqual(RouteTokenKind.Property, result[1].Kind);
         }
 
@@ -78,10 +81,33 @@ namespace Moksy.Test
             Assert.AreEqual(RouteTokenKind.Resource, result[0].Kind);
 
             Assert.AreEqual("Dog", result[1].Value);
+            Assert.AreEqual("Kind", result[1].Name);
+            Assert.AreEqual(RouteTokenKind.Property, result[1].Kind);
+
+            Assert.AreEqual("Toy", result[2].Value);
+            Assert.AreEqual("Toy", result[2].Name);
+            Assert.AreEqual(RouteTokenKind.Resource, result[2].Kind);
+        }
+
+        [TestMethod]
+        public void MatchResourcePropertyResourceProperty()
+        {
+            var result = RouteParser.Parse("/Pet/Dog/Toy/Bone", "/Pet/{Kind}/Toy/{Name}").ToArray();
+            Assert.AreEqual(4, result.Count());
+ 
+            Assert.AreEqual("Pet", result[0].Value);
+            Assert.AreEqual(RouteTokenKind.Resource, result[0].Kind);
+
+            Assert.AreEqual("Dog", result[1].Value);
+            Assert.AreEqual("Kind", result[1].Name);
             Assert.AreEqual(RouteTokenKind.Property, result[1].Kind);
 
             Assert.AreEqual("Toy", result[2].Value);
             Assert.AreEqual(RouteTokenKind.Resource, result[2].Kind);
+
+            Assert.AreEqual("Bone", result[3].Value);
+            Assert.AreEqual("Name", result[3].Name);
+            Assert.AreEqual(RouteTokenKind.Property, result[3].Kind);
         }
 
 
@@ -189,7 +215,5 @@ namespace Moksy.Test
         
 
         #endregion
-
-
     }
 }

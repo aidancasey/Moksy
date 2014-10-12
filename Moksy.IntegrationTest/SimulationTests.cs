@@ -1086,5 +1086,49 @@ namespace Moksy.IntegrationTest
 
 
         #endregion
+
+        #region Body Parameters
+
+        [TestMethod]
+        public void NoParametersSpecifiedSoNoMatches()
+        {
+            var s = Moksy.Common.SimulationFactory.When.I.Post().To("/Pet").Then.Return.StatusCode(System.Net.HttpStatusCode.MultipleChoices);
+            Proxy.Add(s);
+
+            var response = Post("/Pet", @"a=b");
+            Assert.AreEqual(System.Net.HttpStatusCode.MultipleChoices, response.StatusCode);
+        }
+
+        [TestMethod]
+        public void OneParameterSpecifiedExactMatch()
+        {
+            var s = Moksy.Common.SimulationFactory.When.I.Post().To("/Pet").Parameter("a","b").Then.Return.StatusCode(System.Net.HttpStatusCode.MultipleChoices);
+            Proxy.Add(s);
+
+            var response = Post("/Pet", @"a=b");
+            Assert.AreEqual(System.Net.HttpStatusCode.MultipleChoices, response.StatusCode);
+        }
+
+        [TestMethod]
+        public void OneParameterOfTwoMatches()
+        {
+            var s = Moksy.Common.SimulationFactory.When.I.Post().To("/Pet").Parameter("a", "b").Parameter("c", "d").Then.Return.StatusCode(System.Net.HttpStatusCode.MultipleChoices);
+            Proxy.Add(s);
+
+            var response = Post("/Pet", @"a=b");
+            Assert.AreEqual(System.Net.HttpStatusCode.NotImplemented, response.StatusCode);
+        }
+
+        [TestMethod]
+        public void TwoExactMatches()
+        {
+            var s = Moksy.Common.SimulationFactory.When.I.Post().To("/Pet").Parameter("a", "b").Parameter("c", "d").Then.Return.StatusCode(System.Net.HttpStatusCode.MultipleChoices);
+            Proxy.Add(s);
+
+            var response = Post("/Pet", @"a=b&c=d");
+            Assert.AreEqual(System.Net.HttpStatusCode.MultipleChoices, response.StatusCode);
+        }
+
+        #endregion
     }
 }
