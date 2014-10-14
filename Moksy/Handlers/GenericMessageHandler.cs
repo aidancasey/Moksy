@@ -258,6 +258,36 @@ namespace Moksy.Handlers
                     }
                 }
 
+                if (simulation != null)
+                {
+                    if (simulation.Simulation.Response.ResponseHeaders.Count > 0)
+                    {
+                        canned.Headers.Clear();
+                        if (canned.Content != null && canned.Content.Headers != null)
+                        {
+                            canned.Content.Headers.Clear();
+                        }
+                        foreach (var h in simulation.Simulation.Response.ResponseHeaders)
+                        {
+                            if (string.Compare(h.Name, "Content-Type", true) == 0)
+                            {
+                                if (canned.Content != null && canned.Content.Headers != null)
+                                {
+                                    if (canned.Content.Headers.Contains(h.Name))
+                                    {
+                                        canned.Content.Headers.Remove(h.Name);
+                                    }
+                                    canned.Content.Headers.Add(h.Name, h.Value);
+                                }
+                            }
+                            else
+                            {
+                                canned.Headers.Add(h.Name, h.Value);
+                            }
+                        }
+                    }
+                }
+
                 return Task<HttpResponseMessage>.Factory.StartNew(() => { return canned; });
             }
 

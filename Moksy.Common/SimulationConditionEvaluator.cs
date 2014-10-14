@@ -260,7 +260,14 @@ namespace Moksy.Common
 
                 foreach (var rule in condition.ContentRules)
                 {
-                    if (!s.Contains(rule.Content)) return false;
+                    if (rule.CaseSensitive)
+                    {
+                        if (!s.Contains(rule.Content)) return false;
+                    }
+                    else
+                    {
+                        if (!s.ToUpper().Contains(rule.Content.ToUpper())) return false;
+                    }
                 }
 
                 return true;

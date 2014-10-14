@@ -49,6 +49,19 @@ namespace Moksy.Common
         }
 
         /// <summary>
+        /// Sets up a partial match / content rule. 
+        /// </summary>
+        /// <param name="content">The content to match. Can be null. </param>
+        /// <param name="caseSensitive">If true, performs a case sensitive match. </param>
+        /// <returns></returns>
+        public SimulationCondition Contains(string content, bool caseSensitive)
+        {
+            ContentRule rule = new ContentRule(content, caseSensitive);
+            ContainsStorage.Add(rule);
+            return this;
+        }
+
+        /// <summary>
         /// Adds a single header to the request. This becomes part of the condition: the header must be present in the Request for the Simulation to be performed. 
         /// </summary>
         /// <param name="name">Must be none-null. For example: Content-Type</param>

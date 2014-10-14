@@ -35,7 +35,21 @@ namespace Moksy
             {
                 foreach (var h in response.ResponseHeaders)
                 {
-                    result.Headers.Add(h.Name, h.Value);
+                    if (string.Compare(h.Name, "Content-Type", true) == 0)
+                    {
+                        if (result.Content != null && result.Content.Headers != null)
+                        {
+                            if (result.Content.Headers.Contains(h.Name))
+                            {
+                                result.Content.Headers.Remove(h.Name);
+                            }
+                            result.Content.Headers.Add(h.Name, h.Value);
+                        }
+                    }
+                    else
+                    {
+                        result.Headers.Add(h.Name, h.Value);
+                    }
                 }
             }
 

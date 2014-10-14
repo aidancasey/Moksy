@@ -477,6 +477,18 @@ namespace Moksy.Test
         }
 
         [TestMethod]
+        public void EmptyContentRulesAlwaysEvaluatesAsTrue()
+        {
+            SimulationConditionEvaluator e = new SimulationConditionEvaluator();
+            SimulationCondition c = new SimulationCondition();
+            c.Contains("");
+
+            System.Net.Http.HttpContent content = new System.Net.Http.StringContent("something", Encoding.UTF8, "application/json");
+
+            Assert.IsTrue(e.MatchesContentRules(c, content));
+        }
+
+        [TestMethod]
         public void OneContentRulesMatches()
         {
             SimulationConditionEvaluator e = new SimulationConditionEvaluator();
@@ -522,6 +534,30 @@ namespace Moksy.Test
             c.Contains("thing");
 
             System.Net.Http.HttpContent content = new System.Net.Http.StringContent("something", Encoding.UTF8, "application/json");
+
+            Assert.IsTrue(e.MatchesContentRules(c, content));
+        }
+
+        [TestMethod]
+        public void ContainsCaseSensitiveMatch()
+        {
+            SimulationConditionEvaluator e = new SimulationConditionEvaluator();
+            SimulationCondition c = new SimulationCondition();
+            c.Contains("some", true);
+
+            System.Net.Http.HttpContent content = new System.Net.Http.StringContent("SOMEthing", Encoding.UTF8, "application/json");
+
+            Assert.IsFalse(e.MatchesContentRules(c, content)); 
+        }
+
+        [TestMethod]
+        public void ContainsCaseSensitiveMatch2()
+        {
+            SimulationConditionEvaluator e = new SimulationConditionEvaluator();
+            SimulationCondition c = new SimulationCondition();
+            c.Contains("some", false);
+
+            System.Net.Http.HttpContent content = new System.Net.Http.StringContent("SOMEthing", Encoding.UTF8, "application/json");
 
             Assert.IsTrue(e.MatchesContentRules(c, content));
         }

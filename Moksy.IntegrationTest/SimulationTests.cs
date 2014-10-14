@@ -1177,5 +1177,53 @@ namespace Moksy.IntegrationTest
         }
 
         #endregion Content
+
+        [TestMethod]
+        public void ResponseHeaderWithContentType()
+        {
+            var s = Moksy.Common.SimulationFactory.When.I.Post().To("/Pet").Contains("thing").Then.Return.StatusCode(System.Net.HttpStatusCode.MultipleChoices).With.Header("Content-Type", "type/xml").And.Body("something");
+            Proxy.Add(s);
+
+            var response = Post("/Pet", @"something");
+            Assert.AreEqual(System.Net.HttpStatusCode.MultipleChoices, response.StatusCode);
+
+            Assert.IsNotNull(response.Headers.FirstOrDefault(f => f.Name == "Content-Type"));
+        }
+
+        [TestMethod]
+        public void ResponseHeaderWithContentTypeCaseSensitive()
+        {
+            var s = Moksy.Common.SimulationFactory.When.I.Post().To("/Pet").Contains("thing").Then.Return.StatusCode(System.Net.HttpStatusCode.MultipleChoices).With.Header("Content-Type", "type/xml").And.Body("something");
+            Proxy.Add(s);
+
+            var response = Post("/Pet", @"something");
+            Assert.AreEqual(System.Net.HttpStatusCode.MultipleChoices, response.StatusCode);
+
+            Assert.IsNotNull(response.Headers.FirstOrDefault(f => f.Name == "Content-Type"));
+        }
+
+        [TestMethod]
+        public void ResponseHeaderWithContentTypeCaseSensitive2()
+        {
+            var s = Moksy.Common.SimulationFactory.When.I.Post().To("/Pet").Contains("thing", true).Then.Return.StatusCode(System.Net.HttpStatusCode.MultipleChoices).With.Header("Content-Type", "type/xml").And.Body("something");
+            Proxy.Add(s);
+
+            var response = Post("/Pet", @"something");
+            Assert.AreEqual(System.Net.HttpStatusCode.MultipleChoices, response.StatusCode);
+
+            Assert.IsNotNull(response.Headers.FirstOrDefault(f => f.Name == "Content-Type"));
+        }
+
+        [TestMethod]
+        public void ResponseHeaderWithContentTypeCaseInsensitive()
+        {
+            var s = Moksy.Common.SimulationFactory.When.I.Post().To("/Pet").Contains("thing", false).Then.Return.StatusCode(System.Net.HttpStatusCode.MultipleChoices).With.Header("Content-Type", "type/xml").And.Body("something");
+            Proxy.Add(s);
+
+            var response = Post("/Pet", @"someTHING");
+            Assert.AreEqual(System.Net.HttpStatusCode.MultipleChoices, response.StatusCode);
+
+            Assert.IsNotNull(response.Headers.FirstOrDefault(f => f.Name == "Content-Type"));
+        }
     }
 }
