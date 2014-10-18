@@ -1142,6 +1142,95 @@ namespace Moksy.IntegrationTest
             Assert.AreEqual(System.Net.HttpStatusCode.NotAcceptable, response.StatusCode); 
         }
 
+        [TestMethod]
+        public void ParameterOnlyCaseSensitive()
+        {
+            var s = Moksy.Common.SimulationFactory.When.I.Post().To("/Pet").Parameter("a").Then.Return.StatusCode(System.Net.HttpStatusCode.MultipleChoices);
+            Proxy.Add(s);
+
+            s = Moksy.Common.SimulationFactory.When.I.Post().To("/Pet").Parameter("a", "g").Then.Return.StatusCode(System.Net.HttpStatusCode.NotAcceptable);
+            Proxy.Add(s);
+
+            var response = Post("/Pet", @"a=g");
+            Assert.AreEqual(System.Net.HttpStatusCode.MultipleChoices, response.StatusCode);
+        }
+
+        [TestMethod]
+        public void ParameterOnlyCaseInsensitive()
+        {
+            var s = Moksy.Common.SimulationFactory.When.I.Post().To("/Pet").Parameter("a", ComparisonType.CaseInsensitive).Then.Return.StatusCode(System.Net.HttpStatusCode.MultipleChoices);
+            Proxy.Add(s);
+
+            s = Moksy.Common.SimulationFactory.When.I.Post().To("/Pet").Parameter("a", "g").Then.Return.StatusCode(System.Net.HttpStatusCode.NotAcceptable);
+            Proxy.Add(s);
+
+            var response = Post("/Pet", @"A=g");
+            Assert.AreEqual(System.Net.HttpStatusCode.MultipleChoices, response.StatusCode);
+        }
+
+        [TestMethod]
+        public void ParameterOnlyCaseSensitiveEncoded()
+        {
+            var s = Moksy.Common.SimulationFactory.When.I.Post().To("/Pet").Parameter("a/b", ComparisonType.UrlEncoded).Then.Return.StatusCode(System.Net.HttpStatusCode.MultipleChoices);
+            Proxy.Add(s);
+
+            s = Moksy.Common.SimulationFactory.When.I.Post().To("/Pet").Parameter("a", "g").Then.Return.StatusCode(System.Net.HttpStatusCode.NotAcceptable);
+            Proxy.Add(s);
+
+            var response = Post("/Pet", @"a%2fb=g");
+            Assert.AreEqual(System.Net.HttpStatusCode.MultipleChoices, response.StatusCode);
+        }
+
+        [TestMethod]
+        public void ParameterAndValueCaseSensitive()
+        {
+            var s = Moksy.Common.SimulationFactory.When.I.Post().To("/Pet").Parameter("a", "g").Then.Return.StatusCode(System.Net.HttpStatusCode.MultipleChoices);
+            Proxy.Add(s);
+
+            var response = Post("/Pet", @"a=g");
+            Assert.AreEqual(System.Net.HttpStatusCode.MultipleChoices, response.StatusCode);
+        }
+
+        [TestMethod]
+        public void ParameterAndValueCaseSensitive2()
+        {
+            var s = Moksy.Common.SimulationFactory.When.I.Post().To("/Pet").Parameter("A", "g").Then.Return.StatusCode(System.Net.HttpStatusCode.MultipleChoices);
+            Proxy.Add(s);
+
+            var response = Post("/Pet", @"a=g");
+            Assert.AreNotEqual(System.Net.HttpStatusCode.MultipleChoices, response.StatusCode);
+        }
+
+        [TestMethod]
+        public void ParameterAndValueCaseInsensitive()
+        {
+            var s = Moksy.Common.SimulationFactory.When.I.Post().To("/Pet").Parameter("a", "G", ComparisonType.CaseInsensitive).Then.Return.StatusCode(System.Net.HttpStatusCode.MultipleChoices);
+            Proxy.Add(s);
+
+            var response = Post("/Pet", @"A=g");
+            Assert.AreEqual(System.Net.HttpStatusCode.MultipleChoices, response.StatusCode);
+        }
+
+        [TestMethod]
+        public void ParameterAndValueCaseInsensitiveAndEncoded()
+        {
+            var s = Moksy.Common.SimulationFactory.When.I.Post().To("/Pet").Parameter("a/B", "G/h", ComparisonType.UrlEncoded | ComparisonType.CaseInsensitive).Then.Return.StatusCode(System.Net.HttpStatusCode.MultipleChoices);
+            Proxy.Add(s);
+
+            var response = Post("/Pet", @"A%2fb=g%2fH");
+            Assert.AreEqual(System.Net.HttpStatusCode.MultipleChoices, response.StatusCode);
+        }
+
+        [TestMethod]
+        public void ParameterAndValueCaseSensitiveAndEncoded()
+        {
+            var s = Moksy.Common.SimulationFactory.When.I.Post().To("/Pet").Parameter("a/B", "G/h", ComparisonType.UrlEncoded).Then.Return.StatusCode(System.Net.HttpStatusCode.MultipleChoices);
+            Proxy.Add(s);
+
+            var response = Post("/Pet", @"A%2fb=g%2fH");
+            Assert.AreNotEqual(System.Net.HttpStatusCode.MultipleChoices, response.StatusCode);
+        }
+
         #endregion
 
         #region Content
@@ -1174,6 +1263,56 @@ namespace Moksy.IntegrationTest
 
             var response = Post("/Pet", @"something");
             Assert.AreEqual(System.Net.HttpStatusCode.MultipleChoices, response.StatusCode);
+        }
+
+        [TestMethod]
+        public void ContentContainsButNotEncodedSoWillMatch()
+        {
+            var s = Moksy.Common.SimulationFactory.When.I.Post().To("/Pet").Contains("t/hing").Then.Return.StatusCode(System.Net.HttpStatusCode.MultipleChoices);
+            Proxy.Add(s);
+
+            var response = Post("/Pet", @"somet/hing");
+            Assert.AreEqual(System.Net.HttpStatusCode.MultipleChoices, response.StatusCode);
+        }
+
+        [TestMethod]
+        public void ContentContainsButEncodedSoWillNotMatch()
+        {
+            var s = Moksy.Common.SimulationFactory.When.I.Post().To("/Pet").Contains("t/hing", ComparisonType.UrlEncoded).Then.Return.StatusCode(System.Net.HttpStatusCode.MultipleChoices);
+            Proxy.Add(s);
+
+            var response = Post("/Pet", @"somet/hing");
+            Assert.AreNotEqual(System.Net.HttpStatusCode.MultipleChoices, response.StatusCode);
+        }
+
+        [TestMethod]
+        public void ContentContainsButEncodedSoWillMatch()
+        {
+            var s = Moksy.Common.SimulationFactory.When.I.Post().To("/Pet").Contains("t/hing", ComparisonType.UrlEncoded).Then.Return.StatusCode(System.Net.HttpStatusCode.MultipleChoices);
+            Proxy.Add(s);
+
+            var response = Post("/Pet", @"somet%2fhing");
+            Assert.AreEqual(System.Net.HttpStatusCode.MultipleChoices, response.StatusCode);
+        }
+
+        [TestMethod]
+        public void ContentContainsButEncodedSoWillMatchCaseSensitive()
+        {
+            var s = Moksy.Common.SimulationFactory.When.I.Post().To("/Pet").Contains("t/hing", ComparisonType.UrlEncoded | ComparisonType.CaseSensitive).Then.Return.StatusCode(System.Net.HttpStatusCode.MultipleChoices);
+            Proxy.Add(s);
+
+            var response = Post("/Pet", @"somet%2fhing");
+            Assert.AreEqual(System.Net.HttpStatusCode.MultipleChoices, response.StatusCode);
+        }
+
+        [TestMethod]
+        public void ContentContainsButEncodedSoWillNotMatchCaseSensitive()
+        {
+            var s = Moksy.Common.SimulationFactory.When.I.Post().To("/Pet").Contains("t/hing", ComparisonType.UrlEncoded | ComparisonType.CaseSensitive).Then.Return.StatusCode(System.Net.HttpStatusCode.MultipleChoices);
+            Proxy.Add(s);
+
+            var response = Post("/Pet", @"somet%2fHINg");
+            Assert.AreNotEqual(System.Net.HttpStatusCode.MultipleChoices, response.StatusCode);
         }
 
         #endregion Content
@@ -1225,5 +1364,10 @@ namespace Moksy.IntegrationTest
 
             Assert.IsNotNull(response.Headers.FirstOrDefault(f => f.Name == "Content-Type"));
         }
+
+
+
+
+
     }
 }

@@ -29,16 +29,27 @@ namespace Moksy.Common
         /// <summary>
         /// Constructor. 
         /// </summary>
+        /// <param name="content"></param>
+        /// <param name="comparison"></param>
+        public ContentRule(string content, ComparisonType comparison)
+        {
+            this.Content = content;
+            this.ComparisonType = comparison;
+        }
+
+        /// <summary>
+        /// Constructor. 
+        /// </summary>
         /// <param name="content">The content to match. </param>
         /// <param name="caseSensitive">Determines if the check is case sensitive. </param>
         public ContentRule(string content, bool caseSensitive)
         {
             this.Content = content;
-            this.CaseSensitive = caseSensitive;
+            this.ComparisonType = caseSensitive ? ComparisonType.CaseSensitive : ComparisonType.CaseInsensitive;
         }
 
         public string Content { get; set; }
 
-        public bool CaseSensitive { get; set; }
+        public ComparisonType ComparisonType { get; set; }
     }
 }

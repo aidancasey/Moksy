@@ -37,6 +37,44 @@ namespace Moksy.Common
         }
 
         /// <summary>
+        /// Adds a single conditional parameter to the request. The parameter must exist (default: in the body, as a name=value pair. 
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public SimulationCondition Parameter(string name, string value, ComparisonType comparison)
+        {
+            Parameter p = new Parameter(name, value, comparison);
+            ParametersStorage.Add(p);
+            return this;
+        }
+
+        /// <summary>
+        /// Adds a single conditional parameter to the request. The parameter must exist (default: in the body, as a name=value pair. 
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public SimulationCondition Parameter(string name)
+        {
+            Parameter p = new Parameter(name);
+            ParametersStorage.Add(p);
+            return this;
+        }
+
+        /// <summary>
+        /// Adds a single conditional parameter to the request. The parameter must exist (default: in the body, as a name=value pair. 
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="comparison">Is the value encoded or case sensitive when the name is compared?</param>
+        /// <returns></returns>
+        public SimulationCondition Parameter(string name, ComparisonType comparison)
+        {
+            Parameter p = new Parameter(name, comparison);
+            ParametersStorage.Add(p);
+            return this;
+        }
+
+        /// <summary>
         /// Sets up a partial match / content rule. 
         /// </summary>
         /// <param name="content">The content to match. Can be null. </param>
@@ -44,6 +82,18 @@ namespace Moksy.Common
         public SimulationCondition Contains(string content)
         {
             ContentRule rule = new ContentRule(content);
+            ContainsStorage.Add(rule);
+            return this;
+        }
+
+        /// <summary>
+        /// Sets up a partial match / content rule. 
+        /// </summary>
+        /// <param name="content">The content to match. Can be null. </param>
+        /// <returns></returns>
+        public SimulationCondition Contains(string content, ComparisonType comparison)
+        {
+            ContentRule rule = new ContentRule(content, comparison);
             ContainsStorage.Add(rule);
             return this;
         }

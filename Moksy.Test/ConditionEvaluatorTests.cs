@@ -323,6 +323,30 @@ namespace Moksy.Test
             Assert.IsTrue(Evaluator.Matches(c, ps));
         }
 
+        [TestMethod]
+        public void ParameterExistsValueIgnored()
+        {
+            List<Parameter> ps = new List<Parameter>();
+            ps.Add(new Parameter("thename2"));
+
+            SimulationCondition c = new SimulationCondition();
+            c.Parameter("thename", "thevalue");
+
+            Assert.IsFalse(Evaluator.Matches(c, ps));
+        }
+
+        [TestMethod]
+        public void ParameterExistsValueIgnored2()
+        {
+            List<Parameter> ps = new List<Parameter>();
+            ps.Add(new Parameter("thename", "thevalue"));
+
+            SimulationCondition c = new SimulationCondition();
+            c.Parameter("thename");
+
+            Assert.IsTrue(Evaluator.Matches(c, ps));
+        }
+
         #endregion
 
         #region Parameters - With Content

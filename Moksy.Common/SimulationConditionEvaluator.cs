@@ -147,8 +147,26 @@ namespace Moksy.Common
             foreach (var h in condition.Parameters)
             {
                 Parameter match = null;
+                bool ignoreCase = ((h.ComparisonType & ComparisonType.CaseInsensitive) != 0);
+                string name = h.Name;
+                string value = h.Value;
+                if ((h.ComparisonType & ComparisonType.UrlEncoded) != 0)
+                {
+                    name = RestSharp.Contrib.HttpUtility.UrlEncode(name);
+                    if (h.HasValue)
+                    {
+                        value = RestSharp.Contrib.HttpUtility.UrlEncode(value);
+                    }
+                }
 
-                match = headers.FirstOrDefault(f => f.Name == h.Name && f.Value == h.Value);
+                if (h.HasValue)
+                {
+                    match = headers.FirstOrDefault(f => string.Compare(f.Name, name, ignoreCase) == 0 && string.Compare(f.Value, value, ignoreCase) == 0);
+                }
+                else
+                {
+                    match = headers.FirstOrDefault(f => string.Compare(f.Name, name, ignoreCase) == 0);
+                }
                 if (match != null) continue;
                 if (match == null) return false;
 
@@ -260,13 +278,20 @@ namespace Moksy.Common
 
                 foreach (var rule in condition.ContentRules)
                 {
-                    if (rule.CaseSensitive)
+                    var ruleContent = rule.Content;
+
+                    if ((rule.ComparisonType & ComparisonType.UrlEncoded) != 0)
                     {
-                        if (!s.Contains(rule.Content)) return false;
+                        ruleContent = RestSharp.Contrib.HttpUtility.UrlEncode(ruleContent);
+                    }
+
+                    if ((rule.ComparisonType & ComparisonType.CaseInsensitive) != 0)
+                    {
+                        if (!s.ToUpper().Contains(ruleContent.ToUpper())) return false; 
                     }
                     else
                     {
-                        if (!s.ToUpper().Contains(rule.Content.ToUpper())) return false;
+                        if (!s.Contains(ruleContent)) return false;   
                     }
                 }
 

@@ -16,6 +16,7 @@ namespace Moksy.Common
         /// </summary>
         public Parameter()
         {
+            this.HasValue = false;
         }
 
         /// <summary>
@@ -30,6 +31,41 @@ namespace Moksy.Common
             this.Name = name;
             this.Value = value;
             this.ParameterType = ParameterType.BodyParameter;
+            this.HasValue = true;
+        }
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="name">Parameter name. Must not be null. </param>
+        /// <param name="value">Value. Can be null. </param>
+        /// <param name="comparison">How to compare. </param>
+        public Parameter(string name, string value, ComparisonType comparison) : this(name,value)
+        {
+            ComparisonType = comparison;
+        }
+
+        /// <summary>
+        /// Constructor. 
+        /// </summary>
+        /// <param name="name">Property value. </param>
+        /// <param name="comparison">Is the name encoded before being compared in </param>
+        public Parameter(string name, ComparisonType comparison) : this(name)
+        {
+            this.ComparisonType = comparison;
+        }
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="name">Parameter name. Must not be null. </param>
+        public Parameter(string name)
+        {
+            if (null == name) throw new System.ArgumentNullException("name");
+
+            this.Name = name;
+            this.ParameterType = ParameterType.BodyParameter;
+            this.HasValue = false;
         }
 
         /// <summary>
@@ -43,8 +79,18 @@ namespace Moksy.Common
         public string Value { get; set; }
 
         /// <summary>
+        /// If true, this Parameter has an expected value. If false, the 
+        /// </summary>
+        public bool HasValue { get; set; }
+
+        /// <summary>
         /// The type of parameter. 
         /// </summary>
         public ParameterType ParameterType { get; set; }
+
+        /// <summary>
+        /// Determines how the Name and Value will be compared. 
+        /// </summary>
+        public ComparisonType ComparisonType { get; set; }
     }
 }
