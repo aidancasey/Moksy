@@ -12,8 +12,12 @@ namespace Moksy.Common
     [Flags]
     public enum ComparisonType
     {
+        Contains = 0,
         CaseSensitive = 0,
+        Exists = 0,
         CaseInsensitive = 1,
-        UrlEncoded = 2
+        UrlEncoded = 2,
+        NotContains = 4,
+        NotExists = 8
     }
 }

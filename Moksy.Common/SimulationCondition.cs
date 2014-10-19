@@ -44,6 +44,8 @@ namespace Moksy.Common
         /// <returns></returns>
         public SimulationCondition Parameter(string name, string value, ComparisonType comparison)
         {
+            if ((comparison & ComparisonType.NotContains) != 0) throw new System.InvalidOperationException("You must use NotExists instead of NotContains for Parameter checking. ");
+
             Parameter p = new Parameter(name, value, comparison);
             ParametersStorage.Add(p);
             return this;
@@ -69,6 +71,8 @@ namespace Moksy.Common
         /// <returns></returns>
         public SimulationCondition Parameter(string name, ComparisonType comparison)
         {
+            if ((comparison & ComparisonType.NotContains) != 0) throw new System.InvalidOperationException("You must use NotExists instead of NotContains for Parameter checking. ");
+
             Parameter p = new Parameter(name, comparison);
             ParametersStorage.Add(p);
             return this;
@@ -93,6 +97,8 @@ namespace Moksy.Common
         /// <returns></returns>
         public SimulationCondition Contains(string content, ComparisonType comparison)
         {
+            if ((comparison & ComparisonType.NotExists) != 0) throw new System.InvalidOperationException("You must use NotContains instead of NotExists for Contains checking. ");
+
             ContentRule rule = new ContentRule(content, comparison);
             ContainsStorage.Add(rule);
             return this;
@@ -142,6 +148,7 @@ namespace Moksy.Common
         /// <param name="name">Must be none-null. For example: Content-Type</param>
         /// <param name="persistence">Indicates whether the header must be present or not for the condition to evaluate. </param>
         /// <returns></returns>
+        [Obsolete("Use the ComparisonType overload instead")]
         public SimulationCondition Header(string name, Moksy.Common.Persistence persistence)
         {
             Header header = new Header(name, persistence);
@@ -153,12 +160,40 @@ namespace Moksy.Common
         /// Adds a single header to the request. This becomes part of the condition: the header must be present in the Request for the Simulation to be performed. 
         /// </summary>
         /// <param name="name">Must be none-null. For example: Content-Type</param>
+        /// <param name="comparison">How to compare the header. </param>
+        /// <returns></returns>
+        public SimulationCondition Header(string name, ComparisonType comparison)
+        {
+            Header header = new Header(name, comparison);
+            RequestHeadersStorage.Add(header);
+            return this;
+        }
+
+        /// <summary>
+        /// Adds a single header to the request. This becomes part of the condition: the header must be present in the Request for the Simulation to be performed. 
+        /// </summary>
+        /// <param name="name">Must be none-null. For example: Content-Type</param>
         /// <param name="value">Can be empty or null (will be placed as empty in the request). </param>
         /// <param name="persistence">Indicates whether the header must be present or not for the condition to evaluate. </param>
         /// <returns></returns>
+        [Obsolete("Use the ComparisonType overload instead")]
         public SimulationCondition Header(string name, string value, Moksy.Common.Persistence persistence)
         {
             Header header = new Header(name, value, persistence);
+            RequestHeadersStorage.Add(header);
+            return this;
+        }
+
+        /// <summary>
+        /// Adds a single header to the request. This becomes part of the condition: the header must be present in the Request for the Simulation to be performed. 
+        /// </summary>
+        /// <param name="name">Must be none-null. For example: Content-Type</param>
+        /// <param name="value">Can be empty or null (will be placed as empty in the request). </param>
+        /// <param name="comparison">The comparison type. </param>
+        /// <returns></returns>
+        public SimulationCondition Header(string name, string value, ComparisonType comparison)
+        {
+            Header header = new Header(name, value, comparison);
             RequestHeadersStorage.Add(header);
             return this;
         }

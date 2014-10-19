@@ -34,11 +34,26 @@ namespace Moksy
         /// Constructor.
         /// </summary>
         /// <param name="name">Name of the header. </param>
+        /// <param name="comparison">How the header will be compared. </param>
+        public Header(string name, Moksy.Common.ComparisonType comparison)
+        {
+            Name = name;
+            ComparisonType = comparison;
+            HasValue = false;
+        }
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="name">Name of the header. </param>
         /// <param name="persistence">Indicates whether the header should or should not exist. </param>
         public Header(string name, Common.Persistence persistence)
         {
             Name = name;
-            Persistence = persistence;
+            if (persistence == Common.Persistence.NotExists)
+            {
+                ComparisonType = Moksy.Common.ComparisonType.NotExists;
+            }
             HasValue = false;
         }
 
@@ -63,13 +78,32 @@ namespace Moksy
 
             Name = name;
             Value = value;
-            Persistence = persistence;
+            if (persistence == Common.Persistence.NotExists)
+            {
+                ComparisonType = Moksy.Common.ComparisonType.NotExists;
+            }
+            HasValue = true;
+        }
+
+        /// <summary>
+        /// Constructor. 
+        /// </summary>
+        /// <param name="name">Name of the header. Must not be null. </param>
+        /// <param name="value">The value of the header. </param>
+        /// <param name="comparison">How the header will be compared. </param>
+        public Header(string name, string value, Moksy.Common.ComparisonType comparison)
+        {
+            if (null == name) throw new System.ArgumentNullException("name");
+
+            Name = name;
+            Value = value;
+            ComparisonType = comparison;
             HasValue = true;
         }
 
         public string Name {get;set;}
         public string Value {get;set;}
-        public Moksy.Common.Persistence Persistence { get; set; }
         public bool HasValue { get; set; }
+        public Moksy.Common.ComparisonType ComparisonType { get; set; }
     }
 }

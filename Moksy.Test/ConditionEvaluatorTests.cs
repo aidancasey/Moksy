@@ -153,6 +153,152 @@ namespace Moksy.Test
         }
 
 
+        [TestMethod]
+        public void OneHeaderExistsComparison()
+        {
+            List<Header> headers = new List<Header>();
+            headers.Add(new Header("TheHeader", "TheValue"));
+
+            SimulationCondition c = new SimulationCondition();
+            c.Header("TheHeader", "TheValue", ComparisonType.Exists);
+
+            Assert.IsTrue(Evaluator.Matches(c, headers));
+        }
+
+        [TestMethod]
+        public void OneHeaderNotExistsComparison()
+        {
+            List<Header> headers = new List<Header>();
+            headers.Add(new Header("TheHeader", "TheValue"));
+
+            SimulationCondition c = new SimulationCondition();
+            c.Header("TheHeader", "TheValue", ComparisonType.NotExists);
+
+            Assert.IsFalse(Evaluator.Matches(c, headers));
+        }
+
+        [TestMethod]
+        public void OneHeaderExistsComparisonCaseSensitive()
+        {
+            List<Header> headers = new List<Header>();
+            headers.Add(new Header("TheHeader", "TheValue"));
+
+            SimulationCondition c = new SimulationCondition();
+            c.Header("TheHeader", "TheValue", ComparisonType.Exists | ComparisonType.CaseSensitive);
+
+            Assert.IsTrue(Evaluator.Matches(c, headers));
+        }
+
+        [TestMethod]
+        public void OneHeaderExistsComparisonCaseSensitive1()
+        {
+            List<Header> headers = new List<Header>();
+            headers.Add(new Header("TheHeader", "TheValue"));
+
+            SimulationCondition c = new SimulationCondition();
+            c.Header("TheHeAder", "ThEValue", ComparisonType.Exists | ComparisonType.CaseSensitive);
+
+            Assert.IsFalse(Evaluator.Matches(c, headers));
+        }
+
+        [TestMethod]
+        public void OneHeaderExistsComparisonCaseSensitive2()
+        {
+            List<Header> headers = new List<Header>();
+            headers.Add(new Header("TheHeader", "TheValue"));
+
+            SimulationCondition c = new SimulationCondition();
+            c.Header("ThEHeader", "ThEValue", ComparisonType.Exists | ComparisonType.CaseInsensitive);
+
+            Assert.IsTrue(Evaluator.Matches(c, headers));
+        }
+
+        [TestMethod]
+        public void OneHeaderOnlyExistsComparisonCaseSensitive()
+        {
+            List<Header> headers = new List<Header>();
+            headers.Add(new Header("TheHeader", "TheValue"));
+
+            SimulationCondition c = new SimulationCondition();
+            c.Header("TheHeader", ComparisonType.Exists | ComparisonType.CaseSensitive);
+
+            Assert.IsTrue(Evaluator.Matches(c, headers));
+        }
+
+        [TestMethod]
+        public void OneHeaderOnlyExistsComparisonCaseSensitive2()
+        {
+            List<Header> headers = new List<Header>();
+            headers.Add(new Header("TheHeader", "TheValue"));
+
+            SimulationCondition c = new SimulationCondition();
+            c.Header("TheHEader", ComparisonType.Exists | ComparisonType.CaseSensitive);
+
+            Assert.IsFalse(Evaluator.Matches(c, headers));
+        }
+
+        [TestMethod]
+        public void OneHeaderOnlyExistsComparisonCaseInsensitive2()
+        {
+            List<Header> headers = new List<Header>();
+            headers.Add(new Header("ThEHeader", "TheValue"));
+
+            SimulationCondition c = new SimulationCondition();
+            c.Header("TheHeADer", ComparisonType.Exists | ComparisonType.CaseInsensitive);
+
+            Assert.IsTrue(Evaluator.Matches(c, headers));
+        }
+
+        [TestMethod]
+        public void OneHeaderOnlyUrlEncodedNotMatch()
+        {
+            List<Header> headers = new List<Header>();
+            headers.Add(new Header("TheH%2feader", "TheValue"));
+
+            SimulationCondition c = new SimulationCondition();
+            c.Header("TheH/eader", ComparisonType.Exists);
+
+            Assert.IsFalse(Evaluator.Matches(c, headers));
+        }
+
+        [TestMethod]
+        public void OneHeaderOnlyUrlEncodedMatch()
+        {
+            List<Header> headers = new List<Header>();
+            headers.Add(new Header("TheH%2feader", "TheValue"));
+
+            SimulationCondition c = new SimulationCondition();
+            c.Header("TheH/eader", ComparisonType.Exists | ComparisonType.UrlEncoded);
+
+            Assert.IsTrue(Evaluator.Matches(c, headers));
+        }
+
+        [TestMethod]
+        public void OneHeaderAndValueOnlyUrlEncodedMatch()
+        {
+            List<Header> headers = new List<Header>();
+            headers.Add(new Header("TheH%2feader", "TheV%falue"));
+
+            SimulationCondition c = new SimulationCondition();
+            c.Header("TheH/eader", "TheV/alue", ComparisonType.Exists | ComparisonType.UrlEncoded);
+
+            Assert.IsTrue(Evaluator.Matches(c, headers));
+        }
+
+        [TestMethod]
+        public void OneHeaderAndValueOnlyUrlEncodedNotMatch()
+        {
+            List<Header> headers = new List<Header>();
+            headers.Add(new Header("TheH%2feader", "TheV%falue"));
+
+            SimulationCondition c = new SimulationCondition();
+            c.Header("TheH/eader", "TheV/alue", ComparisonType.Exists);
+
+            Assert.IsFalse(Evaluator.Matches(c, headers));
+        }
+
+
+
 
         [TestMethod]
         public void HeaderAndValueNone()

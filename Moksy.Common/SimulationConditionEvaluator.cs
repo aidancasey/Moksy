@@ -90,37 +90,40 @@ namespace Moksy.Common
 
             foreach (var h in condition.RequestHeaders)
             {
-                // If the condition is set to "none" its the same as not providing the headers at all. 
-                if (h.Persistence == Persistence.None) continue;
-
+                bool ignoreCase = ((h.ComparisonType & ComparisonType.CaseInsensitive) != 0);
                 Header match = null;
+                var name = h.Name;
+                if ((h.ComparisonType & ComparisonType.UrlEncoded) != 0)
+                {
+                    name = RestSharp.Contrib.HttpUtility.UrlEncode(name);
+                }
 
                 if (h.HasValue)
                 {
-                    if (h.Persistence == Persistence.NotExists)
+                    if ((h.ComparisonType & ComparisonType.NotExists) != 0)
                     {
-                        match = headers.FirstOrDefault(f => f.Name == h.Name && f.Value == h.Value);
+                        match = headers.FirstOrDefault(f => string.Compare(f.Name, name, ignoreCase) == 0 && string.Compare(f.Value, h.Value, ignoreCase) == 0);
                         if (match != null) return false;
                         if (match == null) continue;
                     }
-                    if (h.Persistence == Persistence.Exists)
+                    else
                     {
-                        match = headers.FirstOrDefault(f => f.Name == h.Name && f.Value == h.Value);
+                        match = headers.FirstOrDefault(f => string.Compare(f.Name, name, ignoreCase) == 0);
                         if (match != null) continue;
                         if (match == null) return false;
                     }
                 }
                 else
                 {
-                    if (h.Persistence == Persistence.NotExists)
+                    if ((h.ComparisonType & ComparisonType.NotExists) != 0)
                     {
-                        match = headers.FirstOrDefault(f => f.Name == h.Name);
+                        match = headers.FirstOrDefault(f => string.Compare(f.Name, name, ignoreCase) == 0);
                         if (match != null) return false;
                         if (match == null) continue;
                     }
-                    if (h.Persistence == Persistence.Exists)
+                    else
                     {
-                        match = headers.FirstOrDefault(f => f.Name == h.Name);
+                        match = headers.FirstOrDefault(f => string.Compare(f.Name, name, ignoreCase) == 0);
                         if (match != null) continue;
                         if (match == null) return false;
                     }
@@ -167,8 +170,15 @@ namespace Moksy.Common
                 {
                     match = headers.FirstOrDefault(f => string.Compare(f.Name, name, ignoreCase) == 0);
                 }
-                if (match != null) continue;
-                if (match == null) return false;
+                if ((h.ComparisonType & ComparisonType.NotExists) != 0)
+                {
+                    if (match != null) return false;
+                }
+                else
+                {
+                    if (match != null) continue;
+                    if (match == null) return false;
+                }
 
             }
             return true;
@@ -285,14 +295,24 @@ namespace Moksy.Common
                         ruleContent = RestSharp.Contrib.HttpUtility.UrlEncode(ruleContent);
                     }
 
+                    bool match = false;
                     if ((rule.ComparisonType & ComparisonType.CaseInsensitive) != 0)
                     {
-                        if (!s.ToUpper().Contains(ruleContent.ToUpper())) return false; 
+                        match = s.ToUpper().Contains(ruleContent.ToUpper()); 
                     }
                     else
                     {
-                        if (!s.Contains(ruleContent)) return false;   
+                        match = s.Contains(ruleContent);   
                     }
+                    if ((rule.ComparisonType & ComparisonType.NotContains) != 0)
+                    {
+                        if (match) return false;
+                    }
+                    else
+                    {
+                        if (!match) return false;
+                    }
+
                 }
 
                 return true;
