@@ -18,17 +18,50 @@ namespace Moksy
     public class Proxy
     {
         /// <summary>
+        /// Constructor.
+        /// </summary>
+        public Proxy()
+        {
+            Host = "localhost";
+        }
+
+        /// <summary>
         /// Constructor. 
         /// </summary>
         /// <param name="port">The port of the running Moksy service. </param>
         public Proxy(int port)
         {
             Port = port;
+            Host = "localhost";
+        }
+
+        /// <summary>
+        /// Create a proxy 
+        /// </summary>
+        /// <param name="host">Hostname</param>
+        /// <param name="port">Port number. </param>
+        public Proxy(string host, int port)
+        {
+            if (null == host) throw new System.ArgumentNullException("host");
+
+            Host = host;
+            Port = port;
         }
 
         public readonly int Port;
         public readonly JsonSerializerSettings JsonSerializerSettings = new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Objects };
+        public readonly string Host;
 
+        /// <summary>
+        /// Returns true if the proxy is on the local host. 
+        /// </summary>
+        public bool IsLocalhost
+        {
+            get
+            {
+                return string.Compare(Host, "localhost", true) == 0;
+            }
+        }
 
         /// <summary>
         /// Start Moksy on the given port. It is safe to call this method even if the service is running. 
@@ -42,9 +75,12 @@ namespace Moksy
         /// <summary>
         /// Start Moksy on the given port. It is safe to call this method even if the service is running. 
         /// If this method fails, troubleshoot by launching Moksy.Host.exe <port> from an elevated command prompt.
+        /// The exe can only be started if the host is local: this will return success immediately if IsLocalhost is false. Use the Wait functionality to wait for the service to become available. 
         /// </summary>
         public bool Start(uint timeoutInSeconds)
         {
+            if(!IsLocalhost) return true;
+
             Proxy proxy = new Proxy(Port);
             try
             {
@@ -306,11 +342,11 @@ namespace Moksy
             return string.Format("/{0}", "__Simulation");
         }
 
-        protected string Root
+        public string Root
         {
             get
             {
-                return string.Format("http://localhost:{0}", Port);
+                return string.Format("http://{1}:{0}", Port, Host);
             }
         }
     }

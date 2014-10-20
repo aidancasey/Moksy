@@ -252,7 +252,7 @@ namespace Moksy.Test
             var s = SimulationFactory.When.Delete().From("/ThePath").Once().Simulation;
             mgr.Add(s);
 
-            var match = mgr.Match(System.Net.Http.HttpMethod.Delete, "/ThePath", null, false, null);
+            var match = mgr.Match(System.Net.Http.HttpMethod.Delete, "/ThePath", null, null, false, null);
             Assert.IsNotNull(match);
             Assert.AreEqual(1, match.Condition.Repeat);
 
@@ -268,7 +268,7 @@ namespace Moksy.Test
             var s = SimulationFactory.When.Delete().From("/ThePath").Once().Simulation;
             mgr.Add(s);
 
-            var match = mgr.Match(System.Net.Http.HttpMethod.Delete, "/ThePath", null, true, null);
+            var match = mgr.Match(System.Net.Http.HttpMethod.Delete, "/ThePath", null, null, true, null);
             Assert.IsNotNull(match);
             Assert.AreEqual(0, match.Condition.Repeat);
 
@@ -283,7 +283,7 @@ namespace Moksy.Test
             var s = SimulationFactory.When.Delete().From("/ThePath").Times(4).Simulation;
             mgr.Add(s);
 
-            var match = mgr.Match(System.Net.Http.HttpMethod.Delete, "/ThePath", null, true, null);
+            var match = mgr.Match(System.Net.Http.HttpMethod.Delete, "/ThePath", null, null, true, null);
             Assert.IsNotNull(match);
             Assert.AreEqual(3, match.Condition.Repeat);
 
@@ -303,7 +303,7 @@ namespace Moksy.Test
             var add = SimulationFactory.When.I.Get().FromImdb("/Pet('{Kind}')").AsJson().Then.Return.StatusCode(System.Net.HttpStatusCode.OK);
             mgr.Add(add.Simulation);
 
-            var match = mgr.Match(HttpMethod.Get, "/Pet('Dog')", new List<Header>(), false, null);
+            var match = mgr.Match(HttpMethod.Get, "/Pet('Dog')", null, new List<Header>(), false, null);
             Assert.IsNotNull(match);
             Assert.AreEqual("/Pet('{Kind}')", match.Condition.Pattern);
         }
@@ -318,7 +318,7 @@ namespace Moksy.Test
             var add = SimulationFactory.When.I.Get().FromImdb("/Pet('{Kind}')").AsJson().Then.Return.StatusCode(System.Net.HttpStatusCode.OK);
             mgr.Add(add.Simulation);
 
-            var match = mgr.Match(HttpMethod.Get, "/Pet('Dog')", new List<Header>(), false, null);
+            var match = mgr.Match(HttpMethod.Get, "/Pet('Dog')", "", new List<Header>(), false, null);
             Assert.IsNotNull(match);
             Assert.AreEqual("/Pet('{Kind}')", match.Condition.Pattern);
         }
@@ -336,7 +336,7 @@ namespace Moksy.Test
             var get2 = SimulationFactory.When.I.Get().FromImdb("/Pet").AsJson().Then.Return.StatusCode(System.Net.HttpStatusCode.OK);
             mgr.Add(get2.Simulation);
 
-            var match = mgr.Match(HttpMethod.Get, "/Pet", new List<Header>(), false, null);
+            var match = mgr.Match(HttpMethod.Get, "/Pet", "", new List<Header>(), false, null);
             Assert.IsNotNull(match);
             Assert.AreEqual("/Pet", match.Condition.Pattern);
         }
@@ -350,7 +350,7 @@ namespace Moksy.Test
             //var get = SimulationFactory.When.I.Get().From("/Pet('{Kind}')").AsJson().With.Imdb().Then.Return.StatusCode(System.Net.HttpStatusCode.OK);
             //mgr.Add(get.Simulation);
 
-            var match = mgr.GetFromImdb(HttpMethod.Get, "/Pet('Dog')", new List<Header>(), null);
+            var match = mgr.GetFromImdb(HttpMethod.Get, "/Pet('Dog')", "", new List<Header>(), null);
             Assert.IsNull(match);
         }
 
@@ -361,7 +361,7 @@ namespace Moksy.Test
             var get = SimulationFactory.When.I.Get().FromImdb("/Pet('{Kind}')").AsJson().Then.Return.StatusCode(System.Net.HttpStatusCode.OK);
             mgr.Add(get.Simulation);
 
-            var match = mgr.GetFromImdb(HttpMethod.Get, "/Pet(Dog)", new List<Header>(), null);
+            var match = mgr.GetFromImdb(HttpMethod.Get, "/Pet(Dog)", "", new List<Header>(), null);
             Assert.IsNull(match);
         }
 
@@ -378,7 +378,7 @@ namespace Moksy.Test
 
             mgr.AddToImdb(post.Simulation, "/Pet", "/Pet", @"{ ""Kind"" : ""Cat"" }", null);
 
-            var match = mgr.GetFromImdb(HttpMethod.Get, "/Pet('Dog')", new List<Header>(), null);
+            var match = mgr.GetFromImdb(HttpMethod.Get, "/Pet('Dog')", "", new List<Header>(), null);
             Assert.IsNull(match);
         }
 
@@ -394,7 +394,7 @@ namespace Moksy.Test
 
             mgr.AddToImdb(post.Simulation, "/Pet", "/Pet", @"{ ""Kind"" : ""Dog"" }", null);
 
-            var match = mgr.GetFromImdb(HttpMethod.Get, "/Pet('Dog')", new List<Header>(), null);
+            var match = mgr.GetFromImdb(HttpMethod.Get, "/Pet('Dog')", "", new List<Header>(), null);
             Assert.IsNotNull(match);
         }
 

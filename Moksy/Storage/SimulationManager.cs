@@ -63,7 +63,7 @@ namespace Moksy.Storage
         /// <param name="path"></param>
         /// <param name="headers"></param>
         /// <returns></returns>
-        public Simulation Match(System.Net.Http.HttpMethod method, string path, IEnumerable<Header> headers, bool decrement, string discriminator)
+        public Simulation Match(System.Net.Http.HttpMethod method, string path, string query, IEnumerable<Header> headers, bool decrement, string discriminator)
         {
             lock (Storage.SyncRoot)
             {
@@ -71,10 +71,10 @@ namespace Moksy.Storage
                 SimulationConditionEvaluator e = new SimulationConditionEvaluator();
 
                 Simulation match = null;
-                match = e.Match(Storage, method, path, headers);
+                match = e.Match(Storage, method, path, query, headers);
                 if (method == HttpMethod.Get)
                 {
-                    Common.Match match2 = SimulationManager.Instance.Match(method, null, path, headers, decrement);
+                    Common.Match match2 = SimulationManager.Instance.Match(method, null, path, null, headers, decrement);
                     if (match2 != null)
                     {
                         match = match2.Simulation;
@@ -172,14 +172,14 @@ namespace Moksy.Storage
         /// <returns>Null if an object does not exist; otherwise, the JObject (json) of the object indexes by that property. </returns>
         /// <remarks>This will look at all paths currently in the system (based on the method) 
         /// </remarks>
-        public JObject GetFromImdb(System.Net.Http.HttpMethod method, string path, IEnumerable<Header> headers, string discriminator)
+        public JObject GetFromImdb(System.Net.Http.HttpMethod method, string path, string query, IEnumerable<Header> headers, string discriminator)
         {
             if (null == path) return null;
             if (null == headers) headers = new List<Header>();
 
             lock (Storage.SyncRoot)
             {
-                var match = Match(method, path, headers, false, discriminator);
+                var match = Match(method, path, query, headers, false, discriminator);
                 if (match == null) return null;
 
                 if (method == HttpMethod.Get)
@@ -239,7 +239,7 @@ namespace Moksy.Storage
         /// <returns>true if the object was deleted; false otherwise. </returns>
         /// <remarks>This will look at all paths currently in the system (based on the method) 
         /// </remarks>
-        public bool DeleteFromImdb(System.Net.Http.HttpMethod method, string path, string pattern, IEnumerable<Header> headers, string discriminator)
+        public bool DeleteFromImdb(System.Net.Http.HttpMethod method, string path, string pattern, string query, IEnumerable<Header> headers, string discriminator)
         {
             // TODO: Refactor. Like GetFromImdb
             if (null == path) return false;
@@ -247,7 +247,7 @@ namespace Moksy.Storage
 
             lock (Storage.SyncRoot)
             {
-                var match = Match(method, path, headers, false, discriminator);
+                var match = Match(method, path, query, headers, false, discriminator);
                 if (match == null) return false;
 
                 if (method == HttpMethod.Delete)
@@ -339,14 +339,19 @@ namespace Moksy.Storage
         /// condition, then we need to perform that check before we match. 
         /// </summary>
         /// <param name="path"></param>
+        /// <param name="content">The body content. </param>
+        /// <param name="queryString">The encoded query string that was passed into the request. </param>
         /// <param name="headers"></param>
+        /// <param name="decrement">If true, the counter of the simulation will be reduced after a match. </param>
         /// <returns></returns>
-        public Moksy.Common.Match Match(System.Net.Http.HttpMethod method, HttpContent content, string path, IEnumerable<Header> headers, bool decrement)
+        public Moksy.Common.Match Match(System.Net.Http.HttpMethod method, HttpContent content, string path, string queryString, IEnumerable<Header> headers, bool decrement)
         {
+            if (queryString == null) queryString = "";
+
             lock (Storage.SyncRoot)
             {
                 SimulationConditionEvaluator e = new SimulationConditionEvaluator();
-                var matches = e.Matches(Storage, content, method, path, headers);
+                var matches = e.Matches(Storage, content, method, path, queryString, headers);
                 if (matches.Count() == 0) return null;
 
                 foreach(var match in matches)

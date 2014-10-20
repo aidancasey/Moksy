@@ -11,6 +11,14 @@ namespace Moksy.Common
     /// </summary>
     public enum ParameterType
     {
-        BodyParameter = 0
+        /// <summary>
+        /// This parameter is to be matched against the Body content. 
+        /// </summary>
+        BodyParameter = 0,
+
+        /// <summary>
+        /// This parameter is to be matched against the Url parameters. 
+        /// </summary>
+        UrlParameter = 1
     }
 }

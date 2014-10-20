@@ -1388,9 +1388,119 @@ namespace Moksy.IntegrationTest
             Assert.IsNotNull(response.Headers.FirstOrDefault(f => f.Name == "Content-Type"));
         }
 
+        #region Query Parameters Match
+
+        [TestMethod]
+        public void QueryParameterDoesNotMatch()
+        {
+            var s = Moksy.Common.SimulationFactory.When.I.Post().To("/Pet").Parameter("a", "b", ParameterType.UrlParameter).Then.Return.StatusCode(System.Net.HttpStatusCode.MultipleChoices);
+            Proxy.Add(s);
+
+            var response = Post("/Pet?d=e", @"Hello");
+            Assert.AreNotEqual(System.Net.HttpStatusCode.MultipleChoices, response.StatusCode);
+        }
+
+        [TestMethod]
+        public void QueryParameterMatch()
+        {
+            var s = Moksy.Common.SimulationFactory.When.I.Post().To("/Pet").Parameter("a", "b", ParameterType.UrlParameter).Then.Return.StatusCode(System.Net.HttpStatusCode.MultipleChoices);
+            Proxy.Add(s);
+
+            var response = Post("/Pet?a=b", @"Hello");
+            Assert.AreEqual(System.Net.HttpStatusCode.MultipleChoices, response.StatusCode);
+        }
+
+        [TestMethod]
+        public void TwoParametersNotEncoded()
+        {
+            var s = Moksy.Common.SimulationFactory.When.I.Post().To("/Pet").Parameter("a", "b", ParameterType.UrlParameter).Parameter("d", "e", ParameterType.UrlParameter).Then.Return.StatusCode(System.Net.HttpStatusCode.MultipleChoices);
+            Proxy.Add(s);
+
+            var response = Post("/Pet?a=b&d=e", @"Hello");
+            Assert.AreEqual(System.Net.HttpStatusCode.MultipleChoices, response.StatusCode);
+        }
+
+        [TestMethod]
+        public void TwoParametersOneEncodedOneNotWIllMatch()
+        {
+            var s = Moksy.Common.SimulationFactory.When.I.Post().To("/Pet").Parameter("m/n", "o/p", ComparisonType.UrlEncoded, ParameterType.UrlParameter).Parameter("d", "e", ParameterType.UrlParameter).Then.Return.StatusCode(System.Net.HttpStatusCode.MultipleChoices);
+            Proxy.Add(s);
+
+            var response = Post("/Pet?m%2fn=o%2fp&d=e", @"Hello");
+            Assert.AreEqual(System.Net.HttpStatusCode.MultipleChoices, response.StatusCode);
+        }
+
+        [TestMethod]
+        public void TwoParametersOneEncodedOneNotCaseSensitiveNoMatch()
+        {
+            var s = Moksy.Common.SimulationFactory.When.I.Post().To("/Pet").Parameter("m/n", "o/p", ComparisonType.UrlEncoded, ParameterType.UrlParameter).Parameter("d", "e", ParameterType.UrlParameter).Then.Return.StatusCode(System.Net.HttpStatusCode.MultipleChoices);
+            Proxy.Add(s);
+
+            var response = Post("/Pet?m%2fn=o%2Fp&d=E", @"Hello");
+            Assert.AreNotEqual(System.Net.HttpStatusCode.MultipleChoices, response.StatusCode);
+        }
+
+        [TestMethod]
+        public void TwoParametersOneEncodedOneNotCaseInsensitiveNoMatch()
+        {
+            var s = Moksy.Common.SimulationFactory.When.I.Post().To("/Pet").Parameter("m/n", "o/p", ComparisonType.UrlEncoded | ComparisonType.CaseInsensitive, ParameterType.UrlParameter).Parameter("d", "e", ParameterType.UrlParameter).Then.Return.StatusCode(System.Net.HttpStatusCode.MultipleChoices);
+            Proxy.Add(s);
+
+            var response = Post("/Pet?m%2fN=o%2Fp&d=e", @"Hello");
+            Assert.AreEqual(System.Net.HttpStatusCode.MultipleChoices, response.StatusCode);
+        }
+
+        [TestMethod]
+        public void OneUrlParameterExistsMatches()
+        {
+            var s = Moksy.Common.SimulationFactory.When.I.Post().To("/Pet").Parameter("a", "b", ComparisonType.Exists, ParameterType.UrlParameter).Then.Return.StatusCode(System.Net.HttpStatusCode.MultipleChoices);
+            Proxy.Add(s);
+
+            var response = Post("/Pet?a=b", @"Hello");
+            Assert.AreEqual(System.Net.HttpStatusCode.MultipleChoices, response.StatusCode);
+        }
+
+        [TestMethod]
+        public void OneUrlParameterNotExistsMatches()
+        {
+            var s = Moksy.Common.SimulationFactory.When.I.Post().To("/Pet").Parameter("a", "b", ComparisonType.NotExists, ParameterType.UrlParameter).Then.Return.StatusCode(System.Net.HttpStatusCode.MultipleChoices);
+            Proxy.Add(s);
+
+            var response = Post("/Pet?a=b", @"Hello");
+            Assert.AreNotEqual(System.Net.HttpStatusCode.MultipleChoices, response.StatusCode);
+        }
+
+        [TestMethod]
+        public void OneUrlParameterExistsMatches2()
+        {
+            var s = Moksy.Common.SimulationFactory.When.I.Post().To("/Pet").Parameter("a", "b", ComparisonType.NotExists, ParameterType.UrlParameter).Then.Return.StatusCode(System.Net.HttpStatusCode.MultipleChoices);
+            Proxy.Add(s);
+
+            var response = Post("/Pet?d=e", @"Hello");
+            Assert.AreEqual(System.Net.HttpStatusCode.MultipleChoices, response.StatusCode);
+        }
 
 
+        [TestMethod]
+        public void OneUrlParameterNotExistsNoValue()
+        {
+            var s = Moksy.Common.SimulationFactory.When.I.Post().To("/Pet").Parameter("a", ComparisonType.NotExists, ParameterType.UrlParameter).Then.Return.StatusCode(System.Net.HttpStatusCode.MultipleChoices);
+            Proxy.Add(s);
 
+            var response = Post("/Pet?d=e", @"Hello");
+            Assert.AreEqual(System.Net.HttpStatusCode.MultipleChoices, response.StatusCode); 
+        }
 
+        [TestMethod]
+        public void OneUrlParameterNotExistsNoValueImplicitExists()
+        {
+            var s = Moksy.Common.SimulationFactory.When.I.Post().To("/Pet").Parameter("a", ParameterType.UrlParameter).Then.Return.StatusCode(System.Net.HttpStatusCode.MultipleChoices);
+            Proxy.Add(s);
+
+            var response = Post("/Pet?d=e&a=b", @"Hello");
+            Assert.AreEqual(System.Net.HttpStatusCode.MultipleChoices, response.StatusCode);
+        }
+
+        #endregion
     }
 }

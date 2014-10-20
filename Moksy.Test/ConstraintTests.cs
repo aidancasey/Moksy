@@ -669,7 +669,7 @@ namespace Moksy.Test
             SimulationManager mgr = new SimulationManager();
             mgr.Add(s.Simulation);
             StringContent content = new StringContent(@"{""TheProperty"":""ABCDE""}");
-            var match = mgr.Match(HttpMethod.Post, content, "/Pet", new List<Header>(), false);
+            var match = mgr.Match(HttpMethod.Post, content, "/Pet", null, new List<Header>(), false);
             Assert.IsNull(match);
         }
 
@@ -680,7 +680,7 @@ namespace Moksy.Test
             SimulationManager mgr = new SimulationManager();
             mgr.Add(s.Simulation);
             StringContent content = new StringContent(@"{""TheProperty"":""ABCD""}");
-            var match = mgr.Match(HttpMethod.Post, content, "/Pet", new List<Header>(), false);
+            var match = mgr.Match(HttpMethod.Post, content, "/Pet", null, new List<Header>(), false);
             Assert.IsNotNull(match);
             Assert.AreEqual(1, match.EvaluatedMatchingConstraints.Count);
         }
@@ -692,7 +692,7 @@ namespace Moksy.Test
             SimulationManager mgr = new SimulationManager();
             mgr.Add(s.Simulation);
             StringContent content = new StringContent(@"{""TheProperty"":""ABCDE""}");
-            var match = mgr.Match(HttpMethod.Post, content, "/Pet", new List<Header>(), false);
+            var match = mgr.Match(HttpMethod.Post, content, "/Pet", "", new List<Header>(), false);
             Assert.IsNull(match);
         }
 
@@ -703,7 +703,7 @@ namespace Moksy.Test
             SimulationManager mgr = new SimulationManager();
             mgr.Add(s.Simulation);
             StringContent content = new StringContent(@"{""TheProperty"":""ABCD""}");
-            var match = mgr.Match(HttpMethod.Post, content, "/Pet", new List<Header>(), false);
+            var match = mgr.Match(HttpMethod.Post, content, "/Pet", null, new List<Header>(), false);
             Assert.IsNotNull(match);
             Assert.AreEqual(1, match.EvaluatedMatchingConstraints.Count);
         }
@@ -715,7 +715,7 @@ namespace Moksy.Test
             SimulationManager mgr = new SimulationManager();
             mgr.Add(s.Simulation);
             StringContent content = new StringContent(@"{""TheProperty"":""ABCD""}");
-            var match = mgr.Match(HttpMethod.Post, content, "/Pet", new List<Header>(), false);
+            var match = mgr.Match(HttpMethod.Post, content, "/Pet", null, new List<Header>(), false);
             Assert.IsNotNull(match);
             Assert.AreEqual(2, match.EvaluatedMatchingConstraints.Count);
         }
@@ -727,7 +727,7 @@ namespace Moksy.Test
             SimulationManager mgr = new SimulationManager();
             mgr.Add(s.Simulation);
             StringContent content = new StringContent(@"{""TheProperty"":""ABCD""}");
-            var match = mgr.Match(HttpMethod.Post, content, "/Pet", new List<Header>(), false);
+            var match = mgr.Match(HttpMethod.Post, content, "/Pet", "", new List<Header>(), false);
             Assert.IsNull(match);
         }
 
@@ -738,7 +738,7 @@ namespace Moksy.Test
             SimulationManager mgr = new SimulationManager();
             mgr.Add(s.Simulation);
             StringContent content = new StringContent(@"{""TheProperty"":""ABCD""}");
-            var match = mgr.Match(HttpMethod.Post, content, "/Pet", new List<Header>(), false);
+            var match = mgr.Match(HttpMethod.Post, content, "/Pet", "", new List<Header>(), false);
             Assert.IsNotNull(match);
             Assert.AreEqual(2, match.EvaluatedMatchingConstraints.Count);
         }

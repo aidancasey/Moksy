@@ -35,7 +35,7 @@ namespace Moksy.Handlers
             Substitution s = new Substitution();
 
 
-            var simulation = Storage.SimulationManager.Instance.Match(request.Method, request.Content, path, headers, true);
+            var simulation = Storage.SimulationManager.Instance.Match(request.Method, request.Content, path, request.RequestUri.Query, headers, true);
             if(simulation != null)
             {
                 match= simulation.Simulation;
@@ -188,7 +188,7 @@ namespace Moksy.Handlers
                         else
                         {
                             // The Path of the Simulation might be of the form /TheResource('{id}') where there is at least one placeholder. 
-                            var jobject = Storage.SimulationManager.Instance.GetFromImdb(HttpMethod.Get, path, headers, discriminator);
+                            var jobject = Storage.SimulationManager.Instance.GetFromImdb(HttpMethod.Get, path, request.RequestUri.Query, headers, discriminator);
                             string candidateValue = "";
                             if (jobject != null)
                             {
@@ -229,7 +229,7 @@ namespace Moksy.Handlers
                         {
                             if (match.Response.RemoveImdb)
                             {
-                                Storage.SimulationManager.Instance.DeleteFromImdb(HttpMethod.Delete, path, match.Condition.Pattern, headers, discriminator);
+                                Storage.SimulationManager.Instance.DeleteFromImdb(HttpMethod.Delete, path, match.Condition.Pattern, request.RequestUri.Query, headers, discriminator);
                             }
                             string candidateValue = "";
                             var variables = s.GetVariables(match.Response.Content);

@@ -1,4 +1,4 @@
-MOKSY - V1.1 by Grey Ham (www.twitter.com/brek_it, www.brekit.com, www.havecomputerwillcode.com)
+MOKSY - V1.2 by Grey Ham (www.twitter.com/brek_it, www.brekit.com, www.havecomputerwillcode.com)
 ------------------------------------------------------------------------------------------------
 
 

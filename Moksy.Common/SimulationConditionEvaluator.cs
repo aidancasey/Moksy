@@ -192,9 +192,9 @@ namespace Moksy.Common
         /// <param name="path"></param>
         /// <param name="headers"></param>
         /// <returns></returns>
-        public bool Matches(SimulationCondition condition, System.Net.Http.HttpMethod method, string path, IEnumerable<Header> headers)
+        public bool Matches(SimulationCondition condition, System.Net.Http.HttpMethod method, string path, string query, IEnumerable<Header> headers)
         {
-            return Matches(condition, null, method, path, headers);
+            return Matches(condition, null, method, path, query, headers);
         }
 
         /// <summary>
@@ -206,14 +206,17 @@ namespace Moksy.Common
         /// <param name="path"></param>
         /// <param name="headers"></param>
         /// <returns></returns>
-        public bool Matches(SimulationCondition condition, HttpContent content, System.Net.Http.HttpMethod method, string path, IEnumerable<Header> headers)
+        public bool Matches(SimulationCondition condition, HttpContent content, System.Net.Http.HttpMethod method, string path, string query, IEnumerable<Header> headers)
         {
             if (null == condition) return false;
 
             var match = Matches(condition, method);
             if (!match) return false;
 
-            match = MatchesParameters(condition, content);
+            match = MatchesBodyParameters(condition, content);
+            if (!match) return false;
+
+            match = MatchesUrlParameters (condition, query);
             if (!match) return false;
 
             match = MatchesContentRules(condition, content);
@@ -234,7 +237,7 @@ namespace Moksy.Common
         /// <param name="condition"></param>
         /// <param name="content"></param>
         /// <returns></returns>
-        public bool MatchesParameters(SimulationCondition condition, HttpContent content)
+        public bool MatchesBodyParameters(SimulationCondition condition, HttpContent content)
         {
             if (null == content) return true;
             var bodyParameters = condition.Parameters.Where(f => f.ParameterType == ParameterType.BodyParameter);
@@ -257,7 +260,45 @@ namespace Moksy.Common
                     var nv = pair.Split('=');
                     if (2 != nv.Length) continue;
 
-                    ps.Add(new Parameter() { Name = nv[0], Value = nv[1] });
+                    ps.Add(new Parameter() { Name = nv[0], Value = nv[1], ParameterType = ParameterType.BodyParameter });
+                }
+
+                return Matches(condition, ps);
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Determine if the condition (typically: the Parameters) matches the given Url parameters. 
+        /// </summary>
+        /// <param name="condition"></param>
+        /// <param name="query"></param>
+        /// <returns></returns>
+        public bool MatchesUrlParameters(SimulationCondition condition, string query)
+        {
+            if (null == query) query = "";
+            if (query.StartsWith("?")) query = query.Substring(1);
+
+            var bodyParameters = condition.Parameters.Where(f => f.ParameterType == ParameterType.UrlParameter);
+            if (bodyParameters.Count() == 0) return true;
+
+            try
+            {
+                var s = query;
+
+                // We have converted the content to a string; now split on & and = to create our parameters list. 
+                // TODO: Decode/Encode
+                List<Parameter> ps = new List<Parameter>();
+                var nameValuePairs = s.Split('&');
+                foreach (var pair in nameValuePairs)
+                {
+                    var nv = pair.Split('=');
+                    if (2 != nv.Length) continue;
+
+                    ps.Add(new Parameter() { Name = nv[0], Value = nv[1], ParameterType = ParameterType.UrlParameter });
                 }
 
                 return Matches(condition, ps);
@@ -332,9 +373,9 @@ namespace Moksy.Common
         /// <param name="path"></param>
         /// <param name="headers"></param>
         /// <returns></returns>
-        public bool Matches(Simulation simulation, System.Net.Http.HttpMethod method, string path, IEnumerable<Header> headers)
+        public bool Matches(Simulation simulation, System.Net.Http.HttpMethod method, string path, string query, IEnumerable<Header> headers)
         {
-            return Matches(simulation, null, method, path, headers);
+            return Matches(simulation, null, method, path, query, headers);
         }
 
         /// <summary>
@@ -346,11 +387,11 @@ namespace Moksy.Common
         /// <param name="path"></param>
         /// <param name="headers"></param>
         /// <returns></returns>
-        public bool Matches(Simulation simulation, HttpContent content, System.Net.Http.HttpMethod method, string path, IEnumerable<Header> headers)
+        public bool Matches(Simulation simulation, HttpContent content, System.Net.Http.HttpMethod method, string path, string query, IEnumerable<Header> headers)
         {
             if (null == simulation) return false;
 
-            return Matches(simulation.Condition, content, method, path, headers);
+            return Matches(simulation.Condition, content, method, path, query, headers);
         }
 
         /// <summary>
@@ -360,12 +401,12 @@ namespace Moksy.Common
         /// <param name="path"></param>
         /// <param name="headers"></param>
         /// <returns></returns>
-        public Simulation Match(SimulationCollection simulations, System.Net.Http.HttpMethod method, string path, IEnumerable<Header> headers)
+        public Simulation Match(SimulationCollection simulations, System.Net.Http.HttpMethod method, string path, string query, IEnumerable<Header> headers)
         {
             if (null == simulations) return null;
             if (simulations.Count() == 0) return null;
 
-            var matches = simulations.Where(f => Matches(f, method, path, headers) == true);
+            var matches = simulations.Where(f => Matches(f, method, path, query, headers) == true);
             var match = matches.FirstOrDefault();
             return match;
         }
@@ -378,9 +419,9 @@ namespace Moksy.Common
         /// <param name="path"></param>
         /// <param name="headers"></param>
         /// <returns></returns>
-        public IEnumerable<Simulation> Matches(SimulationCollection simulations, System.Net.Http.HttpMethod method, string path, IEnumerable<Header> headers)
+        public IEnumerable<Simulation> Matches(SimulationCollection simulations, System.Net.Http.HttpMethod method, string path, string query, IEnumerable<Header> headers)
         {
-            return Matches(simulations, null, method, path, headers);
+            return Matches(simulations, null, method, path, query, headers);
         }
 
         /// <summary>
@@ -392,13 +433,13 @@ namespace Moksy.Common
         /// <param name="path"></param>
         /// <param name="headers"></param>
         /// <returns></returns>
-        public IEnumerable<Simulation> Matches(SimulationCollection simulations, HttpContent content, System.Net.Http.HttpMethod method, string path, IEnumerable<Header> headers)
+        public IEnumerable<Simulation> Matches(SimulationCollection simulations, HttpContent content, System.Net.Http.HttpMethod method, string path, string query, IEnumerable<Header> headers)
         {
             IEnumerable<Simulation> matches = new List<Simulation>();
             if (null == simulations) return matches;
             if (simulations.Count() == 0) return matches;
 
-            matches = simulations.Where(f => Matches(f, content, method, path, headers) == true);
+            matches = simulations.Where(f => Matches(f, content, method, path, query, headers) == true);
             return matches;
         }
     }

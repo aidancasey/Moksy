@@ -56,6 +56,18 @@ namespace Moksy.Common
         }
 
         /// <summary>
+        /// Constructor. 
+        /// </summary>
+        /// <param name="name">Property value. </param>
+        /// <param name="comparison">Is the name encoded before being compared in </param>
+        public Parameter(string name, ComparisonType comparison, ParameterType parameterType)
+            : this(name)
+        {
+            this.ParameterType = parameterType;
+            this.ComparisonType = comparison;
+        }
+
+        /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="name">Parameter name. Must not be null. </param>
@@ -65,6 +77,19 @@ namespace Moksy.Common
 
             this.Name = name;
             this.ParameterType = ParameterType.BodyParameter;
+            this.HasValue = false;
+        }
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="name">Parameter name. Must not be null. </param>
+        public Parameter(string name, ParameterType parameterType)
+        {
+            if (null == name) throw new System.ArgumentNullException("name");
+
+            this.Name = name;
+            this.ParameterType = parameterType;
             this.HasValue = false;
         }
 

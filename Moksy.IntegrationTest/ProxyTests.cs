@@ -156,6 +156,17 @@ namespace Moksy.IntegrationTest
 
 
         [TestMethod]
+        public void ConfigureRemoteMachine()
+        {
+            Proxy proxy = new Proxy(10011);
+            proxy.Start();
+
+
+        }
+
+
+        /*
+        [TestMethod]
         public void ProxyExit()
         {
             var all = Proxy.GetAll();
@@ -173,7 +184,32 @@ namespace Moksy.IntegrationTest
 
             }
         }
+        */
 
+        [TestMethod]
+        public void StartRemoteMachine()
+        {
+            // Start it on the local host - we will treat this instance as a remote connection. 
+            Proxy localProxy = new Moksy.Proxy(30011);
+            Assert.IsTrue(localProxy.Start());
+            Assert.IsTrue(localProxy.IsLocalhost);
+
+            // This simulates a remove machine by passing in the local machine name as the Proxy Host. 
+            var hostname = System.Environment.ExpandEnvironmentVariables("%COMPUTERNAME%");
+
+            var proxy = new Proxy(hostname, 30011);
+            Assert.IsTrue(proxy.Start());
+            Assert.IsFalse(proxy.IsLocalhost);
+
+            var s = Moksy.Common.SimulationFactory.New("First").Get().From("/Pet").Return.StatusCode(System.Net.HttpStatusCode.OK).Body("Dog");
+            proxy.Add(s);
+
+            RestSharp.IRestClient client = new RestSharp.RestClient(proxy.Root);
+            RestSharp.IRestRequest request = new RestSharp.RestRequest("/Pet", RestSharp.Method.GET);
+            request.RequestFormat = RestSharp.DataFormat.Json;
+            var response = client.Execute(request);
+            Assert.AreEqual("Dog", response.Content);
+        }
 
         public TestContext TestContext { get; set; }
     }

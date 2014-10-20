@@ -41,6 +41,20 @@ namespace Moksy.Common
         /// </summary>
         /// <param name="name"></param>
         /// <param name="value"></param>
+        /// <param name="parameterType"></param>
+        /// <returns></returns>
+        public SimulationCondition Parameter(string name, string value, ParameterType parameterType)
+        {
+            Parameter p = new Parameter(name, value) { ParameterType = parameterType };
+            ParametersStorage.Add(p);
+            return this;
+        }
+
+        /// <summary>
+        /// Adds a single conditional parameter to the request. The parameter must exist (default: in the body, as a name=value pair. 
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="value"></param>
         /// <returns></returns>
         public SimulationCondition Parameter(string name, string value, ComparisonType comparison)
         {
@@ -55,10 +69,51 @@ namespace Moksy.Common
         /// Adds a single conditional parameter to the request. The parameter must exist (default: in the body, as a name=value pair. 
         /// </summary>
         /// <param name="name"></param>
+        /// <param name="value"></param>
+        /// <param name="comparison"></param>
+        /// <param name="parameterType"></param>
+        /// <returns></returns>
+        public SimulationCondition Parameter(string name, string value, ComparisonType comparison, ParameterType parameterType)
+        {
+            if ((comparison & ComparisonType.NotContains) != 0) throw new System.InvalidOperationException("You must use NotExists instead of NotContains for Parameter checking. ");
+
+            Parameter p = new Parameter(name, value, comparison) { ParameterType = parameterType };
+            ParametersStorage.Add(p);
+            return this;
+        }
+
+        /// <summary>
+        /// Adds a single conditional parameter to the request. The parameter must exist (default: in the body, as a name=value pair. 
+        /// </summary>
+        /// <param name="name"></param>
         /// <returns></returns>
         public SimulationCondition Parameter(string name)
         {
             Parameter p = new Parameter(name);
+            ParametersStorage.Add(p);
+            return this;
+        }
+
+        /// <summary>
+        /// Adds a single conditional parameter to the request. The parameter must exist (default: in the body, as a name=value pair. 
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public SimulationCondition Parameter(string name, ParameterType parameterType)
+        {
+            Parameter p = new Parameter(name, parameterType);
+            ParametersStorage.Add(p);
+            return this;
+        }
+
+        /// <summary>
+        /// Adds a single conditional parameter to the request. The parameter must exist (default: in the body, as a name=value pair. 
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public SimulationCondition Parameter(string name, ComparisonType comparison, ParameterType parameterType)
+        {
+            Parameter p = new Parameter(name, comparison, parameterType);
             ParametersStorage.Add(p);
             return this;
         }
