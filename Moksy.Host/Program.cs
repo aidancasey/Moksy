@@ -11,7 +11,7 @@ namespace Moksy.Host
     {
         static void Main(string[] args)
         {
-            if (args == null || args.Length < 1 || args.Length > 2)
+            if (args == null || args.Length < 1)
             {
                 Usage();
                 System.Environment.Exit(1);
@@ -28,25 +28,25 @@ namespace Moksy.Host
             bool simulationsSpecified = false;
             string simulationsPath = null;
             Moksy.Common.SimulationCollection simulations = new Common.SimulationCollection();
-            if (args.Length == 2)
+            simulationsPath = args.FirstOrDefault(f => f.StartsWith("/File:", StringComparison.InvariantCultureIgnoreCase));
+            if (simulationsPath != null)
             {
+                simulationsPath = simulationsPath.Substring(6);
                 simulationsSpecified = true;
-                simulationsPath = args[1];
             }
+            var log = args.FirstOrDefault(f => f.StartsWith("/Log:true", StringComparison.InvariantCultureIgnoreCase) || string.Compare(f, "/log", true) == 0);
 
-            if (simulationsSpecified)
-            {
-                var contents = System.IO.File.ReadAllText(simulationsPath);
-                simulations = Newtonsoft.Json.JsonConvert.DeserializeObject<Moksy.Common.SimulationCollection>(contents);
+            System.Reflection.Assembly thisExe;
+            thisExe = System.Reflection.Assembly.GetExecutingAssembly();
+            var list = thisExe.GetManifestResourceNames();
 
-                // ASSERTION: We have loaded the simulations into memory. 
-            }
+            var header = ReadResource("Moksy.Host.Resources.Header.txt");
+            var simulationsText = ReadResource("Moksy.Host.Resources.Simulations.txt");
+
+            ApplicationDirectives parameters = new ApplicationDirectives() { Log = (log != null) };
 
             try
             {
-                Application app = new Application(port);
-                app.Start();
-
                 Console.WriteLine("----------------------------------------------");
                 Console.WriteLine("MOKSY: REST API / JSON Endpoint Faking Toolkit");
                 Console.WriteLine("----------------------------------------------");
@@ -54,7 +54,24 @@ namespace Moksy.Host
                 Console.WriteLine();
                 Console.WriteLine("See www.brekit.com for more information. ");
                 Console.WriteLine("Source at https://github.com/greyham/Moksy");
-                Console.WriteLine();
+                Console.WriteLine(); 
+                
+                if (simulationsSpecified)
+                {
+                    Console.Write(string.Format("Loading simulations from {0}...", simulationsPath));
+
+                    var contents = System.IO.File.ReadAllText(simulationsPath);
+                    simulations = Newtonsoft.Json.JsonConvert.DeserializeObject<Moksy.Common.SimulationCollection>(contents);
+
+                    Console.WriteLine(string.Format("{0} simulations have been loaded. ", simulations.Count));
+                    Console.WriteLine("");
+
+                    // ASSERTION: We have loaded the simulations into memory. 
+                }
+
+                Application app = new Application(port, parameters);
+                app.Start();
+
                 Console.WriteLine(string.Format("Running Moksy on Port {0}. ", port));
                 Console.WriteLine(string.Format("Navigate to: http://localhost:{0} for a sanity test.", port));
 
@@ -120,12 +137,24 @@ namespace Moksy.Host
 
         static void Usage()
         {
-            System.Console.WriteLine("Usage: Moksy.Host <PortNumber> [SimulationFile.json]");
+            System.Console.WriteLine("Usage: Moksy.Host <PortNumber> [/file:SimulationFile.json] [/log]");
             System.Console.WriteLine();
             System.Console.WriteLine("   eg: Moksy.Host 10011");
-            System.Console.WriteLine(@"   eg: Moksy.Host 10011 C:\Temp\MySimulations.json");
+            System.Console.WriteLine(@"   eg: Moksy.Host 10011 /file:C:\Temp\MySimulations.json /log");
             System.Console.WriteLine();
             System.Console.WriteLine("NOTE: To simplify matters, run the host as an Administrator so that no reservation needs to be created manually for the port. ");
+        }
+
+        static string ReadResource(string name)
+        {
+            System.Reflection.Assembly thisExe;
+            thisExe = System.Reflection.Assembly.GetExecutingAssembly();
+            var stream = thisExe.GetManifestResourceStream(name);
+            using (var reader = new System.IO.StreamReader(stream, Encoding.UTF8))
+            {
+                string value = reader.ReadToEnd();
+                return value;
+            }
         }
     }
 }

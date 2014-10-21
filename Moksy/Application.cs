@@ -20,12 +20,31 @@ namespace Moksy
         public Application(int port)
         {
             Port = port;
+            Parameters = new ApplicationDirectives();
+        }
+
+        /// <summary>
+        /// Constructor. 
+        /// </summary>
+        /// <param name="port"></param>
+        /// <param name="parameters"></param>
+        public Application(int port, ApplicationDirectives parameters)
+        {
+            Port = port;
+            if (parameters == null) parameters = new ApplicationDirectives();
+
+            Parameters = parameters;
         }
 
         /// <summary>
         /// Port number the application is bound to. 
         /// </summary>
         public readonly int Port;
+
+        /// <summary>
+        /// Parameters. 
+        /// </summary>
+        public readonly ApplicationDirectives Parameters;
 
         /// <summary>
         /// Start Moksy. 
@@ -37,7 +56,7 @@ namespace Moksy
             Configuration = new HttpSelfHostConfiguration(string.Format("http://localhost:{0}", Port));
             Server = new HttpSelfHostServer(Configuration);
             Configuration.Routes.Add(Moksy.Routes.SimulationRoute.SimulationName, new SimulationRoute());
-            Configuration.Routes.Add("/EverythingElse", new GenericRoute());
+            Configuration.Routes.Add("/EverythingElse", new GenericRoute(Parameters));
 
             Server.OpenAsync().Wait();
         }

@@ -61,6 +61,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Application.cs" />
+    <Compile Include="ApplicationDirectives.cs" />
     <Compile Include="Handlers\GenericMessageHandler.cs" />
     <Compile Include="Handlers\SimulationMessageHandler.cs" />
     <Compile Include="HttpResponseMessageFactory.cs" />

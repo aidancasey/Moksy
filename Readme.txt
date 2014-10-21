@@ -2,7 +2,6 @@ MOKSY - V1.2 by Grey Ham (www.twitter.com/brek_it, www.brekit.com, www.havecompu
 ------------------------------------------------------------------------------------------------
 
 
-
 What is Moksy?
 --------------
 Moksy is an open source .Net library for stubbing, mocking and simulating web services. 
@@ -87,8 +86,8 @@ Consider getting the source code and using the Moksy.IntegrationTests.Documentat
 
 [Experimental - Subject to change]
  ----------------------------------------------
- Constraints and violations can be set as part of your simulations. This is useful for returning error conditions if, for example, property conditions and constraints are not met.
- For example:
+Constraints and violations can be set as part of your simulations. This is useful for returning error conditions if, for example, property conditions and constraints are not met.
+For example:
 
      When.I.Post().ToImdb("/Pet").With.Constraint(new LengthBetweenConstraint("Kind", 0, 255)).And.HasRuleViolations().Then.Return.StatusCode(System.Net.HttpStatusCode.BadRequest).And.Body("{violationResponses}");
 
@@ -239,6 +238,18 @@ the Moksy endpoint. ie: [see Moksy.IntegrationTests.DocumentationTests for more 
 
 	// You now call /TheEndpoint directly from a Browser; your own test; or typically call another service which calls the Endpoint with the response set up
 	// by yourself. 
+
+
+
+Misc:
+-----
+Logging:
+Moksy can be started from the command line with an optional /log parameter - this will output all requests to the console.
+
+Load Simulations from Disk:
+Although discouraged because the Json format might change in future, it is possible to specify the path of a Json file containing simulations:
+
+    /File:<path>
 
 
 

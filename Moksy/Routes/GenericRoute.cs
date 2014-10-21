@@ -14,9 +14,13 @@ namespace Moksy.Routes
     /// </summary>
     internal class GenericRoute : IHttpRoute
     {
-        public GenericRoute()
+        public GenericRoute(ApplicationDirectives directives)
         {
+            if (directives == null) directives = new ApplicationDirectives();
+
+            Directives = directives;
         }
+
 
         public IDictionary<string, object> Constraints
         {
@@ -62,7 +66,7 @@ namespace Moksy.Routes
         {
             get
             {
-                GenericMessageHandler handler = new GenericMessageHandler();
+                GenericMessageHandler handler = new GenericMessageHandler(Directives);
                 return handler;
             }
         }
@@ -71,5 +75,7 @@ namespace Moksy.Routes
         {
             get { return null; }
         }
+
+        public readonly ApplicationDirectives Directives;
     }
 }

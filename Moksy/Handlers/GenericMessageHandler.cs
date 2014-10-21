@@ -19,8 +19,11 @@ namespace Moksy.Handlers
     /// </remarks>
     internal class GenericMessageHandler : HttpMessageHandler
     {
-        public GenericMessageHandler()
+        public GenericMessageHandler(ApplicationDirectives directives)
         {
+            if (directives == null) directives = new ApplicationDirectives();
+
+            Directives = directives;
         }
 
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, System.Threading.CancellationToken cancellationToken)
@@ -34,6 +37,31 @@ namespace Moksy.Handlers
             Simulation match = null;
             Substitution s = new Substitution();
 
+            if (Directives.Log)
+            {
+                try
+                {
+                    foreach (var header in headers)
+                    {
+                        Console.WriteLine(string.Format("{0}: {1}", header.Name, header.Value));
+                    }
+
+                    ByteArrayContent content = request.Content as ByteArrayContent;
+                    string contentAsString = "";
+                    if (content != null)
+                    {
+                        var task = content.ReadAsByteArrayAsync();
+                        task.Wait();
+
+                        contentAsString = new System.Text.ASCIIEncoding().GetString(task.Result);
+                        Console.WriteLine(contentAsString);
+                    }
+                }
+                catch
+                {
+                }
+                Console.WriteLine("");
+            }
 
             var simulation = Storage.SimulationManager.Instance.Match(request.Method, request.Content, path, request.RequestUri.Query, headers, true);
             if(simulation != null)
@@ -360,5 +388,6 @@ namespace Moksy.Handlers
             }
         }
 
+        protected readonly ApplicationDirectives Directives;
     }
 }
