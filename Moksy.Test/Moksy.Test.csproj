@@ -73,6 +73,20 @@
     <Compile Include="SimulationPopulationTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ResourceParserTests.cs" />
+    <Compile Include="Swagger\12\ApiDeclarationTests.cs" />
+    <Compile Include="Swagger\12\ApiTests.cs" />
+    <Compile Include="Swagger\12\InfoTests.cs" />
+    <Compile Include="Swagger\12\ItemsTests.cs" />
+    <Compile Include="Swagger\12\ModelsTest.cs" />
+    <Compile Include="Swagger\12\ModelTests.cs" />
+    <Compile Include="Swagger\12\OperationTests.cs" />
+    <Compile Include="Swagger\12\ParameterTests.cs" />
+    <Compile Include="Swagger\12\PropertiesTests.cs" />
+    <Compile Include="Swagger\12\PropertyTests.cs" />
+    <Compile Include="Swagger\12\ResourceListingTests.cs" />
+    <Compile Include="Swagger\12\ResourceTests.cs" />
+    <Compile Include="Swagger\12\TestBase.cs" />
+    <Compile Include="Swagger\Swagger20Tests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Moksy.Common\Moksy.Common.csproj">

@@ -80,11 +80,39 @@
     <Compile Include="Substitution.cs" />
     <Compile Include="RouteParser.cs" />
     <Compile Include="SubstitutionVariable.cs" />
+    <Compile Include="Swagger.Common\ValidationHelpers.cs" />
+    <Compile Include="Swagger12\Api.cs" />
+    <Compile Include="Swagger12\ApiDeclaration.cs" />
+    <Compile Include="Swagger12\Info.cs" />
+    <Compile Include="Swagger12\Items.cs" />
+    <Compile Include="Swagger12\Model.cs" />
+    <Compile Include="Swagger12\Models.cs" />
+    <Compile Include="Swagger12\Operation.cs" />
+    <Compile Include="Swagger12\Parameter.cs" />
+    <Compile Include="Swagger12\PrimitiveTypeFormat.cs" />
+    <Compile Include="Swagger12\Properties.cs" />
+    <Compile Include="Swagger12\Property.cs" />
+    <Compile Include="Swagger12\Resource.cs" />
+    <Compile Include="Swagger12\ResourceListing.cs" />
+    <Compile Include="Swagger20\ContactObject.cs" />
+    <Compile Include="Swagger20\ExternalDocumentationObject.cs" />
+    <Compile Include="Swagger20\InfoObject.cs" />
+    <Compile Include="Swagger20\LicenseObject.cs" />
+    <Compile Include="Swagger20\Swagger.cs" />
+    <Compile Include="Swagger20\SwaggerValidator.cs" />
+    <Compile Include="Swagger20\TagObject.cs" />
+    <Compile Include="Swagger.Common\Violation.cs" />
+    <Compile Include="Swagger.Common\ViolationCollection.cs" />
+    <Compile Include="Swagger.Common\ViolationLevel.cs" />
     <Compile Include="Variable.cs" />
     <Compile Include="VariableKind.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Swagger12\Readme.txt" />
+    <Content Include="Swagger20\Readme.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
