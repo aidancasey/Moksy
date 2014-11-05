@@ -100,15 +100,21 @@ namespace Moksy.Common
 
                 if (h.HasValue)
                 {
+                    var value = h.Value;
+                    if ((h.ComparisonType & ComparisonType.UrlEncoded) != 0 && h.Value != null)
+                    {
+                        value = RestSharp.Contrib.HttpUtility.UrlEncode(value);
+                    }
+
                     if ((h.ComparisonType & ComparisonType.NotExists) != 0)
                     {
-                        match = headers.FirstOrDefault(f => string.Compare(f.Name, name, ignoreCase) == 0 && string.Compare(f.Value, h.Value, ignoreCase) == 0);
+                        match = headers.FirstOrDefault(f => string.Compare(f.Name, name, ignoreCase) == 0 && string.Compare(f.Value, value, ignoreCase) == 0);
                         if (match != null) return false;
                         if (match == null) continue;
                     }
                     else
                     {
-                        match = headers.FirstOrDefault(f => string.Compare(f.Name, name, ignoreCase) == 0);
+                        match = headers.FirstOrDefault(f => string.Compare(f.Name, name, ignoreCase) == 0 && string.Compare(f.Value, value, ignoreCase) == 0);
                         if (match != null) continue;
                         if (match == null) return false;
                     }

@@ -35,5 +35,7 @@ namespace Moksy.Test.Swagger._12
         }
 
         protected ViolationCollection Violations;
+
+        public TestContext TestContext { get; set; }
     }
 }

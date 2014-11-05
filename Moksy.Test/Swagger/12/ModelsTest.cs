@@ -37,11 +37,11 @@ namespace Moksy.Test.Swagger._12
             Models.Data["a"] = new Model() { Id = "a" };
 
             var json = JsonConvert.SerializeObject(Models);
-            Assert.AreEqual(@"{""a"":{""id"":""a"",""description"":"""",""properties"":{},""subTypes"":[]}}", json);
+            Assert.AreEqual(@"{""a"":{""id"":""a"",""description"":"""",""properties"":{},""subTypes"":[],""required"":[]}}", json);
 
             var constructed = JsonConvert.DeserializeObject<Models>(json);
             Assert.AreEqual(1, constructed.Data.Count);
-            Assert.AreEqual(@"{""a"":{""id"":""a"",""description"":"""",""properties"":{},""subTypes"":[]}}", JsonConvert.SerializeObject(constructed));
+            Assert.AreEqual(@"{""a"":{""id"":""a"",""description"":"""",""properties"":{},""subTypes"":[],""required"":[]}}", JsonConvert.SerializeObject(constructed));
         }
 
 

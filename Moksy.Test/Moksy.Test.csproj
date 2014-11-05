@@ -86,6 +86,7 @@
     <Compile Include="Swagger\12\ResourceListingTests.cs" />
     <Compile Include="Swagger\12\ResourceTests.cs" />
     <Compile Include="Swagger\12\TestBase.cs" />
+    <Compile Include="Swagger\12\TestData\SchemaTests.cs" />
     <Compile Include="Swagger\Swagger20Tests.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -101,6 +102,12 @@
   <ItemGroup>
     <None Include="app.config" />
     <None Include="packages.config" />
+    <Content Include="Swagger\12\TestData\ResourceListing.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Swagger\12\TestData\Pet.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">

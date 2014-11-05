@@ -184,7 +184,7 @@ namespace Moksy.IntegrationTest
 
             }
         }
-        */
+        
 
         [TestMethod]
         public void StartRemoteMachine()
@@ -210,7 +210,7 @@ namespace Moksy.IntegrationTest
             var response = client.Execute(request);
             Assert.AreEqual("Dog", response.Content);
         }
-
+        */
         public TestContext TestContext { get; set; }
     }
 }

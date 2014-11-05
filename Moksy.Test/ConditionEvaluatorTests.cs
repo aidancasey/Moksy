@@ -140,7 +140,7 @@ namespace Moksy.Test
         }
 
         [TestMethod]
-        public void OneConditionMatchesAgainstTwo()
+        public void OneConditionMatchesAgainstTwoFirst()
         {
             List<Header> headers = new List<Header>();
             headers.Add(new Header("TheHeader", "TheValue"));
@@ -148,6 +148,32 @@ namespace Moksy.Test
 
             SimulationCondition c = new SimulationCondition();
             c.Header("TheHeader", "TheValue");
+
+            Assert.IsTrue(Evaluator.Matches(c, headers));
+        }
+
+        [TestMethod]
+        public void OneConditionMatchesAgainstTwoSecond()
+        {
+            List<Header> headers = new List<Header>();
+            headers.Add(new Header("TheHeader", "TheValue"));
+            headers.Add(new Header("TheHeader2", "TheValue2"));
+
+            SimulationCondition c = new SimulationCondition();
+            c.Header("TheHeader2", "TheValue2");
+
+            Assert.IsTrue(Evaluator.Matches(c, headers));
+        }
+
+        [TestMethod]
+        public void TwoConditionsSameHeaderNameDifferentValuesMatchesLast()
+        {
+            List<Header> headers = new List<Header>();
+            headers.Add(new Header("TheHeader", "TheValue1"));
+            headers.Add(new Header("TheHeader", "TheValue2"));
+
+            SimulationCondition c = new SimulationCondition();
+            c.Header("TheHeader", "TheValue2");
 
             Assert.IsTrue(Evaluator.Matches(c, headers));
         }
@@ -277,7 +303,7 @@ namespace Moksy.Test
         public void OneHeaderAndValueOnlyUrlEncodedMatch()
         {
             List<Header> headers = new List<Header>();
-            headers.Add(new Header("TheH%2feader", "TheV%falue"));
+            headers.Add(new Header("TheH%2feader", "TheV%2falue"));
 
             SimulationCondition c = new SimulationCondition();
             c.Header("TheH/eader", "TheV/alue", ComparisonType.Exists | ComparisonType.UrlEncoded);
