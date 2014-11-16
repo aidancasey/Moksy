@@ -125,5 +125,38 @@ namespace Moksy.Test
             var s = SimulationFactory.When.I.Post().ToImdb("/Endpoint").Then.Return.And.AddToImdb(false);
             Assert.IsFalse(s.AddImdb);
         }
+
+
+
+        [TestMethod]
+        public void ContentIsStringImplicit()
+        {
+            var s = SimulationFactory.When.I.Post().ToImdb("/Endpoint").Then.Return.StatusCode(System.Net.HttpStatusCode.OK);
+            Assert.AreEqual(ContentKind.Text, s.ContentKind);
+        }
+
+        [TestMethod]
+        public void ContentIsStringExplicit()
+        {
+            var s = SimulationFactory.When.I.Post().ToImdb("/Endpoint").Then.Return.StatusCode(System.Net.HttpStatusCode.OK).With.Body("theString");
+            Assert.AreEqual(ContentKind.Text, s.ContentKind);
+        }
+
+        [TestMethod]
+        public void ContentIsString()
+        {
+            var g = new { A = "aValue" };
+            var s = SimulationFactory.When.I.Post().ToImdb("/Endpoint").Then.Return.StatusCode(System.Net.HttpStatusCode.OK).With.Body(g);
+            Assert.AreEqual(ContentKind.Text, s.ContentKind);
+        }
+
+
+
+        [TestMethod]
+        public void IsOctet()
+        {
+            var s = SimulationFactory.When.I.Post().ToImdb("/Endpoint").Then.Return.StatusCode(System.Net.HttpStatusCode.OK).With.Body(new byte[0]);
+            Assert.AreEqual(ContentKind.Octet, s.ContentKind);
+        }
     }
 }

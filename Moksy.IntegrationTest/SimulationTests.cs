@@ -17,6 +17,7 @@ namespace Moksy.IntegrationTest
     /// response. 
     /// </summary>
     [TestClass]
+    [DeploymentItem("TestData", "TestData")]
     public class SimulationTests : TestBase
     {
         public SimulationTests()
@@ -1513,6 +1514,49 @@ namespace Moksy.IntegrationTest
 
             var response = Post("/Pet?d=e&a=b", @"Hello");
             Assert.AreEqual(System.Net.HttpStatusCode.MultipleChoices, response.StatusCode);
+        }
+
+        #endregion
+
+        #region Octet Stream / Binary Content
+
+        [TestMethod]
+        public void GetEmptyBinaryContent()
+        {
+            var s = Moksy.Common.SimulationFactory.When.I.Get().From("/Pet").Then.Return.StatusCode(System.Net.HttpStatusCode.OK).With.Body(new byte[0]).And.Header("Content-Type", "application/octet-stream");
+            Proxy.Add(s);
+
+            var response = Get("/Pet");
+            Assert.AreEqual(System.Net.HttpStatusCode.OK, response.StatusCode);
+            Assert.AreEqual(0, response.RawBytes.Length);
+        }
+
+        [TestMethod]
+        public void GetLength1BinaryContent()
+        {
+            var s = Moksy.Common.SimulationFactory.When.I.Get().From("/Pet").Then.Return.StatusCode(System.Net.HttpStatusCode.OK).With.Body(new byte[1] { (byte)'a'} ).And.Header("Content-Type", "application/octet-stream");
+            Proxy.Add(s);
+
+            var response = Get("/Pet");
+            Assert.AreEqual(System.Net.HttpStatusCode.OK, response.StatusCode);
+            Assert.AreEqual(1, response.RawBytes.Length);
+            Assert.AreEqual((byte)'a', response.RawBytes[0]);
+        }
+
+        [TestMethod]
+        public void GetFile()
+        {
+            var bytes = System.IO.File.ReadAllBytes(System.IO.Path.Combine(TestContext.DeploymentDirectory, "TestData", "ec2.png"));
+
+            var s = Moksy.Common.SimulationFactory.When.I.Get().From("/Pet/ec2.png").Then.Return.StatusCode(System.Net.HttpStatusCode.OK).With.Body(bytes).And.Header("Content-Type", "image/png");
+            Proxy.Add(s);
+
+            var response = Get("/Pet/ec2.png");
+            Assert.AreEqual(System.Net.HttpStatusCode.OK, response.StatusCode);
+            Assert.AreEqual(bytes.Length, response.RawBytes.Length);
+
+            Assert.IsTrue(bytes.SequenceEqual(response.RawBytes));
+            Assert.IsNotNull(response.Headers.FirstOrDefault(f => f.Name == "Content-Type" && f.Value.ToString() == "image/png"));
         }
 
         #endregion

@@ -102,6 +102,9 @@
     </Content>
     <None Include="Microsoft.ECO.TestHelper.config" />
     <None Include="packages.config" />
+    <Content Include="TestData\ec2.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="TestData\SimpleSample.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

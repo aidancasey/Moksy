@@ -126,6 +126,8 @@ namespace Moksy.IntegrationTest
             return response;
         }
 
+        public TestContext TestContext { get; set; }
+
         /*             RestSharp.IRestResponse response = null;
             for (int i = 0; i < 3; i++)
             {

@@ -26,6 +26,11 @@ namespace Moksy.Common
         /// <summary>
         /// The content will be a parameters object. 
         /// </summary>
-        BodyParameters = 2
+        BodyParameters = 2,
+
+        /// <summary>
+        /// The content 
+        /// </summary>
+        Octet = 3
     }
 }

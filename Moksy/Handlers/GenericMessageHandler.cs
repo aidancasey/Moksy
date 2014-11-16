@@ -308,14 +308,21 @@ namespace Moksy.Handlers
                 else
                 {
                     // We have our match - but we need to substitute anything in the content. 
-                    if (match.Response.Content != null)
+                    if (match.Response.ContentKind == ContentKind.Octet)
                     {
-                        foreach (var p in match.Response.Properties)
+                        canned.Content = new ByteArrayContent(match.Response.ContentAsBytes);
+                    }
+                    else
+                    {
+                        if (match.Response.Content != null)
                         {
-                            vars[p.Name] = p.Value;
+                            foreach (var p in match.Response.Properties)
+                            {
+                                vars[p.Name] = p.Value;
+                            }
+                            var result = s.Substitute(match.Response.Content, vars);
+                            canned.Content = new StringContent(result);
                         }
-                        var result = s.Substitute(match.Response.Content, vars);
-                        canned.Content = new StringContent(result);
                     }
                 }
 

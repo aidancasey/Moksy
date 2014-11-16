@@ -44,6 +44,18 @@ namespace Moksy.Common
         }
 
         /// <summary>
+        /// Specifies the text that will be returned in the body for this simulation. 
+        /// </summary>
+        /// <param name="content">The byte content to use. </param>
+        /// </remarks>
+        public SimulationResponse Body(byte[] content)
+        {
+            ContentKind = Common.ContentKind.Octet;
+            ContentAsBytes = content;
+            return this;
+        }
+
+        /// <summary>
         /// Specifies the object that will be returned in the body for this simulation. Must be serializable as Json. 
         /// </summary>
         /// <param name="content">The object to be serialized as Json. </param>
@@ -63,6 +75,12 @@ namespace Moksy.Common
             }
             return this;
         }
+
+        /// <summary>
+        /// The type of content that is to be returned. Currently, if not Octet, it is assumed to be a string type. 
+        /// </summary>
+        [JsonProperty("contentKind")]
+        public ContentKind ContentKind { get; set; }
 
         /// <summary>
         /// Adds a single header that will be returned as part of the response. 
@@ -357,7 +375,7 @@ namespace Moksy.Common
         }
 
         /// <summary>
-        /// Contains the text that will be returned in the response body for this simulation. 
+        /// Contains the text that will be returned in the response body for this simulation if ContentType == Text
         /// </summary>
         /// <remarks>We need much better control of this - currently, it is just serialized as a string. We need extra parameters such as returning raw
         /// bytes; Unicode-encoded; and so forth. 
@@ -365,6 +383,16 @@ namespace Moksy.Common
         [JsonProperty(PropertyName = "content")]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public string Content { get; set; }
+
+        /// <summary>
+        /// Contains the bytes that will be returned in the response body for this simulation if ContentType == Byte
+        /// </summary>
+        /// <remarks>We need much better control of this - currently, it is just serialized as a string. We need extra parameters such as returning raw
+        /// bytes; Unicode-encoded; and so forth. 
+        /// </remarks>
+        [JsonProperty(PropertyName = "contentAsBytes")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public Byte[] ContentAsBytes { get; set; }
 
         /// <summary>
         /// The status code that will be set by this response. 

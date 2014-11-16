@@ -109,7 +109,7 @@ namespace Moksy.Test
         [TestMethod]
         public void ReturnBodyStringNull()
         {
-            var simulation = SimulationFactory.When.Get().From("/Product").Return.Body(null);
+            var simulation = SimulationFactory.When.Get().From("/Product").Return.Body((string)null);
             Assert.AreEqual(null, simulation.Content);
         }
 
@@ -417,7 +417,7 @@ namespace Moksy.Test
         [TestMethod]
         public void NullBodyIsOk()
         {
-            var s = SimulationFactory.When.I.Post().ToImdb("/Endpoint").AsJson().Then.Return.Body(null);
+            var s = SimulationFactory.When.I.Post().ToImdb("/Endpoint").AsJson().Then.Return.Body((string)null);
             Assert.AreEqual(null, s.Content);
         }
 
