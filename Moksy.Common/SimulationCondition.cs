@@ -658,6 +658,16 @@ namespace Moksy.Common
         }
 
         /// <summary>
+        /// The content will be posted as Body Parameters. Use this where a 
+        /// </summary>
+        /// <returns></returns>
+        public SimulationCondition AsBodyParameters()
+        {
+            ContentKind = Common.ContentKind.BodyParameters;
+            return this;
+        }
+
+        /// <summary>
         /// Indicates which property is to used for the uniqueness constraint. If null, removes the constraint. 
         /// NOTE: This implies Exists()
         /// </summary>
@@ -665,7 +675,7 @@ namespace Moksy.Common
         /// <returns></returns>
         public SimulationCondition NotExists(string propertyName)
         {
-            if (ContentKind != Common.ContentKind.Json) { throw new System.InvalidOperationException("ERROR: NotExists can only be used with Json. Use .AsJson(). before the .NotExists call. "); }
+            if (ContentKind != Common.ContentKind.Json && ContentKind != Common.ContentKind.BodyParameters) { throw new System.InvalidOperationException("ERROR: NotExists can only be used with Json or BodyParameters. Use .AsJson() or .AsBodyParameters(). before the .NotExists call. "); }
 
             Persistence = Common.Persistence.NotExists;
             IndexProperty = propertyName;
@@ -679,7 +689,7 @@ namespace Moksy.Common
         /// <returns></returns>
         public SimulationCondition Exists(string propertyName)
         {
-            if (ContentKind != Common.ContentKind.Json) { throw new System.InvalidOperationException("ERROR: Exists can only be used with Json. Use .AsJson(). before the .Exists call. "); }
+            if (ContentKind != Common.ContentKind.Json && ContentKind != Common.ContentKind.BodyParameters) { throw new System.InvalidOperationException("ERROR: Exists can only be used with Json or BodyParameters. Use .AsJson() or .AsBodyParameters(). before the .Exists call. "); }
 
             Persistence = Common.Persistence.Exists;
             IndexProperty = propertyName;

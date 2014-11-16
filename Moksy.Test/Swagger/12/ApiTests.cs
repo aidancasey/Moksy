@@ -73,5 +73,25 @@ namespace Moksy.Test.Swagger._12
             d.Validate(Violations);
             AssertInvalidProperty("Apis[1].Path", Common.Swagger.Common.ViolationLevel.Error);
         }
+
+
+
+        [TestMethod]
+        public void ApiOperationItemsReference()
+        {
+            var api = new Api();
+
+            var op = new Operation();
+            op.Type = "array";
+            op.Items.Type = null;
+            op.NickName = "doIt";
+            op.Items.Reference = "noneExistentModel";
+            api.Operations = new Operation[] { op };
+
+            api.Validate(Violations);
+            Assert.AreEqual(1, Violations.Count);
+
+            Assert.AreEqual(@"Operations[""doIt""].Items.Reference", Violations[0].Context);
+        }
     }
 }

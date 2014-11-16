@@ -90,6 +90,50 @@ namespace Moksy.Common.Swagger12
             if (result == null) return;
 
             ValidationHelpers.ValidateRequiredUrl(Path, string.Format("{0}Path", context), @"Required. The relative path to the operation, from the basePath, which this operation describes. The value SHOULD be in a relative (URL) path format.", UriKind.Relative, result);
+
+            if (Operations != null)
+            {
+                foreach (var operation in Operations)
+                {
+                    var c = string.Format(@"{0}Operations[""{1}""].", context, operation.NickName);
+
+                    operation.Validate(c, result);
+
+                    var valid = false;
+                    if (operation.IsArray)
+                    {
+                        if (operation.Items == null)
+                        {
+                        }
+                        else
+                        {
+                            operation.Items.Validate(c, result);
+
+                            if (operation.Items.IsReference)
+                            {
+                                var modelId = operation.Items.Reference;
+                                if (null == modelId)
+                                {
+                                    // We are invalid.
+                                }
+                                else
+                                {
+                                    if (Models.Data.ContainsKey(modelId))
+                                    {
+                                        // We are valid. 
+                                        valid = true;
+                                    }
+                                }
+                            }
+                        }
+
+                        if (!valid)
+                        {
+                            result.Add(new Violation() { Code = "Items", Context = string.Format("{0}Items.Reference", c), Description = @"Required. The inputs to the operation. If no parameters are needed, an empty array MUST be included.", ViolationLevel = ViolationLevel.Error });
+                        }
+                    }
+                }
+            }
         }
     }
 }

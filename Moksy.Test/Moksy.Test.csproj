@@ -65,7 +65,13 @@
     <Compile Include="ConstraintResponseTests.cs" />
     <Compile Include="ConstraintTests.cs" />
     <Compile Include="DatabaseTests.cs" />
+    <Compile Include="Imdb\BodyParameterTests.cs" />
     <Compile Include="JsonHelpersTests.cs" />
+    <Compile Include="ParameterMatching\BodyTests.cs" />
+    <Compile Include="ParameterMatching\ContainsTests.cs" />
+    <Compile Include="ParameterMatching\ParameterBodyContentTests.cs" />
+    <Compile Include="ParameterMatching\HeaderTests.cs" />
+    <Compile Include="ParameterMatching\UrlTests.cs" />
     <Compile Include="ResourceMatcherTests.cs" />
     <Compile Include="SimulationManagerTests.cs" />
     <Compile Include="SubstitutionTests.cs" />

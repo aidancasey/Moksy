@@ -72,3 +72,7 @@ Items										Done
 Items.Type									Done
 Items.Format								Done
 Items.Reference								Done
+
+
+TODO: Test the return type of Operation. Not sure how to interpret the spec (and Data Types generally)
+TODO: Parameter - add File and Path checking (must conform to /Api). Revisit Parameter type. 

@@ -616,7 +616,7 @@ namespace Moksy.Test
             var s = Moksy.Common.SimulationFactory.When.I.Post().ToImdb("/Pet").With.Constraint(new LengthEquals("TheProperty", 4));
             SimulationManager mgr = new SimulationManager();
             mgr.Add(s.Simulation);
-            var result = mgr.FindMatchingConstraints(null, null, null);
+            var result = mgr.FindMatchingConstraints(s.Simulation, null, null, null);
             Assert.AreEqual(0, result.Count());
         }
 
@@ -626,7 +626,7 @@ namespace Moksy.Test
             var s = Moksy.Common.SimulationFactory.When.I.Post().ToImdb("/Pet").With.Constraint(new LengthEquals("TheProperty", 4));
             SimulationManager mgr = new SimulationManager();
             mgr.Add(s.Simulation);
-            var result = mgr.FindMatchingConstraints(new List<ConstraintBase>(), null, null);
+            var result = mgr.FindMatchingConstraints(s.Simulation, new List<ConstraintBase>(), null, null);
             Assert.AreEqual(0, result.Count());
         }
 
@@ -643,7 +643,7 @@ namespace Moksy.Test
             SimulationManager mgr = new SimulationManager();
             mgr.Add(s.Simulation);
 
-            var matches = mgr.FindMatchingConstraints(new List<ConstraintBase>() { v }, "{ }", null);
+            var matches = mgr.FindMatchingConstraints(s.Simulation, new List<ConstraintBase>() { v }, "{ }", null);
             Assert.AreEqual(0, matches.Count());
         }
 
@@ -655,7 +655,7 @@ namespace Moksy.Test
             SimulationManager mgr = new SimulationManager();
             mgr.Add(s.Simulation);
 
-            var matches = mgr.FindMatchingConstraints(new List<ConstraintBase>() { v }, @"{ ""TheProperty"":""ABCD"" }", null);
+            var matches = mgr.FindMatchingConstraints(s.Simulation, new List<ConstraintBase>() { v }, @"{ ""TheProperty"":""ABCD"" }", null);
             Assert.AreEqual(1, matches.Count());
         }
 

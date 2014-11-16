@@ -73,6 +73,7 @@
   <ItemGroup>
     <Compile Include="DocumentationTests.cs" />
     <Compile Include="ImdbHeaderTests.cs" />
+    <Compile Include="Imdb\BodyParameterTests.cs" />
     <Compile Include="Pet.cs" />
     <Compile Include="SimulationTests.cs" />
     <Compile Include="CrudTests.cs" />

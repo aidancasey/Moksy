@@ -13,7 +13,19 @@ namespace Moksy.Common
     /// </summary>
     public enum ContentKind
     {
+        /// <summary>
+        /// The content will be plain text. 
+        /// </summary>
         Text = 0,
-        Json = 1
+
+        /// <summary>
+        /// The content will be a Json object. 
+        /// </summary>
+        Json = 1,
+
+        /// <summary>
+        /// The content will be a parameters object. 
+        /// </summary>
+        BodyParameters = 2
     }
 }

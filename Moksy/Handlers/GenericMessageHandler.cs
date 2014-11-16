@@ -112,6 +112,12 @@ namespace Moksy.Handlers
                         if (match.Response.AddImdb)
                         {
                             Storage.SimulationManager.Instance.AddToImdb(match, path, match.Condition.Pattern, contentAsString, discriminator);
+
+                            var retrievedData = Storage.SimulationManager.Instance.GetFromImdbAsJson(match, path, discriminator);
+
+                            vars["valueAsJson"] = retrievedData;
+                            vars["valueAsBodyParameters"] = Storage.SimulationManager.Instance.ConvertJsonToBodyParameters(retrievedData, true);
+                            vars["valueAsBodyParametersNotEncoded"] = Storage.SimulationManager.Instance.ConvertJsonToBodyParameters(retrievedData, false);
                         }
 
                         // We now need to populate the response with any variables that have been set up. 
@@ -143,6 +149,12 @@ namespace Moksy.Handlers
                             // This rule has been set up with Put().ToImdb() and .AddToImdb() is in the Response. 
                             // We need to extract the body of the Request (which we assume to be Json) and add it to the Imdb. 
                             Storage.SimulationManager.Instance.AddToImdb(match, path, match.Condition.Pattern, contentAsString, discriminator);
+
+                            var retrievedData = Storage.SimulationManager.Instance.GetFromImdbAsJson(match, path, discriminator);
+
+                            vars["valueAsJson"] = retrievedData;
+                            vars["valueAsBodyParameters"] = Storage.SimulationManager.Instance.ConvertJsonToBodyParameters(retrievedData, true);
+                            vars["valueAsBodyParametersNotEncoded"] = Storage.SimulationManager.Instance.ConvertJsonToBodyParameters(retrievedData, false);
                         }
 
                         var responseBody = match.Response.Content;
@@ -177,10 +189,18 @@ namespace Moksy.Handlers
                             {
                                 content = Storage.SimulationManager.Instance.GetFromImdbAsText(match, path, discriminator);
                             }
-                            else
+                            else if (match.Condition.ContentKind == ContentKind.Json || match.Condition.ContentKind == ContentKind.BodyParameters)
                             {
                                 // We are Imdb. Each entry is a Json fragment. We concatenate them together and separate them with ,
                                 content = Storage.SimulationManager.Instance.GetFromImdbAsJson(match, path, discriminator);
+                                vars["valueAsJson"] = content;
+                                vars["valueAsBodyParameters"] = Storage.SimulationManager.Instance.ConvertJsonToBodyParameters(content, true);
+                                vars["valueAsBodyParametersNotEncoded"] = Storage.SimulationManager.Instance.ConvertJsonToBodyParameters(content, false);
+
+                                if (match.Condition.ContentKind == ContentKind.BodyParameters)
+                                {
+                                    content = Storage.SimulationManager.Instance.ConvertJsonToBodyParameters(content);
+                                }
                             }
                             if (content != null)
                             {
@@ -223,9 +243,22 @@ namespace Moksy.Handlers
                                 candidateValue = JsonConvert.SerializeObject(jobject) as string;
                             }
 
+
+                            // We are Imdb. Each entry is a Json fragment. We concatenate them together and separate them with ,
+                            vars["valueAsJson"] = candidateValue;
+                            vars["valueAsBodyParameters"] = Storage.SimulationManager.Instance.ConvertJsonToBodyParameters(candidateValue, true);
+                            vars["valueAsBodyParametersNotEncoded"] = Storage.SimulationManager.Instance.ConvertJsonToBodyParameters(candidateValue, false);
+
+                            if (match.Condition.ContentKind == ContentKind.BodyParameters)
+                            {
+                                candidateValue = Storage.SimulationManager.Instance.ConvertJsonToBodyParameters(candidateValue);
+                            }
+
                             // ASSERTION: We have a safe candidate value to use. This is either the empty string OR it is the object that has been retrieved. 
 
                             // We need to substitute the replacement. 
+                            if (candidateValue == null) candidateValue = "";
+
                             variables = s.GetVariables(match.Response.Content);
                             if (variables.Count > 0)
                             {

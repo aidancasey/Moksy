@@ -369,8 +369,8 @@ namespace Moksy.Storage
                             contentAsString = new System.Text.ASCIIEncoding().GetString(task.Result);
                         }
 
-                        var matchingAssertions = FindMatchingConstraints(match.Condition.Constraints, contentAsString, GetDiscriminator(headers, match.Condition.ImdbHeaderDiscriminator));
-                        var noneMatchingAsserations = FindNoneMatchingConstraints(match.Condition.Constraints, contentAsString);
+                        var matchingAssertions = FindMatchingConstraints(match, match.Condition.Constraints, contentAsString, GetDiscriminator(headers, match.Condition.ImdbHeaderDiscriminator));
+                        var noneMatchingAsserations = FindNoneMatchingConstraints(match, match.Condition.Constraints, contentAsString);
                         if (match.Condition.Constraints.Count > 0 && matchingAssertions.Count() != match.Condition.Constraints.Count)
                         {
                             // This means that not every constraint that was specified was matched
@@ -394,11 +394,25 @@ namespace Moksy.Storage
                         {
                             // NOTE: IndexProperty != null implies that a uniqueness constraint has been applied. 
 
-                            // Can we add this new object?
-                            bool canAddObject = CanAddObject(match, path, match.Condition.IndexProperty, contentAsString, GetDiscriminator(headers, match.Condition.ImdbHeaderDiscriminator));
+                            // Can we add this new object? 
+                            // NOTE: We have a complication to deal with here. What if we do this:
+                            // PUT /Pet/Dog   , have a pattern of /Pet/{Kind},    but Json content of {"Kind":"Lizard"}
+                            // canAddObject just indicates whether we can add a new object using the value of the content; not with the value overridden. 
+                            bool exists = !CanAddObject(match, path, match.Condition.IndexProperty, contentAsString, GetDiscriminator(headers, match.Condition.ImdbHeaderDiscriminator));
+                            var routes = RouteParser.Parse(path, match.Condition.Pattern);
+                            var routeMatch = routes.FirstOrDefault(f => string.Compare(f.Name, match.Condition.IndexProperty.Replace("{", "").Replace("}", ""), false) == 0);
+                            if(routeMatch != null)
+                            {
+                                // This means that the index property is specified in the route. It is that value we use to determine whether it already exists. 
+                                var nestedMatch = FindMatch(match, path, routeMatch.Name, routeMatch.Value, GetDiscriminator(headers, match.Condition.ImdbHeaderDiscriminator));
+                                if (nestedMatch != null)
+                                {
+                                    exists = true;
+                                }
+                            }
                             if (match.Condition.Persistence == Persistence.NotExists)
                             {
-                                if (canAddObject)
+                                if (!exists)
                                 {
                                     // An object with this property does not exist, therefore we can add it. 
                                     var t = new Common.Match() { Simulation = match };
@@ -411,7 +425,7 @@ namespace Moksy.Storage
                             }
                             if (match.Condition.Persistence == Persistence.Exists)
                             {
-                                if (!canAddObject)
+                                if (exists)
                                 {
                                     // The property already exists because we can't add it. We therefore have a match. 
                                     var t = new Common.Match() { Simulation = match };
@@ -537,6 +551,11 @@ namespace Moksy.Storage
                 var resourceName = RouteParser.GetFirstResource(path, simulation.Condition.Pattern);
                 if (null == resourceName) return;
 
+                if (simulation.Condition.ContentKind == ContentKind.BodyParameters)
+                {
+                    content = ConvertBodyParametersToJson(content);
+                }
+
                 Database.AddJson(path, pattern, simulation.Condition.IndexProperty, content, discriminator);
             }
         }
@@ -559,10 +578,22 @@ namespace Moksy.Storage
 
             try
             {
-                JObject job = JsonConvert.DeserializeObject(json) as JObject;
-                if (null == job) return false;
-
-                var value = GetPropertyValueFromJson(json, propertyName);
+                string value = null;
+                if (simulation.Condition.ContentKind == ContentKind.Json)
+                {
+                    value = GetPropertyValueFromJson(json, propertyName);
+                    JObject job = JsonConvert.DeserializeObject(json) as JObject;
+                    if (null == job) return false;
+                
+                }
+                else if (simulation.Condition.ContentKind == ContentKind.BodyParameters)
+                {
+                    value = GetPropertyValueFromJson(ConvertBodyParametersToJson(json), propertyName);
+                }
+                else
+                {
+                    
+                }
                 return CanAdd(simulation, path, propertyName, value, discriminator);
             }
             catch
@@ -588,6 +619,8 @@ namespace Moksy.Storage
                 JObject job = JsonConvert.DeserializeObject(json) as JObject;
                 if (null == job) return null;
 
+                propertyName = propertyName.Replace("{", "").Replace("}", "");
+
                 var result = (job[propertyName] as JValue).Value.ToString();
                 if (result == null) return result;
 
@@ -598,6 +631,79 @@ namespace Moksy.Storage
                 // If this is invalid Json, return false;
                 return null;
             }
+        }
+
+
+
+        /// <summary>
+        /// Convert body parameters - from the content of a request (which will be encoded) - into Json.
+        /// </summary>
+        /// <param name="bodyParameters"></param>
+        /// <returns></returns>
+        public string ConvertBodyParametersToJson(string bodyParameters)
+        {
+            JObject job = new JObject();
+            var result = JsonConvert.SerializeObject(job);
+            if (string.IsNullOrEmpty(bodyParameters)) return result;
+
+            var pairs = bodyParameters.Split('&');
+            foreach (var pair in pairs)
+            {
+                var parts = pair.Split('=');
+                if (parts.Length == 1)
+                {
+                    job[parts[0]] = null;
+                }
+                else
+                {
+                    job[parts[0]] = RestSharp.Contrib.HttpUtility.UrlDecode(parts[1]);
+                }
+            }
+
+            result = JsonConvert.SerializeObject(job);
+            return result;
+        }
+
+
+
+        public string ConvertJsonToBodyParameters(string json)
+        {
+            return ConvertJsonToBodyParameters(json, true);
+        }
+
+        /// <summary>
+        /// Converts a Json object into Name=Value pairs and encode the values. 
+        /// </summary>
+        /// <param name="json">The json object to convert. If a property is not a primitive type, it will be converted as a string value. </param>
+        /// <param name="encode">If true, the return body parameters will be encoded so they are suitable for resubmission. </param>
+        /// <returns></returns>
+        public string ConvertJsonToBodyParameters(string json, bool encode)
+        {
+            if (string.IsNullOrEmpty(json)) return "";
+
+            List<string> result = new List<string>();
+            try
+            {
+                JObject job = JsonConvert.DeserializeObject(json) as JObject;
+                foreach (var j in job.Properties())
+                {
+                    var v = job[j.Name];
+                    var value = System.Convert.ToString(v);
+                    if (value != null && encode)
+                    {
+                        value = RestSharp.Contrib.HttpUtility.UrlEncode(value);
+                    }
+                    string pair = string.Format("{0}={1}", j.Name, value);
+                    result.Add(pair);
+                }
+            }
+            catch
+            {
+                return json;
+            }
+
+            var s = string.Join("&", result);
+            return s;
         }
 
 
@@ -646,7 +752,7 @@ namespace Moksy.Storage
                     if (null == jobject) continue;
 
                     // ASSERTION: We are valid Json. 
-                    var value = jobject[propertyName];
+                    var value = jobject[propertyName.Replace("{","").Replace("}", "")];
                     if (null == value && candidatePropertyValue == null) return jobject;
                     if (value == null) continue;
 
@@ -851,11 +957,16 @@ namespace Moksy.Storage
         /// </summary>
         /// <param name="content"></param>
         /// <returns></returns>
-        public IEnumerable<ConstraintBase> FindMatchingConstraints(IEnumerable<ConstraintBase> constraints, string content, string discriminator)
+        public IEnumerable<ConstraintBase> FindMatchingConstraints(Simulation simulation, IEnumerable<ConstraintBase> constraints, string content, string discriminator)
         {
             List<ConstraintBase> result = new List<ConstraintBase>();
             if (constraints == null) return result;
             if (content == null) return result;
+
+            if (simulation != null && simulation.Condition.ContentKind == ContentKind.BodyParameters)
+            {
+                content = ConvertBodyParametersToJson(content);
+            }
 
             JObject jobject = null;
             try
@@ -887,11 +998,16 @@ namespace Moksy.Storage
         /// </summary>
         /// <param name="content"></param>
         /// <returns></returns>
-        public IEnumerable<ConstraintBase> FindNoneMatchingConstraints(IEnumerable<ConstraintBase> constraints, string content)
+        public IEnumerable<ConstraintBase> FindNoneMatchingConstraints(Simulation simulation, IEnumerable<ConstraintBase> constraints, string content)
         {
             List<ConstraintBase> result = new List<ConstraintBase>();
             if (constraints == null) return result;
             if (content == null) return result;
+
+            if (simulation != null && simulation.Condition.ContentKind == ContentKind.BodyParameters)
+            {
+                content = ConvertBodyParametersToJson(content);
+            }
 
             JObject jobject = null;
             try

@@ -1012,6 +1012,20 @@ namespace Moksy.IntegrationTest
             Assert.AreEqual(System.Net.HttpStatusCode.LengthRequired, response.StatusCode);
             Assert.AreEqual(@"[{""Kind"":""OutOfRangeException"",""PropertyName"":""Kind"",""MinimumLength"":5}]", response.Content);
         }
+
+        [TestMethod]
+        public void OneMatchingViolationBetweenIsReturnedCustomResponsePut()
+        {
+            var between = new LengthBetween("Kind", 5, 8) { Response = @"{""Kind"":""OutOfRangeException"",""PropertyName"":""Kind"",""MinimumLength"":{MinimumLength}}" };
+
+            var simulation1 = Moksy.Common.SimulationFactory.When.I.Put().ToImdb("/Pet").AsJson().And.NotExists("{Kind}").With.Constraint(between).And.HasConstraintViolations().Then.Return.StatusCode(System.Net.HttpStatusCode.LengthRequired).With.Body("{violationResponses}").And.AddToImdb();
+            Proxy.Add(simulation1);
+
+            var response = Put("/Pet", @"{ ""Kind"" : ""Cat"", ""Name"":""Sir"" }");
+            Assert.AreEqual(System.Net.HttpStatusCode.LengthRequired, response.StatusCode);
+            Assert.AreEqual(@"[{""Kind"":""OutOfRangeException"",""PropertyName"":""Kind"",""MinimumLength"":5}]", response.Content);
+        }
+
         #endregion
 
         #region Start
