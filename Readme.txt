@@ -1,5 +1,6 @@
-MOKSY - V1.2.73 by Grey Ham (www.twitter.com/brek_it, www.brekit.com, www.havecomputerwillcode.com)
+MOKSY - V1.2.104 by Grey Ham (www.twitter.com/brek_it, www.brekit.com, www.havecomputerwillcode.com)
 ---------------------------------------------------------------------------------------------------
+
 
 
 What is Moksy?
@@ -181,6 +182,67 @@ Obviously, building up test data is part of the problem - you need to be able to
 Similarly with Delete. 
 
 PATCH is currently not supported for the Imdb. 
+
+
+
+Posting using Body Parameters:
+------------------------------
+By default, the following statement:
+
+	When.I.Post().ToImdb("/Pet").And.Exists("Kind").Then.Return.StatusCode(System.Net.HttpStatusCode.BadRequest);
+
+Will assume that the body content is send through as Json:
+
+	When.I.Post().ToImdb("/Pet").AsJson().And.Exists("Kind").Then.Return.StatusCode(System.Net.HttpStatusCode.BadRequest);
+
+However, it is now possible to specify BodyParameters as an option:
+
+	When.I.Post().ToImdb("/Pet").AsBodyParameters().And.Exists("Kind").Then.Return.StatusCode(System.Net.HttpStatusCode.BadRequest);
+
+That allows you to create in-memory databases when developing simple Forms applications by Posting to (for example) /Pet. 
+
+Typically, although you would want to Post() using Body Parameters it is likely you would want to retrieve using Json. Therefore, there are three values that can be specified in the .Body() response.
+The default {value} is always Json:
+
+	When.I.Get().FromImdb("/Pet('{Kind}')").AsJson().And.Exists("{Kind}").Then.Return.StatusCode(System.Net.HttpStatusCode.OK).With.Body("{value}");
+
+The other values are:
+
+	.Body("{valueAsJson"}");
+	.Body("{valueAsBodyParameters"}");				[the values will be encoded safely so they can be reissued immediately]
+	.Body("{valueAsBodyParametersNotEncoded"}");	[the values are not encoded]
+	
+
+
+Returning Binary Content:
+-------------------------
+To simplify creating interactive, mocked up forms with images and Imdbs, it is possible to return binary content. For example:
+
+	var bytes = System.IO.File.ReadAllBytes("the.Png");
+
+    var s = Moksy.Common.SimulationFactory.When.I.Get().From("/Pet/the.png").Then.Return.StatusCode(System.Net.HttpStatusCode.OK).With.Body(bytes).And.Header("Content-Type", "image/png");
+    Proxy.Add(s);
+
+	var response = Get("/Pet/the.png");
+	// response.RawBytes will contain the image information. 
+
+Navigating to http://localhost:10011/Pet/the.png from a browser will display the image. 
+
+
+
+File / Binary Content:
+----------------------
+Files can also be stored in their own Imdb. Use the .AsBinary() type for the Imdb. You will need to return the Location of the resource in the header (for example) - all created
+files have a {BinaryContentIdentity} variable created that you can set up as part of the response. 
+
+	var s = SimulationFactory.When.I.Post().ToImdb("/Storage").AsBinary().Then.AddToImdb().And.Return.StatusCode(System.Net.HttpStatusCode.Created).With.Header("Location", "{requestroot}/Storage/{BinaryContentIdentity}");
+	Proxy.Add(s);
+
+	s = SimulationFactory.When.I.Get().FromImdb("/Storage/{BinaryContentIdentity}").AsBinary().And.Exists("{BinaryContentIdentity}").Then.Return.StatusCode(System.Net.HttpStatusCode.OK);
+	Proxy.Add(s);
+
+Files must be posted as Multipart. Please see the 'FileTests' under 'Moksy.IntegrationTests' for examples on how to manage file storage. GET, POST, DELETE, PUT are supported. 
+
 
 
 Grouping By Header:

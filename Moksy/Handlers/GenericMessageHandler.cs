@@ -46,15 +46,22 @@ namespace Moksy.Handlers
                         Console.WriteLine(string.Format("{0}: {1}", header.Name, header.Value));
                     }
 
-                    ByteArrayContent content = request.Content as ByteArrayContent;
-                    string contentAsString = "";
-                    if (content != null)
+                    if (request.Content.IsMimeMultipartContent())
                     {
-                        var task = content.ReadAsByteArrayAsync();
-                        task.Wait();
+                        Console.WriteLine("The content is MultiPart so will not be dumped. ");
+                    }
+                    else
+                    {
+                        ByteArrayContent content = request.Content as ByteArrayContent;
+                        string contentAsString = "";
+                        if (content != null)
+                        {
+                            var task = content.ReadAsByteArrayAsync();
+                            task.Wait();
 
-                        contentAsString = new System.Text.ASCIIEncoding().GetString(task.Result);
-                        Console.WriteLine(contentAsString);
+                            contentAsString = new System.Text.ASCIIEncoding().GetString(task.Result);
+                            Console.WriteLine(contentAsString);
+                        }
                     }
                 }
                 catch
