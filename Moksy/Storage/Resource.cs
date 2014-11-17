@@ -18,14 +18,14 @@ namespace Moksy.Storage
         public Resource(string name)
         {
             this.Name = name;
-            Storage = new Dictionary<string, List<string>>();
+            Storage = new Dictionary<string, List<Entry>>();
         }
 
         /// <summary>
         /// Return the Data for the default (null, "") resource. 
         /// </summary>
         /// <returns></returns>
-        public List<string> Data()
+        public List<Entry> Data()
         {
             return Data(null);
         }
@@ -35,12 +35,12 @@ namespace Moksy.Storage
         /// </summary>
         /// <param name="discriminator"></param>
         /// <returns></returns>
-        public List<string> Data(string discriminator)
+        public List<Entry> Data(string discriminator)
         {
             if (discriminator == null) discriminator = "";
             if (!Storage.ContainsKey(discriminator))
             {
-                Storage[discriminator] = new List<string>();
+                Storage[discriminator] = new List<Entry>();
             }
 
             return Storage[discriminator];
@@ -54,6 +54,6 @@ namespace Moksy.Storage
         /// <summary>
         /// List of entries associated with this resource (Json)
         /// </summary>
-        private readonly Dictionary<string, List<string>> Storage;
+        private readonly Dictionary<string, List<Entry>> Storage;
     }
 }

@@ -63,6 +63,28 @@ namespace Moksy.IntegrationTest
             return response;
         }
 
+        protected RestSharp.IRestResponse PostFile(string url, string path)
+        {
+            RestSharp.IRestClient client = new RestSharp.RestClient(Root);
+            RestSharp.IRestRequest request = new RestSharp.RestRequest(url, RestSharp.Method.POST);
+
+            request.AddFile("Content", path);
+
+            var response = client.Execute(request);
+            return response;
+        }
+
+        protected RestSharp.IRestResponse PutFile(string url, string path)
+        {
+            RestSharp.IRestClient client = new RestSharp.RestClient(Root);
+            RestSharp.IRestRequest request = new RestSharp.RestRequest(url, RestSharp.Method.PUT);
+
+            request.AddFile("Content", path);
+
+            var response = client.Execute(request);
+            return response;
+        }
+
         protected RestSharp.IRestResponse Post(string url, object o)
         {
             var json = JsonConvert.SerializeObject(o);

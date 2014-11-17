@@ -50,7 +50,7 @@ namespace Moksy.Common
         /// </remarks>
         public SimulationResponse Body(byte[] content)
         {
-            ContentKind = Common.ContentKind.Octet;
+            ContentKind = Common.ContentKind.File;
             ContentAsBytes = content;
             return this;
         }

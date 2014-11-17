@@ -658,12 +658,22 @@ namespace Moksy.Common
         }
 
         /// <summary>
-        /// The content will be posted as Body Parameters. Use this where a 
+        /// The content will be posted as Body Parameters. Use this where the parameters are send via a Form Post (for example). 
         /// </summary>
         /// <returns></returns>
         public SimulationCondition AsBodyParameters()
         {
             ContentKind = Common.ContentKind.BodyParameters;
+            return this;
+        }
+
+        /// <summary>
+        /// The content will be posted as raw binary. Use this where files need to be uploaded and downloaded. 
+        /// </summary>
+        /// <returns></returns>
+        public SimulationCondition AsBinary()
+        {
+            ContentKind = Common.ContentKind.File;
             return this;
         }
 
@@ -675,7 +685,7 @@ namespace Moksy.Common
         /// <returns></returns>
         public SimulationCondition NotExists(string propertyName)
         {
-            if (ContentKind != Common.ContentKind.Json && ContentKind != Common.ContentKind.BodyParameters) { throw new System.InvalidOperationException("ERROR: NotExists can only be used with Json or BodyParameters. Use .AsJson() or .AsBodyParameters(). before the .NotExists call. "); }
+            if (ContentKind != Common.ContentKind.Json && ContentKind != Common.ContentKind.BodyParameters && ContentKind != Common.ContentKind.File) { throw new System.InvalidOperationException("ERROR: NotExists can only be used with Json or BodyParameters. Use .AsJson() or .AsBodyParameters() or .AsBinary(). before the .NotExists call. "); }
 
             Persistence = Common.Persistence.NotExists;
             IndexProperty = propertyName;
@@ -689,7 +699,7 @@ namespace Moksy.Common
         /// <returns></returns>
         public SimulationCondition Exists(string propertyName)
         {
-            if (ContentKind != Common.ContentKind.Json && ContentKind != Common.ContentKind.BodyParameters) { throw new System.InvalidOperationException("ERROR: Exists can only be used with Json or BodyParameters. Use .AsJson() or .AsBodyParameters(). before the .Exists call. "); }
+            if (ContentKind != Common.ContentKind.Json && ContentKind != Common.ContentKind.BodyParameters && ContentKind != Common.ContentKind.File) { throw new System.InvalidOperationException("ERROR: Exists can only be used with Json or BodyParameters or Binary. Use .AsJson() or .AsBodyParameters() or .AsBinary() before the .Exists call. "); }
 
             Persistence = Common.Persistence.Exists;
             IndexProperty = propertyName;

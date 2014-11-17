@@ -71,6 +71,7 @@
     <Compile Include="Routes\SimulationRoute.cs" />
     <Compile Include="SimulationUriParser.cs" />
     <Compile Include="Storage\Database.cs" />
+    <Compile Include="Storage\Entry.cs" />
     <Compile Include="Storage\Resource.cs" />
     <Compile Include="Storage\SimulationManager.cs" />
   </ItemGroup>

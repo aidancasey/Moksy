@@ -219,13 +219,7 @@ namespace Moksy.Common
             var match = Matches(condition, method);
             if (!match) return false;
 
-            match = MatchesBodyParameters(condition, content);
-            if (!match) return false;
-
             match = MatchesUrlParameters (condition, query);
-            if (!match) return false;
-
-            match = MatchesContentRules(condition, content);
             if (!match) return false;
 
             match = Matches(condition, path);
@@ -233,6 +227,15 @@ namespace Moksy.Common
 
             match = Matches(condition, headers);
             if (!match) return false;
+
+            if (condition.ContentKind != ContentKind.File)
+            {
+                match = MatchesBodyParameters(condition, content);
+                if (!match) return false;
+
+                match = MatchesContentRules(condition, content);
+                if (!match) return false;
+            }
 
             return true;
         }

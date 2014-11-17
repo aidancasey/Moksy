@@ -29,8 +29,8 @@ namespace Moksy.Common
         BodyParameters = 2,
 
         /// <summary>
-        /// The content 
+        /// File content.  
         /// </summary>
-        Octet = 3
+        File = 3
     }
 }

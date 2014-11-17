@@ -194,6 +194,34 @@ namespace Moksy.Storage
 
 
         /// <summary>
+        /// Look up an object given a path - such as /Pet('Dog'). 
+        /// </summary>
+        /// <param name="path">The raw path passed in via the request - ie: /Pet('Dog')</param>
+        /// <returns>Null if an object does not exist; otherwise, the JObject (json) of the object indexes by that property. </returns>
+        /// <remarks>This will look at all paths currently in the system (based on the method) 
+        /// </remarks>
+        public Entry GetEntryFromImdb(System.Net.Http.HttpMethod method, string path, string query, IEnumerable<Header> headers, string discriminator)
+        {
+            if (null == path) return null;
+            if (null == headers) headers = new List<Header>();
+
+            lock (Storage.SyncRoot)
+            {
+                var match = Match(method, path, query, headers, false, discriminator);
+                if (match == null) return null;
+
+                if (method == HttpMethod.Get)
+                {
+                    return GetEntryFromImdb(match, path, discriminator);
+                }
+            }
+
+            return null;
+        }
+
+
+
+        /// <summary>
         /// Return the object from the database given the existing simulation match and path. 
         /// </summary>
         /// <param name="match"></param>
@@ -227,6 +255,45 @@ namespace Moksy.Storage
 
                 var existingJson = FindMatch(path, match.Condition.Pattern, vars.First().Name, value, discriminator);
                 return existingJson;
+            }
+        }
+
+
+
+        /// <summary>
+        /// Return the object from the database given the existing simulation match and path. 
+        /// </summary>
+        /// <param name="match"></param>
+        /// <param name="path"></param>
+        /// <returns></returns>
+        public Entry GetEntryFromImdb(Simulation match, string path, string discriminator)
+        {
+            lock (Storage.SyncRoot)
+            {
+                var vars = new Substitution().GetVariables(match.Condition.Pattern);
+                if (vars.Count() == 0) return null;
+
+                // The path has placeholders such as /Get({id}). We need to pull out the resource.
+                var resourceName = RouteParser.GetFirstResource(path, match.Condition.Pattern);
+                if (null == resourceName) return null;
+
+                if (!Database.ContainsResource(path, match.Condition.Pattern)) return null;
+
+                Substitution s = new Substitution();
+                var regex = RouteParser.ConvertPatternToRegularExpression(match.Condition.Pattern);
+
+                System.Text.RegularExpressions.Regex rex = new System.Text.RegularExpressions.Regex(regex);
+                var result = rex.Match(path);
+                if (!result.Success) return null;
+
+                // TODO: We only get four matches back - the whole; the prefix; kind; stem. 
+                if (result.Groups.Count != 4) return null;
+
+                var value = path.Substring(result.Groups[2].Index, result.Groups[2].Length);
+                if (value == null) return null;
+
+                var matchEntry = FindMatchEntry(path, match.Condition.Pattern, vars.First().Name, value, discriminator);
+                return matchEntry;
             }
         }
 
@@ -305,7 +372,7 @@ namespace Moksy.Storage
             {
                 try
                 {
-                    var jobject = JsonConvert.DeserializeObject(e) as JObject;
+                    var jobject = JsonConvert.DeserializeObject(e.Json) as JObject;
                     if (null == jobject) continue;
 
                     // ASSERTION: We are valid Json. 
@@ -562,6 +629,31 @@ namespace Moksy.Storage
 
 
 
+        /// <summary>
+        /// Add the content to the end point (path) specified in the simulation. 
+        /// </summary>
+        /// <param name="simulation"></param>
+        /// <param name="path"></param>
+        /// <param name="content"></param>
+        public void AddToImdb(Simulation simulation, string path, string pattern, string content, byte[] binaryContent, string discriminator)
+        {
+            if (null == simulation) throw new System.ArgumentNullException("simulation");
+
+            lock (Storage.SyncRoot)
+            {
+                var resourceName = RouteParser.GetFirstResource(path, simulation.Condition.Pattern);
+                if (null == resourceName) return;
+
+                if (simulation.Condition.ContentKind == ContentKind.BodyParameters)
+                {
+                    content = ConvertBodyParametersToJson(content);
+                }
+
+                Database.AddJson(path, pattern, simulation.Condition.IndexProperty, content, binaryContent, discriminator);
+            }
+        }
+
+
 
         /// <summary>
         /// Return true if the object represented by Json can be added. False otherwise. If the property is not present in the Json,
@@ -748,7 +840,7 @@ namespace Moksy.Storage
             {
                 try
                 {
-                    var jobject = JsonConvert.DeserializeObject(e) as JObject;
+                    var jobject = JsonConvert.DeserializeObject(e.Json) as JObject;
                     if (null == jobject) continue;
 
                     // ASSERTION: We are valid Json. 
@@ -781,6 +873,33 @@ namespace Moksy.Storage
         /// <returns></returns>
         public JObject FindMatch(string path, string pattern, string propertyName, string propertyValue, string discriminator)
         {
+            var matchEntry = FindMatchEntry(path, pattern, propertyName, propertyValue, discriminator);
+            if (null == matchEntry) return null;
+
+            var jobject = JsonConvert.DeserializeObject(matchEntry.Json) as JObject;
+            var value = jobject[propertyName];
+            if (null == value && propertyValue == null) return jobject;
+            if (value == null) return null;
+
+            if (System.Convert.ToString((value as JValue).Value) == propertyValue)
+            {
+                return jobject;
+            }
+
+            return null;
+        }
+
+
+
+        /// <summary>
+        /// Find a match in the database using the path (typically: just the resource name), the propertyName that is used as the key and the propertyValue to match. 
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="propertyName"></param>
+        /// <param name="propertyValue"></param>
+        /// <returns></returns>
+        public Entry FindMatchEntry(string path, string pattern, string propertyName, string propertyValue, string discriminator)
+        {
             if (!Database.ContainsResource(path, pattern)) return null;
             if (null == propertyName) return null;
 
@@ -791,17 +910,17 @@ namespace Moksy.Storage
             {
                 try
                 {
-                    var jobject = JsonConvert.DeserializeObject(e) as JObject;
+                    var jobject = JsonConvert.DeserializeObject(e.Json) as JObject;
                     if (null == jobject) continue;
 
                     // ASSERTION: We are valid Json. 
                     var value = jobject[propertyName];
-                    if (null == value && propertyValue == null) return jobject;
+                    if (null == value && propertyValue == null) return e;
                     if (value == null) continue;
 
                     if (System.Convert.ToString((value as JValue).Value) == propertyValue)
                     {
-                        return jobject;
+                        return e;
                     }
                 }
                 catch (Exception)
@@ -834,7 +953,7 @@ namespace Moksy.Storage
 
             foreach (var p in resource.Data(discriminator))
             {
-                var key = GetPropertyValueFromJson(p, propertyName);
+                var key = GetPropertyValueFromJson(p.Json, propertyName);
                 if (null == key) continue;
 
                 result.Add(key);
@@ -893,7 +1012,7 @@ namespace Moksy.Storage
                 List<string> components = new List<string>();
                 foreach (var e in resource.Data(discriminator))
                 {
-                    components.Add(e);
+                    components.Add(e.Json);
                 }
                 var result = string.Join(",", components);
                 return result;

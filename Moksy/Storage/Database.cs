@@ -24,7 +24,12 @@ namespace Moksy.Storage
 
         public bool AddJson(string path, string pattern, string propertyName, string data)
         {
-            return AddJson(path, pattern, propertyName, data, null);
+            return AddJson(path, pattern, propertyName, data, new byte[0], null);
+        }
+
+        public bool AddJson(string path, string pattern, string propertyName, string data, string discriminator)
+        {
+            return AddJson(path, pattern, propertyName, data, new byte[0], discriminator);
         }
 
         /// <summary>
@@ -36,7 +41,7 @@ namespace Moksy.Storage
         /// <param name="data">The data to add. Can be null. </param>
         /// <param name="discriminator">Optional discriminator if multiple databases are allowed (ie: via the header)</param>
         /// <returns>true - Added; false - not added. </returns>
-        public bool AddJson(string path, string pattern, string propertyName, string data, string discriminator)
+        public bool AddJson(string path, string pattern, string propertyName, string data, byte[] binaryContent, string discriminator)
         {
             if (discriminator == null) discriminator = "";
 
@@ -71,7 +76,7 @@ namespace Moksy.Storage
                     resource.Data(discriminator).RemoveAt(existingIndex);
                 }
 
-                resource.Data(discriminator).Add(data);
+                resource.Data(discriminator).Add(new Entry() { Json = data, Bytes = binaryContent });
             }
 
             return true;
@@ -110,7 +115,7 @@ namespace Moksy.Storage
             var index = FindIndexOf(match, propertyName, value);
             if (index == -1) return null;
 
-            return match.Data(discriminator)[index];
+            return match.Data(discriminator)[index].Json;
         }
 
 
@@ -304,7 +309,7 @@ namespace Moksy.Storage
 
             foreach (var d in resource.Data(discriminator))
             {
-                JObject jobject = JsonConvert.DeserializeObject(d) as JObject;
+                JObject jobject = JsonConvert.DeserializeObject(d.Json) as JObject;
                 if (null == jobject) continue;
 
                 var currentValue = jobject[propertyName];

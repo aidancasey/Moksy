@@ -156,7 +156,7 @@ namespace Moksy.Test
         public void IsOctet()
         {
             var s = SimulationFactory.When.I.Post().ToImdb("/Endpoint").Then.Return.StatusCode(System.Net.HttpStatusCode.OK).With.Body(new byte[0]);
-            Assert.AreEqual(ContentKind.Octet, s.ContentKind);
+            Assert.AreEqual(ContentKind.File, s.ContentKind);
         }
     }
 }
