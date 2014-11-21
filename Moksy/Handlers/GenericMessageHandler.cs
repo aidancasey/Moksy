@@ -272,6 +272,8 @@ namespace Moksy.Handlers
                                     content = Storage.SimulationManager.Instance.ConvertJsonToBodyParameters(content);
                                 }
                             }
+                            if (content == null) content = "";
+
                             if (content != null)
                             {
                                 // We need to do substitution now... but only if the response content contains placeholders. 

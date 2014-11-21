@@ -103,6 +103,26 @@ namespace Moksy.Test
             Assert.AreEqual(14, position.Position);
         }
 
+        [TestMethod]
+        public void ExtractVariablesOpenedNotClosed()
+        {
+            var result = Substitution.GetVariables("{{myVar1}");
+            Assert.AreEqual(1, result.Count);
+
+            var position = result.FirstOrDefault(f => f.Name == "myVar1");
+            Assert.IsNotNull(position);
+        }
+
+        [TestMethod]
+        public void ExtractVariablesOpenedImmediatelyClosed()
+        {
+            var result = Substitution.GetVariables("{{myVar1}}");
+            Assert.AreEqual(1, result.Count);
+
+            var position = result.FirstOrDefault(f => f.Name == "myVar1");
+            Assert.IsNotNull(position);
+        }
+
 
         [TestMethod]
         public void SubstituteVariableFullString()
