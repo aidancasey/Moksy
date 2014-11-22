@@ -19,10 +19,7 @@ namespace Moksy.Common
         /// </summary>
         public SimulationResponse()
         {
-            HttpStatusCode = System.Net.HttpStatusCode.Unused;
-            ResponseHeadersStorage = new List<Header>();
-            VariablesStorage = new List<Variable>();
-            PropertiesStorage = new List<Property>();
+            SimulationResponseContent = new Common.SimulationResponseContent();
         }
 
         /// <summary>
@@ -39,7 +36,7 @@ namespace Moksy.Common
         /// </remarks>
         public SimulationResponse Body(string content)
         {
-            Content = content;
+            SimulationResponseContent.Content = content;
             return this;
         }
 
@@ -50,8 +47,8 @@ namespace Moksy.Common
         /// </remarks>
         public SimulationResponse Body(byte[] content)
         {
-            ContentKind = Common.ContentKind.File;
-            ContentAsBytes = content;
+            SimulationResponseContent.ContentKind = Common.ContentKind.File;
+            SimulationResponseContent.ContentAsBytes = content;
             return this;
         }
 
@@ -66,21 +63,15 @@ namespace Moksy.Common
         {
             if (null == o)
             {
-                Content = null;
+                SimulationResponseContent.Content = null;
             }
             else
             {
                 var json = JsonConvert.SerializeObject(o);
-                Content = json;
+                SimulationResponseContent.Content = json;
             }
             return this;
         }
-
-        /// <summary>
-        /// The type of content that is to be returned. Currently, if not Octet, it is assumed to be a string type. 
-        /// </summary>
-        [JsonProperty("contentKind")]
-        public ContentKind ContentKind { get; set; }
 
         /// <summary>
         /// Adds a single header that will be returned as part of the response. 
@@ -91,7 +82,7 @@ namespace Moksy.Common
         public SimulationResponse Header(string name, string value)
         {
             Header header = new Header(name, value);
-            ResponseHeadersStorage.Add(header);
+            SimulationResponseContent.ResponseHeadersStorage.Add(header);
             return this;
         }
 
@@ -103,7 +94,7 @@ namespace Moksy.Common
         public SimulationResponse Header(Header header)
         {
             if (null == header) return this;
-            ResponseHeadersStorage.Add(header);
+            SimulationResponseContent.ResponseHeadersStorage.Add(header);
             return this;
         }
 
@@ -115,7 +106,7 @@ namespace Moksy.Common
         public SimulationResponse Headers(IEnumerable<Header> headers)
         {
             if (null == headers) return this;
-            ResponseHeadersStorage.AddRange(headers);
+            SimulationResponseContent.ResponseHeadersStorage.AddRange(headers);
             return this;
         }
 
@@ -126,7 +117,7 @@ namespace Moksy.Common
         /// <returns></returns>
         public SimulationResponse StatusCode(System.Net.HttpStatusCode statusCode)
         {
-            this.HttpStatusCode = statusCode;
+            SimulationResponseContent.HttpStatusCode = statusCode;
             return this;
         }
 
@@ -138,74 +129,45 @@ namespace Moksy.Common
         {
             get
             {
-                var result = new List<Header>(ResponseHeadersStorage);
+                var result = new List<Header>(SimulationResponseContent.ResponseHeadersStorage);
                 return result;
             }
             set
             {
                 if (value == null)
                 {
-                    ResponseHeadersStorage = new List<Header>();
+                    SimulationResponseContent.ResponseHeadersStorage = new List<Header>();
                     return;
                 }
 
-                ResponseHeadersStorage.Clear();
-                ResponseHeadersStorage.AddRange(value);
+                SimulationResponseContent.ResponseHeadersStorage.Clear();
+                SimulationResponseContent.ResponseHeadersStorage.AddRange(value);
             }
         }
-        private List<Header> ResponseHeadersStorage;
 
-        [JsonProperty("requestHeaders")]
-        public Header[] ResponseHeadersForJson
-        {
-            get
-            {
-                return ResponseHeadersStorage.ToArray();
-            }
-            set
-            {
-                ResponseHeadersStorage = new List<Header>();
-                if (null == value) return;
-                ResponseHeadersStorage.AddRange(value);
-            }
-        }
 
         [JsonIgnore]
         public List<Variable> Variables
         {
             get
             {
-                var result = new List<Variable>(VariablesStorage);
+                var result = new List<Variable>(SimulationResponseContent.VariablesStorage);
                 return result;
             }
             set
             {
                 if (value == null)
                 {
-                    VariablesStorage = new List<Variable>();
+                    SimulationResponseContent.VariablesStorage = new List<Variable>();
                     return;
                 }
 
-                VariablesStorage.Clear();
-                VariablesStorage.AddRange(value);
+                SimulationResponseContent.VariablesStorage.Clear();
+                SimulationResponseContent.VariablesStorage.AddRange(value);
             }
         }
 
-        [JsonProperty("variables")]
-        public Variable[] VariablesForJson
-        {
-            get
-            {
-                return VariablesStorage.ToArray();
-            }
-            set
-            {
-                VariablesStorage = new List<Variable>();
-                if (null == value) return;
-                VariablesStorage.AddRange(value);
-            }
-        }
-        private List<Variable> VariablesStorage;
+
 
 
         /// <summary>
@@ -217,7 +179,7 @@ namespace Moksy.Common
         {
             if (null == name) return this;
             Variable v = new Variable(name);
-            VariablesStorage.Add(v);
+            SimulationResponseContent.VariablesStorage.Add(v);
             return this;
         }
 
@@ -231,7 +193,7 @@ namespace Moksy.Common
         {
             if (null == name) return this;
             Variable v = new Variable(name, value);
-            VariablesStorage.Add(v);
+            SimulationResponseContent.VariablesStorage.Add(v);
             return this;
         }
 
@@ -250,7 +212,7 @@ namespace Moksy.Common
         {
             if (null == name) return this;
             Property p = new Property(name, value);
-            PropertiesStorage.Add(p);
+            SimulationResponseContent.PropertiesStorage.Add(p);
             return this;
         }
 
@@ -261,38 +223,21 @@ namespace Moksy.Common
         {
             get
             {
-                var result = new List<Property>(PropertiesStorage);
+                var result = new List<Property>(SimulationResponseContent.PropertiesStorage);
                 return result;
             }
-            set
+            private set
             {
                 if (value == null)
                 {
-                    PropertiesStorage = new List<Property>();
+                    SimulationResponseContent.PropertiesStorage = new List<Property>();
                     return;
                 }
 
-                PropertiesStorage.Clear();
-                PropertiesStorage.AddRange(value);
+                SimulationResponseContent.PropertiesStorage.Clear();
+                SimulationResponseContent.PropertiesStorage.AddRange(value);
             }
         }
-
-        [JsonProperty("properties")]
-        public Property[] PropertiesForJson
-        {
-            get
-            {
-                return PropertiesStorage.ToArray();
-            }
-            set
-            {
-                PropertiesStorage = new List<Property>();
-                if (null == value) return;
-                PropertiesStorage.AddRange(value);
-            }
-        }
-        private List<Property> PropertiesStorage;
-
 
 
         /// <summary>
@@ -302,7 +247,7 @@ namespace Moksy.Common
         public Dictionary<string, string> CalculateVariables()
         {
             Dictionary<string, string> result = new Dictionary<string, string>();
-            foreach (var v in VariablesStorage)
+            foreach (var v in SimulationResponseContent.VariablesStorage)
             {
                 if (v.Kind == VariableKind.Guid)
                 {
@@ -335,16 +280,16 @@ namespace Moksy.Common
         {
             if (add == true)
             {
-                if (Simulation.Condition.IsImdb == false)
+                if (Simulation.Condition.SimulationConditionContent.IsImdb == false)
                 {
                     throw new System.InvalidOperationException(@"You can only specify AddToImdb() if the condition includes Imdb(). ie: When.I.Post().ToImdb(""/Endpoint"").Then.Return.StatusCode(Created).And.AddToImdb()");
                 }
-                if (Simulation.Condition.HttpMethod != HttpMethod.Post && Simulation.Condition.HttpMethod != HttpMethod.Put)
+                if (Simulation.Condition.SimulationConditionContent.HttpMethod != HttpMethod.Post && Simulation.Condition.SimulationConditionContent.HttpMethod != HttpMethod.Put)
                 {
                     throw new System.InvalidOperationException(@"You can only specify AddToImdb() for Post() and Put() Conditions. ");
                 }
             }
-            AddImdb = add;
+            SimulationResponseContent.AddImdb = add;
             return this;
         }
 
@@ -365,55 +310,14 @@ namespace Moksy.Common
         {
             if (remove == true)
             {
-                if (Simulation.Condition.IsImdb == false)
+                if (Simulation.Condition.SimulationConditionContent.IsImdb == false)
                 {
                     throw new System.InvalidOperationException(@"You can only specify RemoveFromImdb() if the condition includes Imdb(). ie: When.I.Delete().FromImdb(""/Endpoint"").With.Imdb().Then.Return.StatusCode(Created).And.RemoveFromImdb()");
                 }
             }
-            RemoveImdb = remove;
+            SimulationResponseContent.RemoveImdb = remove;
             return this;
         }
-
-        /// <summary>
-        /// Contains the text that will be returned in the response body for this simulation if ContentType == Text
-        /// </summary>
-        /// <remarks>We need much better control of this - currently, it is just serialized as a string. We need extra parameters such as returning raw
-        /// bytes; Unicode-encoded; and so forth. 
-        /// </remarks>
-        [JsonProperty(PropertyName = "content")]
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public string Content { get; set; }
-
-        /// <summary>
-        /// Contains the bytes that will be returned in the response body for this simulation if ContentType == Byte
-        /// </summary>
-        /// <remarks>We need much better control of this - currently, it is just serialized as a string. We need extra parameters such as returning raw
-        /// bytes; Unicode-encoded; and so forth. 
-        /// </remarks>
-        [JsonProperty(PropertyName = "contentAsBytes")]
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public Byte[] ContentAsBytes { get; set; }
-
-        /// <summary>
-        /// The status code that will be set by this response. 
-        /// </summary>
-        [JsonProperty(PropertyName = "statusCode")]
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public System.Net.HttpStatusCode HttpStatusCode { get; set; }
-
-        /// <summary>
-        /// If true, then the value that is Posted will be added to Imdb. It does not make sense to set this property if the operation is NOT post. 
-        /// </summary>
-        [JsonProperty(PropertyName = "addToImdb")]
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public bool AddImdb { get; set; }
-
-        /// <summary>
-        /// If true, then the value that is Deleted will be removed from the Imdb. It does not make sense to set this property if the operation is NOT delete. 
-        /// </summary>
-        [JsonProperty(PropertyName = "removeFromImdb")]
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public bool RemoveImdb { get; set; }
 
         /// <summary>
         /// Return ourselves; means we can write more fluent conditions. 
@@ -486,7 +390,7 @@ namespace Moksy.Common
             {
                 return SimulationStorage;
             }
-            set
+            protected internal set
             {
                 if (SimulationStorage != null) { throw new System.InvalidOperationException("The Simulation has already been set on this Response. A Simulation can only be set once. "); }
 
@@ -494,5 +398,12 @@ namespace Moksy.Common
             }
         }
         private Simulation SimulationStorage;
+
+
+
+        [JsonProperty(PropertyName="content")]
+        public SimulationResponseContent SimulationResponseContent {get;set;}
     }
+
+   
 }

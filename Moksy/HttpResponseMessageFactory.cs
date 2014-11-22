@@ -23,11 +23,11 @@ namespace Moksy
             var result = new HttpResponseMessage();
             if (response == null) return result;
 
-            result.StatusCode = response.HttpStatusCode;
+            result.StatusCode = response.SimulationResponseContent.HttpStatusCode;
 
-            if (response.Content != null)
+            if (response.SimulationResponseContent.Content != null)
             {
-                StringContent content = new StringContent(response.Content);
+                StringContent content = new StringContent(response.SimulationResponseContent.Content);
                 result.Content = content;
             }
 

@@ -80,7 +80,7 @@ namespace Moksy.Common
         /// <returns></returns>
         public Simulation Get()
         {
-            Condition.HttpMethod = HttpMethod.Get;
+            Condition.SimulationConditionContent.HttpMethod = HttpMethod.Get;
             return this;
         }
 
@@ -90,7 +90,7 @@ namespace Moksy.Common
         /// <returns></returns>
         public Simulation Delete()
         {
-            Condition.HttpMethod = HttpMethod.Delete;
+            Condition.SimulationConditionContent.HttpMethod = HttpMethod.Delete;
             return this;
         }
 
@@ -100,7 +100,7 @@ namespace Moksy.Common
         /// <returns></returns>
         public Simulation Post()
         {
-            Condition.HttpMethod = HttpMethod.Post;
+            Condition.SimulationConditionContent.HttpMethod = HttpMethod.Post;
             return this;
         }
 
@@ -110,7 +110,7 @@ namespace Moksy.Common
         /// <returns></returns>
         public Simulation Put()
         {
-            Condition.HttpMethod = HttpMethod.Put;
+            Condition.SimulationConditionContent.HttpMethod = HttpMethod.Put;
             return this;
         }
 
@@ -120,7 +120,7 @@ namespace Moksy.Common
         /// <returns></returns>
         public Simulation Head()
         {
-            Condition.HttpMethod = HttpMethod.Head;
+            Condition.SimulationConditionContent.HttpMethod = HttpMethod.Head;
             return this;
         }
 
@@ -130,7 +130,7 @@ namespace Moksy.Common
         /// <returns></returns>
         public Simulation Options()
         {
-            Condition.HttpMethod = HttpMethod.Options;
+            Condition.SimulationConditionContent.HttpMethod = HttpMethod.Options;
             return this;
         }
 
@@ -140,7 +140,7 @@ namespace Moksy.Common
         /// <returns></returns>
         public Simulation Trace()
         {
-            Condition.HttpMethod = HttpMethod.Trace;
+            Condition.SimulationConditionContent.HttpMethod = HttpMethod.Trace;
             return this;
         }
 
@@ -152,11 +152,11 @@ namespace Moksy.Common
         public SimulationCondition To(string path)
         {
             // If no method has been set, we throw an exception - we have to specify To() first. 
-            if (Condition.HttpMethod == null)
+            if (Condition.SimulationConditionContent.HttpMethod == null)
             {
                 throw new System.InvalidOperationException(@"ERROR: You can only call To(path) after you have specified one of the HttpVerbs. ie: When.I.Post().To(""Endpoint"")");
             }
-            Condition.Pattern = path;
+            Condition.SimulationConditionContent.Pattern = path;
             return Condition;
         }
 
@@ -168,8 +168,8 @@ namespace Moksy.Common
         public SimulationCondition ToImdb(string path)
         {
             To(path);
-            Condition.IsImdb = true;
-            Condition.ContentKind = ContentKind.Json;
+            Condition.SimulationConditionContent.IsImdb = true;
+            Condition.SimulationConditionContent.ContentKind = ContentKind.Json;
             return Condition;
         }
 
@@ -181,9 +181,9 @@ namespace Moksy.Common
         public SimulationCondition ToImdb(string path, string discriminator)
         {
             To(path);
-            Condition.ImdbHeaderDiscriminator = discriminator;
-            Condition.IsImdb = true;
-            Condition.ContentKind = ContentKind.Json;
+            Condition.SimulationConditionContent.ImdbHeaderDiscriminator = discriminator;
+            Condition.SimulationConditionContent.IsImdb = true;
+            Condition.SimulationConditionContent.ContentKind = ContentKind.Json;
             return Condition;
         }
 
@@ -196,11 +196,11 @@ namespace Moksy.Common
         public SimulationCondition From(string path)
         {
             // If no method has been set, we throw an exception - we have to specify From() first. 
-            if (Condition.HttpMethod == null)
+            if (Condition.SimulationConditionContent.HttpMethod == null)
             {
                 throw new System.InvalidOperationException(@"ERROR: You can only call From(path) after you have specified one of the HttpVerbs. ie: When.I.Post().To(""Endpoint"")");
             }
-            Condition.Pattern = path;
+            Condition.SimulationConditionContent.Pattern = path;
             return Condition;
         }
 
@@ -212,8 +212,8 @@ namespace Moksy.Common
         public SimulationCondition FromImdb(string path)
         {
             From(path);
-            Condition.IsImdb = true;
-            Condition.ContentKind = ContentKind.Json;
+            Condition.SimulationConditionContent.IsImdb = true;
+            Condition.SimulationConditionContent.ContentKind = ContentKind.Json;
             return Condition;
         }
 
@@ -225,9 +225,9 @@ namespace Moksy.Common
         public SimulationCondition FromImdb(string path, string discriminator)
         {
             From(path);
-            Condition.ImdbHeaderDiscriminator = discriminator;
-            Condition.IsImdb = true;
-            Condition.ContentKind = ContentKind.Json;
+            Condition.SimulationConditionContent.ImdbHeaderDiscriminator = discriminator;
+            Condition.SimulationConditionContent.IsImdb = true;
+            Condition.SimulationConditionContent.ContentKind = ContentKind.Json;
             return Condition;
         }
 

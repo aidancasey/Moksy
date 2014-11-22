@@ -19,9 +19,8 @@ namespace Moksy.Common
         /// </summary>
         public SimulationCondition()
         {
-            Repeat = Int64.MaxValue;
+            SimulationConditionContent = new Common.SimulationConditionContent();
         }
-
 
         /// <summary>
         /// Adds a single conditional parameter to the request. The parameter must exist (default: in the body, as a name=value pair. 
@@ -32,7 +31,7 @@ namespace Moksy.Common
         public SimulationCondition Parameter(string name, string value)
         {
             Parameter p = new Parameter(name, value);
-            ParametersStorage.Add(p);
+            SimulationConditionContent.ParametersStorage.Add(p);
             return this;
         }
 
@@ -46,7 +45,7 @@ namespace Moksy.Common
         public SimulationCondition Parameter(string name, string value, ParameterType parameterType)
         {
             Parameter p = new Parameter(name, value) { ParameterType = parameterType };
-            ParametersStorage.Add(p);
+            SimulationConditionContent.ParametersStorage.Add(p);
             return this;
         }
 
@@ -61,7 +60,7 @@ namespace Moksy.Common
             if ((comparison & ComparisonType.NotContains) != 0) throw new System.InvalidOperationException("You must use NotExists instead of NotContains for Parameter checking. ");
 
             Parameter p = new Parameter(name, value, comparison);
-            ParametersStorage.Add(p);
+            SimulationConditionContent.ParametersStorage.Add(p);
             return this;
         }
 
@@ -78,7 +77,7 @@ namespace Moksy.Common
             if ((comparison & ComparisonType.NotContains) != 0) throw new System.InvalidOperationException("You must use NotExists instead of NotContains for Parameter checking. ");
 
             Parameter p = new Parameter(name, value, comparison) { ParameterType = parameterType };
-            ParametersStorage.Add(p);
+            SimulationConditionContent.ParametersStorage.Add(p);
             return this;
         }
 
@@ -90,7 +89,7 @@ namespace Moksy.Common
         public SimulationCondition Parameter(string name)
         {
             Parameter p = new Parameter(name);
-            ParametersStorage.Add(p);
+            SimulationConditionContent.ParametersStorage.Add(p);
             return this;
         }
 
@@ -102,7 +101,7 @@ namespace Moksy.Common
         public SimulationCondition Parameter(string name, ParameterType parameterType)
         {
             Parameter p = new Parameter(name, parameterType);
-            ParametersStorage.Add(p);
+            SimulationConditionContent.ParametersStorage.Add(p);
             return this;
         }
 
@@ -114,7 +113,7 @@ namespace Moksy.Common
         public SimulationCondition Parameter(string name, ComparisonType comparison, ParameterType parameterType)
         {
             Parameter p = new Parameter(name, comparison, parameterType);
-            ParametersStorage.Add(p);
+            SimulationConditionContent.ParametersStorage.Add(p);
             return this;
         }
 
@@ -129,7 +128,7 @@ namespace Moksy.Common
             if ((comparison & ComparisonType.NotContains) != 0) throw new System.InvalidOperationException("You must use NotExists instead of NotContains for Parameter checking. ");
 
             Parameter p = new Parameter(name, comparison);
-            ParametersStorage.Add(p);
+            SimulationConditionContent.ParametersStorage.Add(p);
             return this;
         }
 
@@ -141,7 +140,7 @@ namespace Moksy.Common
         public SimulationCondition Contains(string content)
         {
             ContentRule rule = new ContentRule(content);
-            ContainsStorage.Add(rule);
+            SimulationConditionContent.ContainsStorage.Add(rule);
             return this;
         }
 
@@ -155,7 +154,7 @@ namespace Moksy.Common
             if ((comparison & ComparisonType.NotExists) != 0) throw new System.InvalidOperationException("You must use NotContains instead of NotExists for Contains checking. ");
 
             ContentRule rule = new ContentRule(content, comparison);
-            ContainsStorage.Add(rule);
+            SimulationConditionContent.ContainsStorage.Add(rule);
             return this;
         }
 
@@ -168,7 +167,7 @@ namespace Moksy.Common
         public SimulationCondition Contains(string content, bool caseSensitive)
         {
             ContentRule rule = new ContentRule(content, caseSensitive);
-            ContainsStorage.Add(rule);
+            SimulationConditionContent.ContainsStorage.Add(rule);
             return this;
         }
 
@@ -181,7 +180,7 @@ namespace Moksy.Common
         public SimulationCondition Header(string name, string value)
         {
             Header header = new Header(name, value);
-            RequestHeadersStorage.Add(header);
+            SimulationConditionContent.RequestHeadersStorage.Add(header);
             return this;
         }
 
@@ -193,7 +192,7 @@ namespace Moksy.Common
         public SimulationCondition Header(string name)
         {
             Header header = new Header(name);
-            RequestHeadersStorage.Add(header);
+            SimulationConditionContent.RequestHeadersStorage.Add(header);
             return this;
         }
 
@@ -207,7 +206,7 @@ namespace Moksy.Common
         public SimulationCondition Header(string name, Moksy.Common.Persistence persistence)
         {
             Header header = new Header(name, persistence);
-            RequestHeadersStorage.Add(header);
+            SimulationConditionContent.RequestHeadersStorage.Add(header);
             return this;
         }
 
@@ -220,7 +219,7 @@ namespace Moksy.Common
         public SimulationCondition Header(string name, ComparisonType comparison)
         {
             Header header = new Header(name, comparison);
-            RequestHeadersStorage.Add(header);
+            SimulationConditionContent.RequestHeadersStorage.Add(header);
             return this;
         }
 
@@ -235,7 +234,7 @@ namespace Moksy.Common
         public SimulationCondition Header(string name, string value, Moksy.Common.Persistence persistence)
         {
             Header header = new Header(name, value, persistence);
-            RequestHeadersStorage.Add(header);
+            SimulationConditionContent.RequestHeadersStorage.Add(header);
             return this;
         }
 
@@ -249,7 +248,7 @@ namespace Moksy.Common
         public SimulationCondition Header(string name, string value, ComparisonType comparison)
         {
             Header header = new Header(name, value, comparison);
-            RequestHeadersStorage.Add(header);
+            SimulationConditionContent.RequestHeadersStorage.Add(header);
             return this;
         }
 
@@ -261,7 +260,7 @@ namespace Moksy.Common
         public SimulationCondition Header(Header header)
         {
             if (null == header) return this;
-            RequestHeadersStorage.Add(header);
+            SimulationConditionContent.RequestHeadersStorage.Add(header);
             return this;
         }
 
@@ -273,7 +272,7 @@ namespace Moksy.Common
         public SimulationCondition Headers(IEnumerable<Header> headers)
         {
             if (null == headers) return this;
-            RequestHeadersStorage.AddRange(headers);
+            SimulationConditionContent.RequestHeadersStorage.AddRange(headers);
             return this;
         }
 
@@ -284,8 +283,8 @@ namespace Moksy.Common
         /// <returns></returns>
         public SimulationCondition Get(string path)
         {
-            Pattern = path;
-            HttpMethod = System.Net.Http.HttpMethod.Get;
+            SimulationConditionContent.Pattern = path;
+            SimulationConditionContent.HttpMethod = System.Net.Http.HttpMethod.Get;
             return this;
         }
 
@@ -296,8 +295,8 @@ namespace Moksy.Common
         /// <returns></returns>
         public SimulationCondition Delete(string path)
         {
-            Pattern = path;
-            HttpMethod = System.Net.Http.HttpMethod.Delete;
+            SimulationConditionContent.Pattern = path;
+            SimulationConditionContent.HttpMethod = System.Net.Http.HttpMethod.Delete;
             return this;
         }
 
@@ -308,8 +307,8 @@ namespace Moksy.Common
         /// <returns></returns>
         public SimulationCondition Post(string path)
         {
-            Pattern = path;
-            HttpMethod = System.Net.Http.HttpMethod.Post;
+            SimulationConditionContent.Pattern = path;
+            SimulationConditionContent.HttpMethod = System.Net.Http.HttpMethod.Post;
             return this;
         }
 
@@ -320,8 +319,8 @@ namespace Moksy.Common
         /// <returns></returns>
         public SimulationCondition Put(string path)
         {
-            Pattern = path;
-            HttpMethod = System.Net.Http.HttpMethod.Put;
+            SimulationConditionContent.Pattern = path;
+            SimulationConditionContent.HttpMethod = System.Net.Http.HttpMethod.Put;
             return this;
         }
 
@@ -332,8 +331,8 @@ namespace Moksy.Common
         /// <returns></returns>
         public SimulationCondition Trace(string path)
         {
-            Pattern = path;
-            HttpMethod = System.Net.Http.HttpMethod.Trace;
+            SimulationConditionContent.Pattern = path;
+            SimulationConditionContent.HttpMethod = System.Net.Http.HttpMethod.Trace;
             return this;
         }
 
@@ -344,8 +343,8 @@ namespace Moksy.Common
         /// <returns></returns>
         public SimulationCondition Options(string path)
         {
-            Pattern = path;
-            HttpMethod = System.Net.Http.HttpMethod.Options;
+            SimulationConditionContent.Pattern = path;
+            SimulationConditionContent.HttpMethod = System.Net.Http.HttpMethod.Options;
             return this;
         }
 
@@ -356,18 +355,10 @@ namespace Moksy.Common
         /// <returns></returns>
         public SimulationCondition Head(string path)
         {
-            Pattern = path;
-            HttpMethod = System.Net.Http.HttpMethod.Head;
+            SimulationConditionContent.Pattern = path;
+            SimulationConditionContent.HttpMethod = System.Net.Http.HttpMethod.Head;
             return this;
         }
-
-        /// <summary>
-        /// If not null, then anything posted to the Imdb will be grouped by the value of the header provided. The header 
-        /// must be part of the submission 
-        /// </summary>
-        [JsonProperty(PropertyName = "imdbDiscriminator")]
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public string ImdbHeaderDiscriminator { get; set; }
 
         /// <summary>
         /// Returns true if this condition is grouped by a header value. If true, then ImdbHeaderGroup will contain the header that 
@@ -379,25 +370,11 @@ namespace Moksy.Common
         {
             get
             {
-                if (!IsImdb) return false;
+                if (!SimulationConditionContent.IsImdb) return false;
 
-                return ImdbHeaderDiscriminator != null && ImdbHeaderDiscriminator != "";
+                return SimulationConditionContent.ImdbHeaderDiscriminator != null && SimulationConditionContent.ImdbHeaderDiscriminator != "";
             }
         }
-
-        /// <summary>
-        /// The path / route / pattern that must be matched for this simulation to occur. ie: /Pet, or /Pet/{Kind} etc.
-        /// </summary>
-        [JsonProperty(PropertyName = "pattern")]
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public string Pattern { get; set; }
-
-        /// <summary>
-        /// The HttpMethod the Request applies to. Typically: Get, Post, Delete. 
-        /// </summary>
-        [JsonProperty("httpMethod")]
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public System.Net.Http.HttpMethod HttpMethod { get; set; }
 
         /// <summary>
         /// A collection of headers that must match on the Request. 
@@ -407,34 +384,19 @@ namespace Moksy.Common
         {
             get
             {
-                var result = new List<Header>(RequestHeadersStorage);
+                var result = new List<Header>(SimulationConditionContent.RequestHeadersStorage);
                 return result;
             }
-            set
+            private set
             {
                 if (value == null)
                 {
-                    RequestHeadersStorage = new List<Header>();
+                    SimulationConditionContent.RequestHeadersStorage = new List<Header>();
                     return;
                 }
 
-                RequestHeadersStorage.Clear();
-                RequestHeadersStorage.AddRange(value);
-            }
-        }
-
-        [JsonProperty("requestHeaders")]
-        public Header[] RequestHeadersForJson
-        {
-            get
-            {
-                return RequestHeadersStorage.ToArray();
-            }
-            set
-            {
-                RequestHeadersStorage = new List<Header>();
-                if (null == value) return;
-                RequestHeadersStorage.AddRange(value);
+                SimulationConditionContent.RequestHeadersStorage.Clear();
+                SimulationConditionContent.RequestHeadersStorage.AddRange(value);
             }
         }
 
@@ -443,76 +405,42 @@ namespace Moksy.Common
         {
             get
             {
-                var result = new List<Parameter>(ParametersStorage);
+                var result = new List<Parameter>(SimulationConditionContent.ParametersStorage);
                 return result;
             }
-            set
+            private set
             {
                 if (value == null)
                 {
-                    ParametersStorage = new List<Parameter>();
+                    SimulationConditionContent.ParametersStorage = new List<Parameter>();
                     return;
                 }
 
-                ParametersStorage.Clear();
-                ParametersStorage.AddRange(value);
+                SimulationConditionContent.ParametersStorage.Clear();
+                SimulationConditionContent.ParametersStorage.AddRange(value);
             }
         }
-
-        [JsonProperty("parameters")]
-        public Parameter[] ParametersForJson
-        {
-            get
-            {
-                return ParametersStorage.ToArray();
-            }
-            set
-            {
-                ParametersStorage = new List<Parameter>();
-                if (null == value) return;
-                ParametersStorage.AddRange(value);
-            }
-        }
-
-
 
         [JsonIgnore]
         public List<ContentRule> ContentRules
         {
             get
             {
-                var result = new List<ContentRule>(ContainsStorage);
+                var result = new List<ContentRule>(SimulationConditionContent.ContainsStorage);
                 return result;
             }
-            set
+            private set
             {
                 if (value == null)
                 {
-                    ContainsStorage = new List<ContentRule>();
+                    SimulationConditionContent.ContainsStorage = new List<ContentRule>();
                     return;
                 }
 
-                ContainsStorage.Clear();
-                ContainsStorage.AddRange(value);
+                SimulationConditionContent.ContainsStorage.Clear();
+                SimulationConditionContent.ContainsStorage.AddRange(value);
             }
         }
-
-        [JsonProperty("contains")]
-        public ContentRule[] ContainsForJson
-        {
-            get
-            {
-                return ContainsStorage.ToArray();
-            }
-            set
-            {
-                ContainsStorage = new List<ContentRule>();
-                if (null == value) return;
-                ContainsStorage.AddRange(value);
-            }
-        }
-
-
 
         /// <summary>
         /// Add an assertion to the collection. 
@@ -522,7 +450,7 @@ namespace Moksy.Common
         public SimulationCondition Constraint(ConstraintBase b)
         {
             if (null == b) return this;
-            ConstraintStorage.Add(b);
+            SimulationConditionContent.ConstraintStorage.Add(b);
             return this;
         }
 
@@ -537,12 +465,10 @@ namespace Moksy.Common
             foreach (var b in bs)
             {
                 if (null == b) continue;
-                ConstraintStorage.Add(b);
+                SimulationConditionContent.ConstraintStorage.Add(b);
             }
             return this;
         }
-
-
 
         /// <summary>
         /// Indicates that this rule will be matched only if there are one or more violations in the Constraint evaluations. This can be used to return a collection of error
@@ -551,12 +477,10 @@ namespace Moksy.Common
         /// <returns></returns>
         public SimulationCondition HasConstraintViolations()
         {
-            HasAnyConstraintViolations = true;
+            SimulationConditionContent.HasAnyConstraintViolations = true;
             return this;
         }
         
-
-
         /// <summary>
         /// Any constraints to be applied to this condition. 
         /// </summary>
@@ -565,39 +489,21 @@ namespace Moksy.Common
         {
             get
             {
-                var result = new List<ConstraintBase>(ConstraintStorage);
+                var result = new List<ConstraintBase>(SimulationConditionContent.ConstraintStorage);
                 return result;
             }
-            set
+            private set
             {
                 if (value == null)
                 {
-                    ConstraintStorage = new List<ConstraintBase>();
+                    SimulationConditionContent.ConstraintStorage = new List<ConstraintBase>();
                     return;
                 }
 
-                ConstraintStorage.Clear();
-                ConstraintStorage.AddRange(value);
+                SimulationConditionContent.ConstraintStorage.Clear();
+                SimulationConditionContent.ConstraintStorage.AddRange(value);
             }
         }
-
-        [JsonProperty("constraints")]
-        public ConstraintBase[] ConstraintsForJson
-        {
-            get
-            {
-                return ConstraintStorage.ToArray();
-            }
-            set
-            {
-                ConstraintStorage = new List<ConstraintBase>();
-                if (null == value) return;
-                ConstraintStorage.AddRange(value);
-            }
-        }
-
-        [JsonProperty(PropertyName = "hasConstraintViolations")]
-        public bool HasAnyConstraintViolations { get; set; }
 
         /// <summary>
         /// Indicates that the object referenced using a {placeholder} in the Path exists as part of the condition. 
@@ -605,15 +511,15 @@ namespace Moksy.Common
         /// <returns></returns>
         public SimulationCondition Exists()
         {
-            if (ContentKind != Common.ContentKind.Json) { throw new System.InvalidOperationException("ERROR: Exists can only be used with Json. Use .AsJson(). before the .Exists call. "); }
+            if (SimulationConditionContent.ContentKind != Common.ContentKind.Json) { throw new System.InvalidOperationException("ERROR: Exists can only be used with Json. Use .AsJson(). before the .Exists call. "); }
             
             Substitution s = new Substitution();
-            var vars = s.GetVariables(Pattern);
+            var vars = s.GetVariables(SimulationConditionContent.Pattern);
             if (vars.Count() != 1) { throw new System.InvalidOperationException(@"ERROR: To use Exists(), the Path parameter must contain at least one placeholder. ie: When.I.Get().From(""/Endpoint({id})"")"); }
 
-            IndexProperty = string.Format("{0}", vars.First().Name);
+            SimulationConditionContent.IndexProperty = string.Format("{0}", vars.First().Name);
 
-            Persistence = Common.Persistence.Exists;
+            SimulationConditionContent.Persistence = Common.Persistence.Exists;
             return this;
         }
 
@@ -623,15 +529,15 @@ namespace Moksy.Common
         /// <returns></returns>
         public SimulationCondition NotExists()
         {
-            if (ContentKind != Common.ContentKind.Json) { throw new System.InvalidOperationException("ERROR: NotExists can only be used with Json. Use .AsJson(). before the .NotExists call. "); }
+            if (SimulationConditionContent.ContentKind != Common.ContentKind.Json) { throw new System.InvalidOperationException("ERROR: NotExists can only be used with Json. Use .AsJson(). before the .NotExists call. "); }
 
             Substitution s = new Substitution();
-            var vars = s.GetVariables(Pattern);
+            var vars = s.GetVariables(SimulationConditionContent.Pattern);
             if (vars.Count() != 1) { throw new System.InvalidOperationException(@"ERROR: To use Exists(), the Path parameter must contain at least one placeholder. ie: When.I.Get().From(""/Endpoint({id})"")"); }
 
-            IndexProperty = string.Format("{0}", vars.First().Name);
+            SimulationConditionContent.IndexProperty = string.Format("{0}", vars.First().Name);
 
-            Persistence = Common.Persistence.NotExists;
+            SimulationConditionContent.Persistence = Common.Persistence.NotExists;
             return this;
         }
 
@@ -641,9 +547,9 @@ namespace Moksy.Common
         /// <returns></returns>
         public SimulationCondition AsText()
         {
-            if (IsImdb) { throw new System.InvalidOperationException("ERROR: The operation is associated with an Imdb. AsJson() is inferred. You cannot use AsText(). "); }
+            if (SimulationConditionContent.IsImdb) { throw new System.InvalidOperationException("ERROR: The operation is associated with an Imdb. AsJson() is inferred. You cannot use AsText(). "); }
 
-            ContentKind = Common.ContentKind.Text;
+            SimulationConditionContent.ContentKind = Common.ContentKind.Text;
             return this;
         }
 
@@ -653,7 +559,7 @@ namespace Moksy.Common
         /// <returns></returns>
         public SimulationCondition AsJson()
         {
-            ContentKind = Common.ContentKind.Json;
+            SimulationConditionContent.ContentKind = Common.ContentKind.Json;
             return this;
         }
 
@@ -663,7 +569,7 @@ namespace Moksy.Common
         /// <returns></returns>
         public SimulationCondition AsBodyParameters()
         {
-            ContentKind = Common.ContentKind.BodyParameters;
+            SimulationConditionContent.ContentKind = Common.ContentKind.BodyParameters;
             return this;
         }
 
@@ -673,7 +579,7 @@ namespace Moksy.Common
         /// <returns></returns>
         public SimulationCondition AsBinary()
         {
-            ContentKind = Common.ContentKind.File;
+            SimulationConditionContent.ContentKind = Common.ContentKind.File;
             return this;
         }
 
@@ -685,10 +591,10 @@ namespace Moksy.Common
         /// <returns></returns>
         public SimulationCondition NotExists(string propertyName)
         {
-            if (ContentKind != Common.ContentKind.Json && ContentKind != Common.ContentKind.BodyParameters && ContentKind != Common.ContentKind.File) { throw new System.InvalidOperationException("ERROR: NotExists can only be used with Json or BodyParameters. Use .AsJson() or .AsBodyParameters() or .AsBinary(). before the .NotExists call. "); }
+            if (SimulationConditionContent.ContentKind != Common.ContentKind.Json && SimulationConditionContent.ContentKind != Common.ContentKind.BodyParameters && SimulationConditionContent.ContentKind != Common.ContentKind.File) { throw new System.InvalidOperationException("ERROR: NotExists can only be used with Json or BodyParameters. Use .AsJson() or .AsBodyParameters() or .AsBinary(). before the .NotExists call. "); }
 
-            Persistence = Common.Persistence.NotExists;
-            IndexProperty = propertyName;
+            SimulationConditionContent.Persistence = Common.Persistence.NotExists;
+            SimulationConditionContent.IndexProperty = propertyName;
             return this;
         }
 
@@ -699,44 +605,12 @@ namespace Moksy.Common
         /// <returns></returns>
         public SimulationCondition Exists(string propertyName)
         {
-            if (ContentKind != Common.ContentKind.Json && ContentKind != Common.ContentKind.BodyParameters && ContentKind != Common.ContentKind.File) { throw new System.InvalidOperationException("ERROR: Exists can only be used with Json or BodyParameters or Binary. Use .AsJson() or .AsBodyParameters() or .AsBinary() before the .Exists call. "); }
+            if (SimulationConditionContent.ContentKind != Common.ContentKind.Json && SimulationConditionContent.ContentKind != Common.ContentKind.BodyParameters && SimulationConditionContent.ContentKind != Common.ContentKind.File) { throw new System.InvalidOperationException("ERROR: Exists can only be used with Json or BodyParameters or Binary. Use .AsJson() or .AsBodyParameters() or .AsBinary() before the .Exists call. "); }
 
-            Persistence = Common.Persistence.Exists;
-            IndexProperty = propertyName;
+            SimulationConditionContent.Persistence = Common.Persistence.Exists;
+            SimulationConditionContent.IndexProperty = propertyName;
             return this;
         }
-
-        /// <summary>
-        /// If not null, contains the name of the property that is used for uniqueness on Post operations and as a key on Delete, Put, Patch and Get operations. 
-        /// </summary>
-        [JsonProperty("indexProperty")]
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public string IndexProperty { get; set; }
-
-        /// <summary>
-        /// The number of times this condition is to repeat before it is discarded. 
-        /// </summary>
-        [JsonProperty("repeat")]
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public long Repeat { get; set; }
-
-        /// <summary>
-        /// The kind of content this condition will send as. ie: Text, or Json. 
-        /// </summary>
-        [JsonProperty("contentKind")]
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public ContentKind ContentKind { get; set; }
-
-        [JsonProperty("persistence")]
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public Persistence Persistence { get; set; }
-
-        /// <summary>
-        /// If true, the response includes adding this entry to the in memory database or removing it. 
-        /// </summary>
-        [JsonProperty(PropertyName = "isImdb")]
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public bool IsImdb { get; set; }
 
         /// <summary>
         /// The condition will evaluate exactly once. The simulation will then be removed from Moksy. 
@@ -744,7 +618,7 @@ namespace Moksy.Common
         /// <returns></returns>
         public SimulationCondition Once()
         {
-            Repeat = 1;
+            SimulationConditionContent.Repeat = 1;
             return this;
         }
 
@@ -754,7 +628,7 @@ namespace Moksy.Common
         /// <returns></returns>
         public SimulationCondition Twice()
         {
-            Repeat = 2;
+            SimulationConditionContent.Repeat = 2;
             return this;
         }
 
@@ -764,7 +638,7 @@ namespace Moksy.Common
         /// <returns></returns>
         public SimulationCondition Forever()
         {
-            Repeat = Int64.MaxValue;
+            SimulationConditionContent.Repeat = Int64.MaxValue;
             return this;
         }
 
@@ -775,7 +649,7 @@ namespace Moksy.Common
         /// <returns></returns>
         public SimulationCondition Times(long count)
         {
-            Repeat = count;
+            SimulationConditionContent.Repeat = count;
             return this;
         }
 
@@ -804,7 +678,6 @@ namespace Moksy.Common
                 return this;
             }
         }
-
 
         /// <summary>
         /// Return ourselves; means we can write more fluent conditions. 
@@ -842,8 +715,6 @@ namespace Moksy.Common
             }
         }
 
-
-
         /// <summary>
         /// Return the Response associated with this Condition. This is provided so that we can write entire conditions and responses in a single line
         /// with the conditions at the start and the response parameters at the end. 
@@ -859,8 +730,6 @@ namespace Moksy.Common
             }
         }
 
-
-
         /// <summary>
         /// The simulation that this condition belongs to. 
         /// </summary>
@@ -871,7 +740,7 @@ namespace Moksy.Common
             {
                 return SimulationStorage;
             }
-            set
+            protected internal set
             {
                 if (SimulationStorage != null) { throw new System.InvalidOperationException("The Simulation has already been set on this Condition. A Simulation can only be set once. "); }
 
@@ -880,24 +749,7 @@ namespace Moksy.Common
         }
         private Simulation SimulationStorage;
 
-        /// <summary>
-        /// Storage for the header
-        /// </summary>
-        private List<Header> RequestHeadersStorage = new List<Header>();
-
-        /// <summary>
-        /// Storage for the parameters. 
-        /// </summary>
-        private List<Parameter> ParametersStorage = new List<Parameter>();
-
-        /// <summary>
-        /// Storage for all constraints. 
-        /// </summary>
-        private List<ConstraintBase> ConstraintStorage = new List<ConstraintBase>();
-
-        /// <summary>
-        /// Storage for all content rules
-        /// </summary>
-        private List<ContentRule> ContainsStorage = new List<ContentRule>();
+        [JsonProperty("content")]
+        public SimulationConditionContent SimulationConditionContent { get; set; }
     }
 }

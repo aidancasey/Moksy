@@ -56,7 +56,8 @@ namespace Moksy.Test
         [TestMethod]
         public void PathMatchesCaseSensitive()
         {
-            SimulationCondition c = new SimulationCondition() { Pattern = "/Product" };
+            SimulationCondition c = new SimulationCondition();
+            c.SimulationConditionContent.Pattern = "/Product";
 
             Assert.IsTrue(Evaluator.Matches(c, "/Product"));
         }
@@ -64,7 +65,8 @@ namespace Moksy.Test
         [TestMethod]
         public void PathDoesNotMatchCaseSensitive()
         {
-            SimulationCondition c = new SimulationCondition() { Pattern = "/Product" };
+            SimulationCondition c = new SimulationCondition();
+            c.SimulationConditionContent.Pattern = "/Product";
 
             Assert.IsFalse(Evaluator.Matches(c, "/PRodUCt"));
         }
@@ -73,14 +75,16 @@ namespace Moksy.Test
         [TestMethod]
         public void MethodDoesNotMatch()
         {
-            SimulationCondition c = new SimulationCondition() { HttpMethod = System.Net.Http.HttpMethod.Post };
+            SimulationCondition c = new SimulationCondition();
+            c.SimulationConditionContent.HttpMethod = System.Net.Http.HttpMethod.Post;
             Assert.IsFalse(Evaluator.Matches(c, System.Net.Http.HttpMethod.Get));
         }
 
         [TestMethod]
         public void MethodMatches()
         {
-            SimulationCondition c = new SimulationCondition() { HttpMethod = System.Net.Http.HttpMethod.Get };
+            SimulationCondition c = new SimulationCondition();
+            c.SimulationConditionContent.HttpMethod = System.Net.Http.HttpMethod.Get;
             Assert.IsTrue(Evaluator.Matches(c, System.Net.Http.HttpMethod.Get));
         }
 

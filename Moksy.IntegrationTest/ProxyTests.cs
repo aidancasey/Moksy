@@ -45,17 +45,17 @@ namespace Moksy.IntegrationTest
             Assert.AreEqual(1, all.Count());
 
             var first = all.First();
-            Assert.AreEqual("/Product", first.Condition.Pattern);
+            Assert.AreEqual("/Product", first.Condition.SimulationConditionContent.Pattern);
 
-            Assert.AreEqual(HttpMethod.Get, first.Condition.HttpMethod);
+            Assert.AreEqual(HttpMethod.Get, first.Condition.SimulationConditionContent.HttpMethod);
 
             Assert.AreEqual(1, first.Condition.RequestHeaders.Count);
             Assert.AreEqual("MyHeader", first.Condition.RequestHeaders[0].Name);
             Assert.AreEqual("HeaderValue", first.Condition.RequestHeaders[0].Value);
 
-            Assert.AreEqual(System.Net.HttpStatusCode.PreconditionFailed, first.Response.HttpStatusCode);
+            Assert.AreEqual(System.Net.HttpStatusCode.PreconditionFailed, first.Response.SimulationResponseContent.HttpStatusCode);
 
-            Assert.AreEqual("This content", first.Response.Content);
+            Assert.AreEqual("This content", first.Response.SimulationResponseContent.Content);
         }
 
         [TestMethod]

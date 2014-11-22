@@ -77,7 +77,7 @@ namespace Moksy.Handlers
             }
             if (match != null)
             {
-                var discriminator = GetDiscriminator(headers, match.Condition.ImdbHeaderDiscriminator);
+                var discriminator = GetDiscriminator(headers, match.Condition.SimulationConditionContent.ImdbHeaderDiscriminator);
 
                 var vars = CreateVariables("", match);
                 vars["requestscheme"] = request.RequestUri.Scheme;
@@ -97,9 +97,9 @@ namespace Moksy.Handlers
 
                 var canned = HttpResponseMessageFactory.New(match.Response);
 
-                if (match.Condition.IsImdb)
+                if (match.Condition.SimulationConditionContent.IsImdb)
                 {
-                    if (match.Condition.HttpMethod == HttpMethod.Post)
+                    if (match.Condition.SimulationConditionContent.HttpMethod == HttpMethod.Post)
                     {
                         // This rule has been set up with Post().ToImdb() and .AddToImdb() is in the Response. 
                         // We need to extract the body of the Request (which we assume to be Json) and add it to the Imdb. 
@@ -108,7 +108,7 @@ namespace Moksy.Handlers
                         byte[] contentAsBytes = new byte[0];
                         if (content != null)
                         {
-                            if (match.Condition.ContentKind == ContentKind.File && request.Content.IsMimeMultipartContent())
+                            if (match.Condition.SimulationConditionContent.ContentKind == ContentKind.File && request.Content.IsMimeMultipartContent())
                             {
                                 // NOTE: TODO: Lots of assumptions here... will need to modify this when I support real Multipart. 
                                 var task = request.Content.ReadAsMultipartAsync();
@@ -127,8 +127,8 @@ namespace Moksy.Handlers
                                 contentAsBytes = task.Result;
                                 contentAsString = new System.Text.ASCIIEncoding().GetString(task.Result);
                             }
-                            
-                            if (match.Condition.ContentKind != ContentKind.File)
+
+                            if (match.Condition.SimulationConditionContent.ContentKind != ContentKind.File)
                             {
                                 contentAsString = SubstituteProperties(contentAsString, path, match, vars, match.Response.Properties);
                                 vars["value"] = contentAsString;
@@ -139,11 +139,11 @@ namespace Moksy.Handlers
                             }
                         }
 
-                        if (match.Response.AddImdb)
+                        if (match.Response.SimulationResponseContent.AddImdb)
                         {
-                            if (match.Condition.ContentKind != ContentKind.File)
+                            if (match.Condition.SimulationConditionContent.ContentKind != ContentKind.File)
                             {
-                                Storage.SimulationManager.Instance.AddToImdb(match, path, match.Condition.Pattern, contentAsString, discriminator);
+                                Storage.SimulationManager.Instance.AddToImdb(match, path, match.Condition.SimulationConditionContent.Pattern, contentAsString, discriminator);
 
                                 var retrievedData = Storage.SimulationManager.Instance.GetFromImdbAsJson(match, path, discriminator);
 
@@ -153,33 +153,33 @@ namespace Moksy.Handlers
                             }
                             else
                             {
-                                Storage.SimulationManager.Instance.AddToImdb(match, path, match.Condition.Pattern, contentAsString, contentAsBytes, discriminator);
+                                Storage.SimulationManager.Instance.AddToImdb(match, path, match.Condition.SimulationConditionContent.Pattern, contentAsString, contentAsBytes, discriminator);
                             }
                         }
 
                         // We now need to populate the response with any variables that have been set up. 
-                        if (match.Condition.ContentKind != ContentKind.File)
+                        if (match.Condition.SimulationConditionContent.ContentKind != ContentKind.File)
                         {
                             // We only do the replacement if we are in text format. 
-                            if (match.Response.Content != null)
+                            if (match.Response.SimulationResponseContent.Content != null)
                             {
                                 foreach (var p in match.Response.Properties)
                                 {
                                     vars[p.Name] = p.Value;
                                 }
-                                var result = s.Substitute(match.Response.Content, vars);
+                                var result = s.Substitute(match.Response.SimulationResponseContent.Content, vars);
                                 canned.Content = new StringContent(result);
                             }
                         }
                     }
-                    else if (match.Condition.HttpMethod == HttpMethod.Put)
+                    else if (match.Condition.SimulationConditionContent.HttpMethod == HttpMethod.Put)
                     {
                         ByteArrayContent content = request.Content as ByteArrayContent;
                         string contentAsString = "";
                         byte[] contentAsBytes = new byte[0];
                         if (content != null)
                         {
-                            if (match.Condition.ContentKind == ContentKind.File && request.Content.IsMimeMultipartContent())
+                            if (match.Condition.SimulationConditionContent.ContentKind == ContentKind.File && request.Content.IsMimeMultipartContent())
                             {
                                 // NOTE: TODO: Lots of assumptions here... will need to modify this when I support real Multipart. 
                                 var task = request.Content.ReadAsMultipartAsync();
@@ -199,18 +199,18 @@ namespace Moksy.Handlers
                                 contentAsString = new System.Text.ASCIIEncoding().GetString(task.Result);
                             }
 
-                            if (match.Condition.ContentKind != ContentKind.File)
+                            if (match.Condition.SimulationConditionContent.ContentKind != ContentKind.File)
                             {
                                 contentAsString = SubstituteProperties(contentAsString, path, match, vars, match.Response.Properties);
                                 vars["value"] = contentAsString;
                             }
                         }
 
-                        if (match.Response.AddImdb)
+                        if (match.Response.SimulationResponseContent.AddImdb)
                         {
-                            if (match.Condition.ContentKind != ContentKind.File)
+                            if (match.Condition.SimulationConditionContent.ContentKind != ContentKind.File)
                             {
-                                Storage.SimulationManager.Instance.AddToImdb(match, path, match.Condition.Pattern, contentAsString, discriminator);
+                                Storage.SimulationManager.Instance.AddToImdb(match, path, match.Condition.SimulationConditionContent.Pattern, contentAsString, discriminator);
 
                                 var retrievedData = Storage.SimulationManager.Instance.GetFromImdbAsJson(match, path, discriminator);
 
@@ -229,24 +229,24 @@ namespace Moksy.Handlers
                         }
 
                         // We now need to populate the response with any variables that have been set up. 
-                        if (match.Condition.ContentKind != ContentKind.File)
+                        if (match.Condition.SimulationConditionContent.ContentKind != ContentKind.File)
                         {
                             // We only do the replacement if we are in text format. 
-                            if (match.Response.Content != null)
+                            if (match.Response.SimulationResponseContent.Content != null)
                             {
                                 foreach (var p in match.Response.Properties)
                                 {
                                     vars[p.Name] = p.Value;
                                 }
-                                var result = s.Substitute(match.Response.Content, vars);
+                                var result = s.Substitute(match.Response.SimulationResponseContent.Content, vars);
                                 canned.Content = new StringContent(result);
                             }
                         }
                     }
-                    else if (match.Condition.HttpMethod == HttpMethod.Get)
+                    else if (match.Condition.SimulationConditionContent.HttpMethod == HttpMethod.Get)
                     {
                         // This rule has been set up with Get().FromImdb(). The default Body in the Return structure is {value} - ie: the raw value of the stored Json.
-                        var variables = s.GetVariables(match.Condition.Pattern);
+                        var variables = s.GetVariables(match.Condition.SimulationConditionContent.Pattern);
                         if (variables.Count == 0)
                         {
                             // The path of the Get operation does not contain any placeholders. ie: it is a 'GetAll' or 'GetSpecific'. The path might look like:
@@ -255,11 +255,11 @@ namespace Moksy.Handlers
                             // GET /TheResource({id})
                             string content = "";
 
-                            if (match.Condition.ContentKind == ContentKind.Text)
+                            if (match.Condition.SimulationConditionContent.ContentKind == ContentKind.Text)
                             {
                                 content = Storage.SimulationManager.Instance.GetFromImdbAsText(match, path, discriminator);
                             }
-                            else if (match.Condition.ContentKind == ContentKind.Json || match.Condition.ContentKind == ContentKind.BodyParameters)
+                            else if (match.Condition.SimulationConditionContent.ContentKind == ContentKind.Json || match.Condition.SimulationConditionContent.ContentKind == ContentKind.BodyParameters)
                             {
                                 // We are Imdb. Each entry is a Json fragment. We concatenate them together and separate them with ,
                                 content = Storage.SimulationManager.Instance.GetFromImdbAsJson(match, path, discriminator);
@@ -267,7 +267,7 @@ namespace Moksy.Handlers
                                 vars["valueAsBodyParameters"] = Storage.SimulationManager.Instance.ConvertJsonToBodyParameters(content, true);
                                 vars["valueAsBodyParametersNotEncoded"] = Storage.SimulationManager.Instance.ConvertJsonToBodyParameters(content, false);
 
-                                if (match.Condition.ContentKind == ContentKind.BodyParameters)
+                                if (match.Condition.SimulationConditionContent.ContentKind == ContentKind.BodyParameters)
                                 {
                                     content = Storage.SimulationManager.Instance.ConvertJsonToBodyParameters(content);
                                 }
@@ -277,7 +277,7 @@ namespace Moksy.Handlers
                             if (content != null)
                             {
                                 // We need to do substitution now... but only if the response content contains placeholders. 
-                                if (match.Response.Content == null)
+                                if (match.Response.SimulationResponseContent.Content == null)
                                 {
                                     // No explicit content was specified with the .Body() call in the Simulation Response. Therefore, we will return the default
                                     // data above. 
@@ -285,17 +285,17 @@ namespace Moksy.Handlers
                                 else
                                 {
                                     // .Body("...somecontent...") was specified. 
-                                    variables = s.GetVariables(match.Response.Content);
+                                    variables = s.GetVariables(match.Response.SimulationResponseContent.Content);
                                     if (variables.Count > 0)
                                     {
                                         // The .Body("...{value}...") might have been specified (but there is at least one placeholder). 
                                         vars["value"] = content;
-                                        content = s.Substitute(match.Response.Content, vars);
+                                        content = s.Substitute(match.Response.SimulationResponseContent.Content, vars);
                                     }
                                     else
                                     {
                                         // A specific value was provided with no placeholders; return that fixed text. 
-                                        content = match.Response.Content;
+                                        content = match.Response.SimulationResponseContent.Content;
                                     }
                                 }
 
@@ -320,14 +320,14 @@ namespace Moksy.Handlers
                             vars["valueAsBodyParameters"] = Storage.SimulationManager.Instance.ConvertJsonToBodyParameters(candidateValue, true);
                             vars["valueAsBodyParametersNotEncoded"] = Storage.SimulationManager.Instance.ConvertJsonToBodyParameters(candidateValue, false);
 
-                            if (match.Condition.ContentKind == ContentKind.BodyParameters)
+                            if (match.Condition.SimulationConditionContent.ContentKind == ContentKind.BodyParameters)
                             {
                                 candidateValue = Storage.SimulationManager.Instance.ConvertJsonToBodyParameters(candidateValue);
                             }
 
                             // ASSERTION: We have a safe candidate value to use. This is either the empty string OR it is the object that has been retrieved. 
 
-                            if (match.Condition.ContentKind == ContentKind.File && entry != null)
+                            if (match.Condition.SimulationConditionContent.ContentKind == ContentKind.File && entry != null)
                             {
                                 if (entry.Bytes == null) entry.Bytes = new Byte[0];
 
@@ -338,23 +338,23 @@ namespace Moksy.Handlers
                                 // We need to substitute the replacement. 
                                 if (candidateValue == null) candidateValue = "";
 
-                                variables = s.GetVariables(match.Response.Content);
+                                variables = s.GetVariables(match.Response.SimulationResponseContent.Content);
                                 if (variables.Count > 0)
                                 {
                                     vars["value"] = candidateValue;
-                                    candidateValue = s.Substitute(match.Response.Content, vars);
+                                    candidateValue = s.Substitute(match.Response.SimulationResponseContent.Content, vars);
                                 }
                                 else
                                 {
                                     // Either the default .Body() was specified (ie: not at all) or we have a constant. 
-                                    if (match.Response.Content == null)
+                                    if (match.Response.SimulationResponseContent.Content == null)
                                     {
                                         // candidateValue contains the default value. 
                                     }
                                     else
                                     {
                                         // We have a specified value we need to return. 
-                                        candidateValue = match.Response.Content;
+                                        candidateValue = match.Response.SimulationResponseContent.Content;
                                     }
                                 }
 
@@ -362,23 +362,23 @@ namespace Moksy.Handlers
                             }
                         }
                     }
-                    else if (match.Condition.HttpMethod == HttpMethod.Delete && match.Condition.Persistence == Persistence.Exists)
+                    else if (match.Condition.SimulationConditionContent.HttpMethod == HttpMethod.Delete && match.Condition.SimulationConditionContent.Persistence == Persistence.Exists)
                     {
                         // We need to remove the item IF it exists. 
                         var existing = Storage.SimulationManager.Instance.GetFromImdb(match, path, discriminator);
                         if (existing != null)
                         {
-                            if (match.Response.RemoveImdb)
+                            if (match.Response.SimulationResponseContent.RemoveImdb)
                             {
-                                Storage.SimulationManager.Instance.DeleteFromImdb(HttpMethod.Delete, path, match.Condition.Pattern, request.RequestUri.Query, headers, discriminator);
+                                Storage.SimulationManager.Instance.DeleteFromImdb(HttpMethod.Delete, path, match.Condition.SimulationConditionContent.Pattern, request.RequestUri.Query, headers, discriminator);
                             }
                             string candidateValue = "";
-                            var variables = s.GetVariables(match.Response.Content);
+                            var variables = s.GetVariables(match.Response.SimulationResponseContent.Content);
                             if (variables.Count > 0)
                             {
                                 candidateValue = JsonConvert.SerializeObject(existing);
                                 vars["value"] = candidateValue;
-                                candidateValue = s.Substitute(match.Response.Content, vars);
+                                candidateValue = s.Substitute(match.Response.SimulationResponseContent.Content, vars);
                             }
 
                             canned.Content = new StringContent(candidateValue);
@@ -388,19 +388,19 @@ namespace Moksy.Handlers
                 else
                 {
                     // We have our match - but we need to substitute anything in the content. 
-                    if (match.Response.ContentKind == ContentKind.File)
+                    if (match.Response.SimulationResponseContent.ContentKind == ContentKind.File)
                     {
-                        canned.Content = new ByteArrayContent(match.Response.ContentAsBytes);
+                        canned.Content = new ByteArrayContent(match.Response.SimulationResponseContent.ContentAsBytes);
                     }
                     else
                     {
-                        if (match.Response.Content != null)
+                        if (match.Response.SimulationResponseContent.Content != null)
                         {
                             foreach (var p in match.Response.Properties)
                             {
                                 vars[p.Name] = p.Value;
                             }
-                            var result = s.Substitute(match.Response.Content, vars);
+                            var result = s.Substitute(match.Response.SimulationResponseContent.Content, vars);
                             canned.Content = new StringContent(result);
                         }
                     }
@@ -469,7 +469,7 @@ namespace Moksy.Handlers
                 vars[v.Key] = v.Value;
             }
 
-            if (s.Condition.ContentKind == ContentKind.File)
+            if (s.Condition.SimulationConditionContent.ContentKind == ContentKind.File)
             {
                 if (!vars.ContainsKey("BinaryContentIdentity"))
                 {
@@ -494,7 +494,7 @@ namespace Moksy.Handlers
                 result = helpers.SetProperty(p.Name, value, result);
             }
 
-            var tokens = RouteParser.Parse(path, match.Condition.Pattern).Where(f => f.Kind == RouteTokenKind.Property);
+            var tokens = RouteParser.Parse(path, match.Condition.SimulationConditionContent.Pattern).Where(f => f.Kind == RouteTokenKind.Property);
             foreach (var token in tokens)
             {
                 var value = s.Substitute(token.Value, variables);

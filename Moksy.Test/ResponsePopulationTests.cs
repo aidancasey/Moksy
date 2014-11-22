@@ -116,14 +116,14 @@ namespace Moksy.Test
         public void AddToImdbWithUsageSpecifiedTrue()
         {
             var s = SimulationFactory.When.I.Post().ToImdb("/Endpoint").Then.Return.And.AddToImdb();
-            Assert.IsTrue(s.AddImdb);
+            Assert.IsTrue(s.SimulationResponseContent.AddImdb);
         }
 
         [TestMethod]
         public void AddToImdbWithUsageSpecifiedFalse()
         {
             var s = SimulationFactory.When.I.Post().ToImdb("/Endpoint").Then.Return.And.AddToImdb(false);
-            Assert.IsFalse(s.AddImdb);
+            Assert.IsFalse(s.SimulationResponseContent.AddImdb);
         }
 
 
@@ -132,14 +132,14 @@ namespace Moksy.Test
         public void ContentIsStringImplicit()
         {
             var s = SimulationFactory.When.I.Post().ToImdb("/Endpoint").Then.Return.StatusCode(System.Net.HttpStatusCode.OK);
-            Assert.AreEqual(ContentKind.Text, s.ContentKind);
+            Assert.AreEqual(ContentKind.Text, s.SimulationResponseContent.ContentKind);
         }
 
         [TestMethod]
         public void ContentIsStringExplicit()
         {
             var s = SimulationFactory.When.I.Post().ToImdb("/Endpoint").Then.Return.StatusCode(System.Net.HttpStatusCode.OK).With.Body("theString");
-            Assert.AreEqual(ContentKind.Text, s.ContentKind);
+            Assert.AreEqual(ContentKind.Text, s.SimulationResponseContent.ContentKind);
         }
 
         [TestMethod]
@@ -147,7 +147,7 @@ namespace Moksy.Test
         {
             var g = new { A = "aValue" };
             var s = SimulationFactory.When.I.Post().ToImdb("/Endpoint").Then.Return.StatusCode(System.Net.HttpStatusCode.OK).With.Body(g);
-            Assert.AreEqual(ContentKind.Text, s.ContentKind);
+            Assert.AreEqual(ContentKind.Text, s.SimulationResponseContent.ContentKind);
         }
 
 
@@ -156,7 +156,7 @@ namespace Moksy.Test
         public void IsOctet()
         {
             var s = SimulationFactory.When.I.Post().ToImdb("/Endpoint").Then.Return.StatusCode(System.Net.HttpStatusCode.OK).With.Body(new byte[0]);
-            Assert.AreEqual(ContentKind.File, s.ContentKind);
+            Assert.AreEqual(ContentKind.File, s.SimulationResponseContent.ContentKind);
         }
     }
 }

@@ -84,7 +84,7 @@ namespace Moksy.Storage
                 {
                     if (method == HttpMethod.Get)
                     {
-                        var vars = new Substitution().GetVariables(match.Condition.Pattern);
+                        var vars = new Substitution().GetVariables(match.Condition.SimulationConditionContent.Pattern);
                         if (vars.Count() > 0)
                         {
                             var result = MatchesGetFromImdb(match, path, vars.First().Name, discriminator);
@@ -94,8 +94,8 @@ namespace Moksy.Storage
 
                     if (decrement)
                     {
-                        match.Condition.Repeat--;
-                        if (match.Condition.Repeat == 0)
+                        match.Condition.SimulationConditionContent.Repeat--;
+                        if (match.Condition.SimulationConditionContent.Repeat == 0)
                         {
                             Storage.Remove(match);
                         }
@@ -109,16 +109,16 @@ namespace Moksy.Storage
 
         protected Simulation MatchesGetFromImdb(Simulation match, string path, string variable, string discriminator)
         {
-            var resourceName = RouteParser.GetFirstResource(path, match.Condition.Pattern);
+            var resourceName = RouteParser.GetFirstResource(path, match.Condition.SimulationConditionContent.Pattern);
             if (null == resourceName) return null;
 
             // There are two possibilities:
             // 1. Persistence == Exists. In other words: an object with this property must exist for the match to occur.
             // 2. Persistence == NotExists. In other words: an object WITHOUT this property must exist for the match to occur. 
 
-            if (!Database.ContainsResource(path, match.Condition.Pattern))
+            if (!Database.ContainsResource(path, match.Condition.SimulationConditionContent.Pattern))
             {
-                if (match.Condition.Persistence == Persistence.NotExists)
+                if (match.Condition.SimulationConditionContent.Persistence == Persistence.NotExists)
                 {
                     // By definition: we would be able to add this item because as there is no Imdb the entry does not exist. 
                     return match;
@@ -127,7 +127,7 @@ namespace Moksy.Storage
 
             // ASSERTION: The in memory database exists. We now need to work out whether the value being requested exists or not. 
             Substitution s = new Substitution();
-            var regex = RouteParser.ConvertPatternToRegularExpression(match.Condition.Pattern);
+            var regex = RouteParser.ConvertPatternToRegularExpression(match.Condition.SimulationConditionContent.Pattern);
 
             System.Text.RegularExpressions.Regex rex = new System.Text.RegularExpressions.Regex(regex);
             var result = rex.Match(path);
@@ -139,8 +139,8 @@ namespace Moksy.Storage
             var value = path.Substring(result.Groups[2].Index, result.Groups[2].Length);
             if (value == null) return null;
 
-            var existingJson = FindMatch(path, match.Condition.Pattern, variable, value, discriminator);
-            if (match.Condition.Persistence == Persistence.NotExists)
+            var existingJson = FindMatch(path, match.Condition.SimulationConditionContent.Pattern, variable, value, discriminator);
+            if (match.Condition.SimulationConditionContent.Persistence == Persistence.NotExists)
             {
                 if (existingJson == null)
                 {
@@ -149,7 +149,7 @@ namespace Moksy.Storage
 
                 return null;
             }
-            if (match.Condition.Persistence == Persistence.Exists)
+            if (match.Condition.SimulationConditionContent.Persistence == Persistence.Exists)
             {
                 if (existingJson != null)
                 {
@@ -231,17 +231,17 @@ namespace Moksy.Storage
         {
             lock (Storage.SyncRoot)
             {
-                var vars = new Substitution().GetVariables(match.Condition.Pattern);
+                var vars = new Substitution().GetVariables(match.Condition.SimulationConditionContent.Pattern);
                 if (vars.Count() == 0) return null;
 
                 // The path has placeholders such as /Get({id}). We need to pull out the resource.
-                var resourceName = RouteParser.GetFirstResource(path, match.Condition.Pattern);
+                var resourceName = RouteParser.GetFirstResource(path, match.Condition.SimulationConditionContent.Pattern);
                 if (null == resourceName) return null;
 
-                if (!Database.ContainsResource(path, match.Condition.Pattern)) return null;
+                if (!Database.ContainsResource(path, match.Condition.SimulationConditionContent.Pattern)) return null;
 
                 Substitution s = new Substitution();
-                var regex = RouteParser.ConvertPatternToRegularExpression(match.Condition.Pattern);
+                var regex = RouteParser.ConvertPatternToRegularExpression(match.Condition.SimulationConditionContent.Pattern);
 
                 System.Text.RegularExpressions.Regex rex = new System.Text.RegularExpressions.Regex(regex);
                 var result = rex.Match(path);
@@ -253,7 +253,7 @@ namespace Moksy.Storage
                 var value = path.Substring(result.Groups[2].Index, result.Groups[2].Length);
                 if (value == null) return null;
 
-                var existingJson = FindMatch(path, match.Condition.Pattern, vars.First().Name, value, discriminator);
+                var existingJson = FindMatch(path, match.Condition.SimulationConditionContent.Pattern, vars.First().Name, value, discriminator);
                 return existingJson;
             }
         }
@@ -270,17 +270,17 @@ namespace Moksy.Storage
         {
             lock (Storage.SyncRoot)
             {
-                var vars = new Substitution().GetVariables(match.Condition.Pattern);
+                var vars = new Substitution().GetVariables(match.Condition.SimulationConditionContent.Pattern);
                 if (vars.Count() == 0) return null;
 
                 // The path has placeholders such as /Get({id}). We need to pull out the resource.
-                var resourceName = RouteParser.GetFirstResource(path, match.Condition.Pattern);
+                var resourceName = RouteParser.GetFirstResource(path, match.Condition.SimulationConditionContent.Pattern);
                 if (null == resourceName) return null;
 
-                if (!Database.ContainsResource(path, match.Condition.Pattern)) return null;
+                if (!Database.ContainsResource(path, match.Condition.SimulationConditionContent.Pattern)) return null;
 
                 Substitution s = new Substitution();
-                var regex = RouteParser.ConvertPatternToRegularExpression(match.Condition.Pattern);
+                var regex = RouteParser.ConvertPatternToRegularExpression(match.Condition.SimulationConditionContent.Pattern);
 
                 System.Text.RegularExpressions.Regex rex = new System.Text.RegularExpressions.Regex(regex);
                 var result = rex.Match(path);
@@ -292,7 +292,7 @@ namespace Moksy.Storage
                 var value = path.Substring(result.Groups[2].Index, result.Groups[2].Length);
                 if (value == null) return null;
 
-                var matchEntry = FindMatchEntry(path, match.Condition.Pattern, vars.First().Name, value, discriminator);
+                var matchEntry = FindMatchEntry(path, match.Condition.SimulationConditionContent.Pattern, vars.First().Name, value, discriminator);
                 return matchEntry;
             }
         }
@@ -319,17 +319,17 @@ namespace Moksy.Storage
 
                 if (method == HttpMethod.Delete)
                 {
-                    var vars = new Substitution().GetVariables(match.Condition.Pattern);
+                    var vars = new Substitution().GetVariables(match.Condition.SimulationConditionContent.Pattern);
                     if (vars.Count() == 0) return false;
 
                     // The path has placeholders such as /Get({id}). We need to pull out the resource.
-                    var resourceName = RouteParser.GetFirstResource(path, match.Condition.Pattern);
+                    var resourceName = RouteParser.GetFirstResource(path, match.Condition.SimulationConditionContent.Pattern);
                     if (null == resourceName) return false;
 
                     if (!Database.ContainsResource(path,pattern)) return false;
 
                     Substitution s = new Substitution();
-                    var regex = RouteParser.ConvertPatternToRegularExpression(match.Condition.Pattern);
+                    var regex = RouteParser.ConvertPatternToRegularExpression(match.Condition.SimulationConditionContent.Pattern);
 
                     System.Text.RegularExpressions.Regex rex = new System.Text.RegularExpressions.Regex(regex);
                     var result = rex.Match(path);
@@ -436,13 +436,13 @@ namespace Moksy.Storage
                             contentAsString = new System.Text.ASCIIEncoding().GetString(task.Result);
                         }
 
-                        var matchingAssertions = FindMatchingConstraints(match, match.Condition.Constraints, contentAsString, GetDiscriminator(headers, match.Condition.ImdbHeaderDiscriminator));
+                        var matchingAssertions = FindMatchingConstraints(match, match.Condition.Constraints, contentAsString, GetDiscriminator(headers, match.Condition.SimulationConditionContent.ImdbHeaderDiscriminator));
                         var noneMatchingAsserations = FindNoneMatchingConstraints(match, match.Condition.Constraints, contentAsString);
                         if (match.Condition.Constraints.Count > 0 && matchingAssertions.Count() != match.Condition.Constraints.Count)
                         {
                             // This means that not every constraint that was specified was matched
                             // If .HasRuleViolations() is specified, this means it is OK to continue matching. 
-                            if (match.Condition.HasAnyConstraintViolations)
+                            if (match.Condition.SimulationConditionContent.HasAnyConstraintViolations)
                             {
                             }
                             else
@@ -454,10 +454,10 @@ namespace Moksy.Storage
                         else
                         {
                             // All constraints have been met. 
-                            if (match.Condition.HasAnyConstraintViolations) continue;
+                            if (match.Condition.SimulationConditionContent.HasAnyConstraintViolations) continue;
                         }
 
-                        if (match.Condition.IndexProperty != null)
+                        if (match.Condition.SimulationConditionContent.IndexProperty != null)
                         {
                             // NOTE: IndexProperty != null implies that a uniqueness constraint has been applied. 
 
@@ -465,19 +465,19 @@ namespace Moksy.Storage
                             // NOTE: We have a complication to deal with here. What if we do this:
                             // PUT /Pet/Dog   , have a pattern of /Pet/{Kind},    but Json content of {"Kind":"Lizard"}
                             // canAddObject just indicates whether we can add a new object using the value of the content; not with the value overridden. 
-                            bool exists = !CanAddObject(match, path, match.Condition.IndexProperty, contentAsString, GetDiscriminator(headers, match.Condition.ImdbHeaderDiscriminator));
-                            var routes = RouteParser.Parse(path, match.Condition.Pattern);
-                            var routeMatch = routes.FirstOrDefault(f => string.Compare(f.Name, match.Condition.IndexProperty.Replace("{", "").Replace("}", ""), false) == 0);
+                            bool exists = !CanAddObject(match, path, match.Condition.SimulationConditionContent.IndexProperty, contentAsString, GetDiscriminator(headers, match.Condition.SimulationConditionContent.ImdbHeaderDiscriminator));
+                            var routes = RouteParser.Parse(path, match.Condition.SimulationConditionContent.Pattern);
+                            var routeMatch = routes.FirstOrDefault(f => string.Compare(f.Name, match.Condition.SimulationConditionContent.IndexProperty.Replace("{", "").Replace("}", ""), false) == 0);
                             if(routeMatch != null)
                             {
                                 // This means that the index property is specified in the route. It is that value we use to determine whether it already exists. 
-                                var nestedMatch = FindMatch(match, path, routeMatch.Name, routeMatch.Value, GetDiscriminator(headers, match.Condition.ImdbHeaderDiscriminator));
+                                var nestedMatch = FindMatch(match, path, routeMatch.Name, routeMatch.Value, GetDiscriminator(headers, match.Condition.SimulationConditionContent.ImdbHeaderDiscriminator));
                                 if (nestedMatch != null)
                                 {
                                     exists = true;
                                 }
                             }
-                            if (match.Condition.Persistence == Persistence.NotExists)
+                            if (match.Condition.SimulationConditionContent.Persistence == Persistence.NotExists)
                             {
                                 if (!exists)
                                 {
@@ -490,7 +490,7 @@ namespace Moksy.Storage
 
                                 continue;
                             }
-                            if (match.Condition.Persistence == Persistence.Exists)
+                            if (match.Condition.SimulationConditionContent.Persistence == Persistence.Exists)
                             {
                                 if (exists)
                                 {
@@ -518,12 +518,12 @@ namespace Moksy.Storage
                             return t;
                         }
                     }
-                    if (match.Condition.HttpMethod == HttpMethod.Get)
+                    if (match.Condition.SimulationConditionContent.HttpMethod == HttpMethod.Get)
                     {
-                        var vars = new Substitution().GetVariables(match.Condition.Pattern);
+                        var vars = new Substitution().GetVariables(match.Condition.SimulationConditionContent.Pattern);
                         if (vars.Count() > 0)
                         {
-                            var result = MatchesGetFromImdb(match, path, vars.First().Name, GetDiscriminator(headers, match.Condition.ImdbHeaderDiscriminator));
+                            var result = MatchesGetFromImdb(match, path, vars.First().Name, GetDiscriminator(headers, match.Condition.SimulationConditionContent.ImdbHeaderDiscriminator));
                             if (null == result)
                             {
                                 continue;
@@ -533,12 +533,12 @@ namespace Moksy.Storage
                             return t;
                         }
                     }
-                    if (match.Condition.HttpMethod == HttpMethod.Delete)
+                    if (match.Condition.SimulationConditionContent.HttpMethod == HttpMethod.Delete)
                     {
-                        var vars = new Substitution().GetVariables(match.Condition.Pattern);
+                        var vars = new Substitution().GetVariables(match.Condition.SimulationConditionContent.Pattern);
                         if (vars.Count() > 0)
                         {
-                            var result = MatchesGetFromImdb(match, path, vars.First().Name, GetDiscriminator(headers, match.Condition.ImdbHeaderDiscriminator));
+                            var result = MatchesGetFromImdb(match, path, vars.First().Name, GetDiscriminator(headers, match.Condition.SimulationConditionContent.ImdbHeaderDiscriminator));
                             if (null == result)
                             {
                                 continue;
@@ -551,8 +551,8 @@ namespace Moksy.Storage
 
                     if (decrement)
                     {
-                        match.Condition.Repeat--;
-                        if (match.Condition.Repeat == 0)
+                        match.Condition.SimulationConditionContent.Repeat--;
+                        if (match.Condition.SimulationConditionContent.Repeat == 0)
                         {
                             Storage.Remove(match);
                         }
@@ -615,15 +615,15 @@ namespace Moksy.Storage
 
             lock (Storage.SyncRoot)
             {
-                var resourceName = RouteParser.GetFirstResource(path, simulation.Condition.Pattern);
+                var resourceName = RouteParser.GetFirstResource(path, simulation.Condition.SimulationConditionContent.Pattern);
                 if (null == resourceName) return;
 
-                if (simulation.Condition.ContentKind == ContentKind.BodyParameters)
+                if (simulation.Condition.SimulationConditionContent.ContentKind == ContentKind.BodyParameters)
                 {
                     content = ConvertBodyParametersToJson(content);
                 }
 
-                Database.AddJson(path, pattern, simulation.Condition.IndexProperty, content, discriminator);
+                Database.AddJson(path, pattern, simulation.Condition.SimulationConditionContent.IndexProperty, content, discriminator);
             }
         }
 
@@ -641,15 +641,15 @@ namespace Moksy.Storage
 
             lock (Storage.SyncRoot)
             {
-                var resourceName = RouteParser.GetFirstResource(path, simulation.Condition.Pattern);
+                var resourceName = RouteParser.GetFirstResource(path, simulation.Condition.SimulationConditionContent.Pattern);
                 if (null == resourceName) return;
 
-                if (simulation.Condition.ContentKind == ContentKind.BodyParameters)
+                if (simulation.Condition.SimulationConditionContent.ContentKind == ContentKind.BodyParameters)
                 {
                     content = ConvertBodyParametersToJson(content);
                 }
 
-                Database.AddJson(path, pattern, simulation.Condition.IndexProperty, content, binaryContent, discriminator);
+                Database.AddJson(path, pattern, simulation.Condition.SimulationConditionContent.IndexProperty, content, binaryContent, discriminator);
             }
         }
 
@@ -671,14 +671,14 @@ namespace Moksy.Storage
             try
             {
                 string value = null;
-                if (simulation.Condition.ContentKind == ContentKind.Json)
+                if (simulation.Condition.SimulationConditionContent.ContentKind == ContentKind.Json)
                 {
                     value = GetPropertyValueFromJson(json, propertyName);
                     JObject job = JsonConvert.DeserializeObject(json) as JObject;
                     if (null == job) return false;
                 
                 }
-                else if (simulation.Condition.ContentKind == ContentKind.BodyParameters)
+                else if (simulation.Condition.SimulationConditionContent.ContentKind == ContentKind.BodyParameters)
                 {
                     value = GetPropertyValueFromJson(ConvertBodyParametersToJson(json), propertyName);
                 }
@@ -830,10 +830,10 @@ namespace Moksy.Storage
         {
             if (null == simulation) throw new System.ArgumentNullException("simulation");
 
-            var resourceName = RouteParser.GetFirstResource(path, simulation.Condition.Pattern);
+            var resourceName = RouteParser.GetFirstResource(path, simulation.Condition.SimulationConditionContent.Pattern);
             if (null == resourceName) return null;
 
-            var resource = Database.LookupResource(path, simulation.Condition.Pattern);
+            var resource = Database.LookupResource(path, simulation.Condition.SimulationConditionContent.Pattern);
             if (null == resource) return null;
 
             foreach (var e in resource.Data(discriminator))
@@ -975,10 +975,10 @@ namespace Moksy.Storage
 
             lock (Storage.SyncRoot)
             {
-                var resourceName = RouteParser.GetFirstResource(path, simulation.Condition.Pattern);
+                var resourceName = RouteParser.GetFirstResource(path, simulation.Condition.SimulationConditionContent.Pattern);
                 if (null == resourceName) return null;
 
-                var resource = Database.LookupResource(path, simulation.Condition.Pattern);
+                var resource = Database.LookupResource(path, simulation.Condition.SimulationConditionContent.Pattern);
                 if (null == resource) return null;
 
                 StringBuilder builder = new StringBuilder();
@@ -1003,10 +1003,10 @@ namespace Moksy.Storage
 
             lock (Storage.SyncRoot)
             {
-                var resourceName = RouteParser.GetFirstResource(path, simulation.Condition.Pattern);
+                var resourceName = RouteParser.GetFirstResource(path, simulation.Condition.SimulationConditionContent.Pattern);
                 if (null == resourceName) return null;
 
-                var resource = Database.LookupResource(path, simulation.Condition.Pattern);
+                var resource = Database.LookupResource(path, simulation.Condition.SimulationConditionContent.Pattern);
                 if (null == resource) return null;
 
                 List<string> components = new List<string>();
@@ -1056,13 +1056,13 @@ namespace Moksy.Storage
                 {
                     // TODO: Correct this... I need the path + pattern context. 
 
-                    var resourceName = RouteParser.GetFirstResource(match.Condition.Pattern, match.Condition.Pattern);
+                    var resourceName = RouteParser.GetFirstResource(match.Condition.SimulationConditionContent.Pattern, match.Condition.SimulationConditionContent.Pattern);
                     if (null == resourceName) return false;
 
-                    var resource = Database.LookupResource(match.Condition.Pattern, match.Condition.Pattern);
+                    var resource = Database.LookupResource(match.Condition.SimulationConditionContent.Pattern, match.Condition.SimulationConditionContent.Pattern);
                     if (null == resource) return false;
-                    
-                    Database.RemoveResource(match.Condition.Pattern, match.Condition.Pattern);
+
+                    Database.RemoveResource(match.Condition.SimulationConditionContent.Pattern, match.Condition.SimulationConditionContent.Pattern);
                 }
 
                 return true;
@@ -1082,7 +1082,7 @@ namespace Moksy.Storage
             if (constraints == null) return result;
             if (content == null) return result;
 
-            if (simulation != null && simulation.Condition.ContentKind == ContentKind.BodyParameters)
+            if (simulation != null && simulation.Condition.SimulationConditionContent.ContentKind == ContentKind.BodyParameters)
             {
                 content = ConvertBodyParametersToJson(content);
             }
@@ -1123,7 +1123,7 @@ namespace Moksy.Storage
             if (constraints == null) return result;
             if (content == null) return result;
 
-            if (simulation != null && simulation.Condition.ContentKind == ContentKind.BodyParameters)
+            if (simulation != null && simulation.Condition.SimulationConditionContent.ContentKind == ContentKind.BodyParameters)
             {
                 content = ConvertBodyParametersToJson(content);
             }

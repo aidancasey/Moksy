@@ -31,7 +31,7 @@ namespace Moksy.Common
         {
             if (condition == null) return false;
 
-            return condition.HttpMethod == method;
+            return condition.SimulationConditionContent.HttpMethod == method;
         }
 
         /// <summary>
@@ -43,7 +43,7 @@ namespace Moksy.Common
         {
             if (condition == null) return false;
 
-            return Matches(condition.Pattern, path);
+            return Matches(condition.SimulationConditionContent.Pattern, path);
         }
 
         /// <summary>
@@ -82,7 +82,7 @@ namespace Moksy.Common
             if (condition.IsGroupedByImdbHeaderDiscriminator)
             {
                 // The header must exist in the request.
-                var match = headers.FirstOrDefault(f => f.Name == condition.ImdbHeaderDiscriminator);
+                var match = headers.FirstOrDefault(f => f.Name == condition.SimulationConditionContent.ImdbHeaderDiscriminator);
                 if (null == match) return false;
             }
 
@@ -228,7 +228,7 @@ namespace Moksy.Common
             match = Matches(condition, headers);
             if (!match) return false;
 
-            if (condition.ContentKind != ContentKind.File)
+            if (condition.SimulationConditionContent.ContentKind != ContentKind.File)
             {
                 match = MatchesBodyParameters(condition, content);
                 if (!match) return false;

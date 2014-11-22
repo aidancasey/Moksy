@@ -70,6 +70,7 @@
     <Compile Include="RouteToken.cs" />
     <Compile Include="RouteTokenKind.cs" />
     <Compile Include="SimulationCollection.cs" />
+    <Compile Include="SimulationConditionContent.cs" />
     <Compile Include="SimulationConditionEvaluator.cs" />
     <Compile Include="Header.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -77,6 +78,7 @@
     <Compile Include="SimulationCondition.cs" />
     <Compile Include="SimulationFactory.cs" />
     <Compile Include="SimulationResponse.cs" />
+    <Compile Include="SimulationResponseContent.cs" />
     <Compile Include="Substitution.cs" />
     <Compile Include="RouteParser.cs" />
     <Compile Include="SubstitutionVariable.cs" />

@@ -26,7 +26,7 @@ namespace Moksy.Test
         {
             Moksy.Storage.SimulationManager manager = new Storage.SimulationManager();
             Simulation s = new Simulation();
-            s.Condition.Pattern = "/Pet";
+            s.Condition.SimulationConditionContent.Pattern = "/Pet";
             Assert.IsTrue(manager.CanAdd(s, "/Pet", "Kind", "Dog", null));
         }
 
@@ -254,11 +254,11 @@ namespace Moksy.Test
 
             var match = mgr.Match(System.Net.Http.HttpMethod.Delete, "/ThePath", null, null, false, null);
             Assert.IsNotNull(match);
-            Assert.AreEqual(1, match.Condition.Repeat);
+            Assert.AreEqual(1, match.Condition.SimulationConditionContent.Repeat);
 
             var all = mgr.Get();
             Assert.AreEqual(1, all.Count);
-            Assert.AreEqual(1, all[0].Condition.Repeat);
+            Assert.AreEqual(1, all[0].Condition.SimulationConditionContent.Repeat);
         }
 
         [TestMethod]
@@ -270,7 +270,7 @@ namespace Moksy.Test
 
             var match = mgr.Match(System.Net.Http.HttpMethod.Delete, "/ThePath", null, null, true, null);
             Assert.IsNotNull(match);
-            Assert.AreEqual(0, match.Condition.Repeat);
+            Assert.AreEqual(0, match.Condition.SimulationConditionContent.Repeat);
 
             var all = mgr.Get();
             Assert.AreEqual(0, all.Count);
@@ -285,7 +285,7 @@ namespace Moksy.Test
 
             var match = mgr.Match(System.Net.Http.HttpMethod.Delete, "/ThePath", null, null, true, null);
             Assert.IsNotNull(match);
-            Assert.AreEqual(3, match.Condition.Repeat);
+            Assert.AreEqual(3, match.Condition.SimulationConditionContent.Repeat);
 
             var all = mgr.Get();
             Assert.AreEqual(1, all.Count);
@@ -305,7 +305,7 @@ namespace Moksy.Test
 
             var match = mgr.Match(HttpMethod.Get, "/Pet('Dog')", null, new List<Header>(), false, null);
             Assert.IsNotNull(match);
-            Assert.AreEqual("/Pet('{Kind}')", match.Condition.Pattern);
+            Assert.AreEqual("/Pet('{Kind}')", match.Condition.SimulationConditionContent.Pattern);
         }
 
         [TestMethod]
@@ -320,7 +320,7 @@ namespace Moksy.Test
 
             var match = mgr.Match(HttpMethod.Get, "/Pet('Dog')", "", new List<Header>(), false, null);
             Assert.IsNotNull(match);
-            Assert.AreEqual("/Pet('{Kind}')", match.Condition.Pattern);
+            Assert.AreEqual("/Pet('{Kind}')", match.Condition.SimulationConditionContent.Pattern);
         }
 
         [TestMethod]
@@ -338,7 +338,7 @@ namespace Moksy.Test
 
             var match = mgr.Match(HttpMethod.Get, "/Pet", "", new List<Header>(), false, null);
             Assert.IsNotNull(match);
-            Assert.AreEqual("/Pet", match.Condition.Pattern);
+            Assert.AreEqual("/Pet", match.Condition.SimulationConditionContent.Pattern);
         }
 
 

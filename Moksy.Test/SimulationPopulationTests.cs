@@ -18,11 +18,11 @@ namespace Moksy.Test
             var simulation = SimulationFactory.New();
             Assert.IsNotNull(simulation.Name);
             Assert.IsNotNull(simulation.Condition);
-            Assert.AreEqual(null, simulation.Condition.Pattern);
-            Assert.AreEqual(null, simulation.Condition.HttpMethod);
+            Assert.AreEqual(null, simulation.Condition.SimulationConditionContent.Pattern);
+            Assert.AreEqual(null, simulation.Condition.SimulationConditionContent.HttpMethod);
             Assert.AreEqual(0, simulation.Condition.RequestHeaders.Count);
-            Assert.AreEqual(null, simulation.Response.Content);
-            Assert.AreEqual(System.Net.HttpStatusCode.Unused, simulation.Response.HttpStatusCode);
+            Assert.AreEqual(null, simulation.Response.SimulationResponseContent.Content);
+            Assert.AreEqual(System.Net.HttpStatusCode.Unused, simulation.Response.SimulationResponseContent.HttpStatusCode);
         }
 
         [TestMethod]
@@ -110,21 +110,21 @@ namespace Moksy.Test
         public void ReturnBodyStringNull()
         {
             var simulation = SimulationFactory.When.Get().From("/Product").Return.Body((string)null);
-            Assert.AreEqual(null, simulation.Content);
+            Assert.AreEqual(null, simulation.SimulationResponseContent.Content);
         }
 
         [TestMethod]
         public void ReturnBodyStringEmpty()
         {
             var simulation = SimulationFactory.When.Get().From("/Product").Return.Body("");
-            Assert.AreEqual("", simulation.Content);
+            Assert.AreEqual("", simulation.SimulationResponseContent.Content);
         }
 
         [TestMethod]
         public void ReturnBodyStringSomeText()
         {
             var simulation = SimulationFactory.When.Get().From("/Product").Return.Body("SomeText");
-            Assert.AreEqual("SomeText", simulation.Content);
+            Assert.AreEqual("SomeText", simulation.SimulationResponseContent.Content);
         }
 
 
@@ -133,7 +133,7 @@ namespace Moksy.Test
         public void StatusCodeIsSet()
         {
             var simulation = SimulationFactory.When.Get().From("/Product").Return.Body("SomeText").StatusCode(System.Net.HttpStatusCode.OK);
-            Assert.AreEqual(System.Net.HttpStatusCode.OK, simulation.HttpStatusCode);
+            Assert.AreEqual(System.Net.HttpStatusCode.OK, simulation.SimulationResponseContent.HttpStatusCode);
         }
 
 
@@ -146,9 +146,9 @@ namespace Moksy.Test
             var hydrated = JsonConvert.DeserializeObject<Simulation>(json);
 
             Assert.AreEqual(simulation.Name, hydrated.Name);
-            Assert.AreEqual(simulation.Response.Content, hydrated.Response.Content);
-            Assert.AreEqual(simulation.Condition.HttpMethod, hydrated.Condition.HttpMethod);
-            Assert.AreEqual(simulation.Response.HttpStatusCode, hydrated.Response.HttpStatusCode);
+            Assert.AreEqual(simulation.Response.SimulationResponseContent.Content, hydrated.Response.SimulationResponseContent.Content);
+            Assert.AreEqual(simulation.Condition.SimulationConditionContent.HttpMethod, hydrated.Condition.SimulationConditionContent.HttpMethod);
+            Assert.AreEqual(simulation.Response.SimulationResponseContent.HttpStatusCode, hydrated.Response.SimulationResponseContent.HttpStatusCode);
 
             Assert.AreEqual(1, simulation.Condition.RequestHeaders.Count);
             Assert.AreEqual("TheHeader", simulation.Condition.RequestHeaders[0].Name);
@@ -175,56 +175,56 @@ namespace Moksy.Test
         public void OnGet()
         {
             var s = SimulationFactory.When.Get().From("/ThePath");
-            Assert.AreEqual(System.Net.Http.HttpMethod.Get, s.HttpMethod);
-            Assert.AreEqual("/ThePath", s.Pattern);
+            Assert.AreEqual(System.Net.Http.HttpMethod.Get, s.SimulationConditionContent.HttpMethod);
+            Assert.AreEqual("/ThePath", s.SimulationConditionContent.Pattern);
         }
 
         [TestMethod]
         public void OnDelete()
         {
             var s = SimulationFactory.When.Delete().From("/ThePath");
-            Assert.AreEqual(System.Net.Http.HttpMethod.Delete, s.HttpMethod);
-            Assert.AreEqual("/ThePath", s.Pattern);
+            Assert.AreEqual(System.Net.Http.HttpMethod.Delete, s.SimulationConditionContent.HttpMethod);
+            Assert.AreEqual("/ThePath", s.SimulationConditionContent.Pattern);
         }
 
         [TestMethod]
         public void OnPost()
         {
             var s = SimulationFactory.When.Post().To("/ThePath");
-            Assert.AreEqual(System.Net.Http.HttpMethod.Post, s.HttpMethod);
-            Assert.AreEqual("/ThePath", s.Pattern);
+            Assert.AreEqual(System.Net.Http.HttpMethod.Post, s.SimulationConditionContent.HttpMethod);
+            Assert.AreEqual("/ThePath", s.SimulationConditionContent.Pattern);
         }
 
         [TestMethod]
         public void OnTrace()
         {
             var s = SimulationFactory.When.Trace().To("/ThePath");
-            Assert.AreEqual(System.Net.Http.HttpMethod.Trace, s.HttpMethod);
-            Assert.AreEqual("/ThePath", s.Pattern);
+            Assert.AreEqual(System.Net.Http.HttpMethod.Trace, s.SimulationConditionContent.HttpMethod);
+            Assert.AreEqual("/ThePath", s.SimulationConditionContent.Pattern);
         }
 
         [TestMethod]
         public void OnPut()
         {
             var s = SimulationFactory.When.Put().To("/ThePath");
-            Assert.AreEqual(System.Net.Http.HttpMethod.Put, s.HttpMethod);
-            Assert.AreEqual("/ThePath", s.Pattern);
+            Assert.AreEqual(System.Net.Http.HttpMethod.Put, s.SimulationConditionContent.HttpMethod);
+            Assert.AreEqual("/ThePath", s.SimulationConditionContent.Pattern);
         }
 
         [TestMethod]
         public void OnOptions()
         {
             var s = SimulationFactory.When.Options().To("/ThePath");
-            Assert.AreEqual(System.Net.Http.HttpMethod.Options, s.HttpMethod);
-            Assert.AreEqual("/ThePath", s.Pattern);
+            Assert.AreEqual(System.Net.Http.HttpMethod.Options, s.SimulationConditionContent.HttpMethod);
+            Assert.AreEqual("/ThePath", s.SimulationConditionContent.Pattern);
         }
 
         [TestMethod]
         public void OnHead()
         {
             var s = SimulationFactory.When.Head().To("/ThePath");
-            Assert.AreEqual(System.Net.Http.HttpMethod.Head, s.HttpMethod);
-            Assert.AreEqual("/ThePath", s.Pattern);
+            Assert.AreEqual(System.Net.Http.HttpMethod.Head, s.SimulationConditionContent.HttpMethod);
+            Assert.AreEqual("/ThePath", s.SimulationConditionContent.Pattern);
         }
 
 
@@ -233,28 +233,28 @@ namespace Moksy.Test
         public void Once()
         {
             var s = SimulationFactory.When.Delete().From("/ThePath").Once();
-            Assert.AreEqual(1, s.Repeat);
+            Assert.AreEqual(1, s.SimulationConditionContent.Repeat);
         }
 
         [TestMethod]
         public void Twice()
         {
             var s = SimulationFactory.When.Delete().From("/ThePath").Twice();
-            Assert.AreEqual(2, s.Repeat);
+            Assert.AreEqual(2, s.SimulationConditionContent.Repeat);
         }
 
         [TestMethod]
         public void Forever()
         {
             var s = SimulationFactory.When.Delete().From("/ThePath").Forever();
-            Assert.AreEqual(Int64.MaxValue, s.Repeat);
+            Assert.AreEqual(Int64.MaxValue, s.SimulationConditionContent.Repeat);
         }
 
         [TestMethod]
         public void SixTimes()
         {
             var s = SimulationFactory.When.Delete().From("/ThePath").Times(6);
-            Assert.AreEqual(6, s.Repeat);
+            Assert.AreEqual(6, s.SimulationConditionContent.Repeat);
         }
 
 
@@ -263,21 +263,21 @@ namespace Moksy.Test
         public void DefaultContentKindIsText()
         {
             var c = SimulationFactory.When.Post().To("/ThePath");
-            Assert.AreEqual(ContentKind.Text, c.ContentKind);
+            Assert.AreEqual(ContentKind.Text, c.SimulationConditionContent.ContentKind);
         }
 
         [TestMethod]
         public void ContentKindCanBeSetToText()
         {
             var c = SimulationFactory.When.Post().To("/ThePath").AsText();
-            Assert.AreEqual(ContentKind.Text, c.ContentKind);
+            Assert.AreEqual(ContentKind.Text, c.SimulationConditionContent.ContentKind);
         }
 
         [TestMethod]
         public void ContentKindCanBeSetToJson()
         {
             var c = SimulationFactory.When.Post().To("/ThePath").AsJson();
-            Assert.AreEqual(ContentKind.Json, c.ContentKind);
+            Assert.AreEqual(ContentKind.Json, c.SimulationConditionContent.ContentKind);
         }
 
 
@@ -285,10 +285,10 @@ namespace Moksy.Test
         public void SupportsImdb()
         {
             var s = SimulationFactory.When.Delete().From("/ThePath");
-            Assert.IsFalse(s.Simulation.Condition.IsImdb);
+            Assert.IsFalse(s.Simulation.Condition.SimulationConditionContent.IsImdb);
 
             var c = SimulationFactory.When.I.Delete().FromImdb("/ThePath");
-            Assert.IsTrue(c.Simulation.Condition.IsImdb);
+            Assert.IsTrue(c.Simulation.Condition.SimulationConditionContent.IsImdb);
         }
 
 
@@ -312,7 +312,7 @@ namespace Moksy.Test
         {
             var s = SimulationFactory.When.I.Get().From("/Endpoint({id})").AsJson().Exists().Return.StatusCode(System.Net.HttpStatusCode.OK);
 
-            Assert.AreEqual("id", s.Simulation.Condition.IndexProperty);
+            Assert.AreEqual("id", s.Simulation.Condition.SimulationConditionContent.IndexProperty);
         }
 
         [TestMethod]
@@ -348,7 +348,7 @@ namespace Moksy.Test
         {
             var s = SimulationFactory.When.I.Get().From("/Endpoint({id})").AsJson().NotExists().Return.StatusCode(System.Net.HttpStatusCode.OK);
 
-            Assert.AreEqual("id", s.Simulation.Condition.IndexProperty);
+            Assert.AreEqual("id", s.Simulation.Condition.SimulationConditionContent.IndexProperty);
         }
 
 
@@ -418,7 +418,7 @@ namespace Moksy.Test
         public void NullBodyIsOk()
         {
             var s = SimulationFactory.When.I.Post().ToImdb("/Endpoint").AsJson().Then.Return.Body((string)null);
-            Assert.AreEqual(null, s.Content);
+            Assert.AreEqual(null, s.SimulationResponseContent.Content);
         }
 
 
@@ -432,7 +432,7 @@ namespace Moksy.Test
         public void ObjectAsJsonWorks()
         {
             var s = SimulationFactory.When.I.Post().ToImdb("/Endpoint").AsJson().Then.Return.Body(new Pet() { Kind = "Dog" });
-            Assert.AreEqual(@"{""Kind"":""Dog""}", s.Content);
+            Assert.AreEqual(@"{""Kind"":""Dog""}", s.SimulationResponseContent.Content);
         }
 
 
@@ -520,7 +520,7 @@ namespace Moksy.Test
         {
             var s = SimulationFactory.When.I.Post().ToImdb("/Pet");
             Assert.IsFalse(s.IsGroupedByImdbHeaderDiscriminator);
-            Assert.AreEqual(null, s.ImdbHeaderDiscriminator);
+            Assert.AreEqual(null, s.SimulationConditionContent.ImdbHeaderDiscriminator);
         }
 
         [TestMethod]
@@ -528,7 +528,7 @@ namespace Moksy.Test
         {
             var s = SimulationFactory.When.I.Post().ToImdb("/Pet", "clinic");
             Assert.IsTrue(s.IsGroupedByImdbHeaderDiscriminator);
-            Assert.AreEqual("clinic", s.ImdbHeaderDiscriminator);
+            Assert.AreEqual("clinic", s.SimulationConditionContent.ImdbHeaderDiscriminator);
         }
 
         [TestMethod]
@@ -536,7 +536,7 @@ namespace Moksy.Test
         {
             var s = SimulationFactory.When.I.Get().FromImdb("/Pet");
             Assert.IsFalse(s.IsGroupedByImdbHeaderDiscriminator);
-            Assert.AreEqual(null, s.ImdbHeaderDiscriminator);
+            Assert.AreEqual(null, s.SimulationConditionContent.ImdbHeaderDiscriminator);
         }
 
         [TestMethod]
@@ -544,7 +544,7 @@ namespace Moksy.Test
         {
             var s = SimulationFactory.When.I.Get().FromImdb("/Pet", "clinic");
             Assert.IsTrue(s.IsGroupedByImdbHeaderDiscriminator);
-            Assert.AreEqual("clinic", s.ImdbHeaderDiscriminator);
+            Assert.AreEqual("clinic", s.SimulationConditionContent.ImdbHeaderDiscriminator);
         }
 
 
@@ -553,15 +553,15 @@ namespace Moksy.Test
         public void NoParameters()
         {
             var s = SimulationFactory.When.I.Get().From("/Pet").Return.StatusCode(System.Net.HttpStatusCode.OK);
-            Assert.AreEqual(0, s.Simulation.Condition.ParametersForJson.Length);
+            Assert.AreEqual(0, s.Simulation.Condition.SimulationConditionContent.ParametersForJson.Length);
         }
 
         [TestMethod]
         public void OneParameter()
         {
             var s = SimulationFactory.When.I.Get().From("/Pet").Parameter("theparam", "thevalue").Return.StatusCode(System.Net.HttpStatusCode.OK);
-            Assert.AreEqual(1, s.Simulation.Condition.ParametersForJson.Length);
-            var t = s.Simulation.Condition.ParametersForJson[0];
+            Assert.AreEqual(1, s.Simulation.Condition.SimulationConditionContent.ParametersForJson.Length);
+            var t = s.Simulation.Condition.SimulationConditionContent.ParametersForJson[0];
             Assert.AreEqual("theparam", t.Name);
             Assert.AreEqual("thevalue", t.Value);
         }
