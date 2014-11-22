@@ -1026,7 +1026,7 @@ namespace Moksy.Storage
         /// <returns></returns>
         public bool Delete(string name)
         {
-            return Delete(name, false);
+            return Delete(name, false, false);
         }
 
         /// <summary>
@@ -1035,7 +1035,7 @@ namespace Moksy.Storage
         /// <param name="name"></param>
         /// <param name="deleteData">If true, all of the data associated with this resource will be purged. </param>
         /// <returns></returns>
-        public bool Delete(string name, bool deleteData)
+        public bool Delete(string name, bool deleteData, bool retainSimulation)
         {
             if (null == name) return false;
 
@@ -1050,7 +1050,10 @@ namespace Moksy.Storage
                 var match = Storage.FirstOrDefault(f => string.Compare(f.Name, name, true) == 0);
                 if (match == null) return false;
 
-                Storage.Remove(match);
+                if (!retainSimulation)
+                {
+                    Storage.Remove(match);
+                }
 
                 if (deleteData)
                 {

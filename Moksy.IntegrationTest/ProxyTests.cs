@@ -156,6 +156,27 @@ namespace Moksy.IntegrationTest
 
 
         [TestMethod]
+        public void DeleteSimulationDataRetainRule()
+        {
+            var simulation1 = Moksy.Common.SimulationFactory.New("First").Get().FromImdb("/Pet").Return.StatusCode(System.Net.HttpStatusCode.OK).Return.Body("StillExists");
+            Proxy.Add(simulation1);
+
+            var simulation2 = Moksy.Common.SimulationFactory.New("Second").Post().ToImdb("/Pet").Then.Return.StatusCode(System.Net.HttpStatusCode.Created).And.AddToImdb();
+            Proxy.Add(simulation2);
+
+            var response = Post("/Pet", new Pet() { Kind = "Dog" });
+
+            var code = Proxy.DeleteByName("First", true, true);
+            Assert.AreEqual(System.Net.HttpStatusCode.NoContent, code);
+
+            response = Get("/Pet");
+            Assert.AreEqual(System.Net.HttpStatusCode.OK, response.StatusCode);
+            Assert.AreEqual(@"StillExists", response.Content);
+        }
+
+
+
+        [TestMethod]
         public void ConfigureRemoteMachine()
         {
             Proxy proxy = new Proxy(10011);

@@ -258,11 +258,16 @@ namespace Moksy
 
 
 
+        public HttpStatusCode DeleteByName(string name, bool removeImdb)
+        {
+            return DeleteByName(name, removeImdb, false);
+        }
+
         /// <summary>
         /// Delete the Simulation by name. This is case sensitive. 
         /// </summary>
         /// <param name="name"></param>
-        public HttpStatusCode DeleteByName(string name, bool removeImdb)
+        public HttpStatusCode DeleteByName(string name, bool removeImdb, bool retainSimulation)
         {
             string path = string.Format("{0}('{1}')", GetSimulationResource(), name);
 
@@ -271,6 +276,10 @@ namespace Moksy
             if (removeImdb)
             {
                 request.AddParameter("moksy-purgedata", "true", RestSharp.ParameterType.HttpHeader);
+            }
+            if (retainSimulation)
+            {
+                request.AddParameter("moksy-retainsimulation", retainSimulation.ToString(), RestSharp.ParameterType.HttpHeader);
             }
             var response = client.Execute(request);
             return response.StatusCode;

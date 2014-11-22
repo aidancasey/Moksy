@@ -148,12 +148,25 @@ namespace Moksy.Handlers
             var response = Task<HttpResponseMessage>.Factory.StartNew(() => 
             {
                 var moksyHeader = from T in request.Headers where T.Key == "moksy-purgedata" select T;
+                var moksyRetainSimulation = from T in request.Headers where T.Key == "moksy-retainsimulation" select T;
                 var deleteData = false;
+                var retainSimulation = false;
                 if (moksyHeader.Count() == 1)
                 {
                     deleteData = true;
                 }
-                Storage.SimulationManager.Instance.Delete(name, deleteData); 
+                if (moksyRetainSimulation.Count() == 1)
+                {
+                    List<string> parts = new List<string>();
+                    parts.AddRange(moksyRetainSimulation.First().Value);
+                    var result = string.Join("", parts);
+
+                    if (result.ToLower() == "true")
+                    {
+                        retainSimulation = true;
+                    }
+                }
+                Storage.SimulationManager.Instance.Delete(name, deleteData, retainSimulation); 
                 return message; 
 
             });
