@@ -6,12 +6,15 @@ using System.Text;
 using System.Threading.Tasks;
 using Moksy.Storage;
 
-namespace Moksy.Test
+namespace Moksy.Test.Imdb
 {
+    /// <summary>
+    /// Tests the Imdb works for the most simple kind of resource storage. ie: /Pet/{id}
+    /// </summary>
     [TestClass]
-    public class DatabaseTests
+    public class DatabaseSingleResourceTests
     {
-        public DatabaseTests()
+        public DatabaseSingleResourceTests()
         {
         }
 

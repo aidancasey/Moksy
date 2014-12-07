@@ -29,5 +29,10 @@ namespace Moksy.Common
         /// The value of this token. If this token is a Resource, the Name and Value are the same. 
         /// </summary>
         public string Value { get; set; }
+
+        /// <summary>
+        /// The 0-based index of this token. 
+        /// </summary>
+        public int Index { get; set; }
     }
 }

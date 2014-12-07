@@ -181,7 +181,9 @@ namespace Moksy.Common
         /// <summary>
         /// Will match the URL. 
         /// </summary>
-        public const string RegularExpression = "(?<resourceName>/[^{]+)(?<resourceIdentifier>[{][^}]+[}])(?<tail>[^/]*)|(?<resourceName>/[^{]+)";
+        /// <remarks>Constructing this was one of the most memorable weeks of my life. 
+        /// </remarks>
+        public const string RegularExpression = "(?<resourceName>/[^{]+)(?<resourceIdentifier>[{][^}]+[}])(?<tail>[^/]*)|(?<resourceName>/[^{]+)|(?<resourceIdentifier>/[{][^}]+[}])(?<tail>[^/]*)";
 
         /// <summary>
         /// Convert a pattern - such as /Pet/{Kind}/Toy/{Name} to a regular expression to help matching against real paths. 
@@ -190,12 +192,40 @@ namespace Moksy.Common
         /// <returns></returns>
         public static string ConvertPatternToRegularExpression(string pattern)
         {
+            return ConvertPatternToRegularExpression(pattern, false);
+        }
+
+        /// <summary>
+        /// Convert a pattern - such as /Pet/{Kind}/Toy/{Name} to a regular expression to help matching against real paths. 
+        /// </summary>
+        /// <param name="pattern"></param>
+        /// <param name="nameCaptures">If true, the regular expression will name the capture groups. </param>
+        /// <returns></returns>
+        public static string ConvertPatternToRegularExpression(string pattern, bool nameCaptures)
+        {
             if (null == pattern) return pattern;
 
+            string resourceName = "?<resourceName>";
+            string resourceIdentifier = "?<resourceIdentifier>";
+
+            if (!nameCaptures)
+            {
+                resourceName = "";
+                resourceIdentifier = "";
+            } 
+            
             Substitution s = new Substitution();
 
             var vars = s.GetVariables(pattern);
-            if (vars.Count == 0) return string.Format("^{0}$", pattern);
+            if (vars.Count == 0)
+            {
+                if (nameCaptures)
+                {
+                    return string.Format("^?<resourceName>{0}$", pattern);
+                }
+
+                return string.Format("^{0}$", pattern);
+            }
 
             // NOTE: Currently only matches the first {variable}.
             //       We need to replace the {variable} with a regular expression that will match. 
@@ -208,18 +238,29 @@ namespace Moksy.Common
                 vars = s.GetVariables(m.Value);
                 if (vars.Count == 0)
                 {
-                    b.AppendFormat(string.Format("({0})", Regex.Escape(m.Value)));
+                    // This is entirely a resourceName - a fixed value.
+                    b.AppendFormat(string.Format("({1}{0})", Regex.Escape(m.Value), resourceName));
                     continue;
                 }
                 
+                // This includes variables. In particular: /Pet/{Kind} 
                 foreach (var v in vars)
                 {
                     var fullVariable = string.Format("{{{0}}}", v.Name);
                     var start = m.Value.Substring(0, v.Position);
+                    start = Regex.Escape(start);
+                    if (nameCaptures && start != "/")
+                    {
+                        start = resourceName + start;
+                    }
                     var regex = ".*?";
+                    if (nameCaptures)
+                    {
+                        regex = resourceIdentifier + regex;
+                    }
                     var end = m.Value.Substring(v.Position + fullVariable.Length);
 
-                    b.AppendFormat("({0})({1})({2})", Regex.Escape(start), regex, Regex.Escape(end));
+                    b.AppendFormat("({0})({1})({2})", start, regex, Regex.Escape(end));
                 }
             }
             // By doing this, we get separate tokens. 

@@ -15,6 +15,7 @@ namespace Moksy.Storage
     {
         public Entry()
         {
+            Resources = new List<Resource>();
         }
 
         /// <summary>
@@ -26,5 +27,10 @@ namespace Moksy.Storage
         /// Optional bytes associated with this Json. 
         /// </summary>
         public byte[] Bytes { get; set; }
+
+        /// <summary>
+        /// Resources stored under this entry this database. Each resource can itself have child resources. 
+        /// </summary>
+        internal List<Resource> Resources;
     }
 }

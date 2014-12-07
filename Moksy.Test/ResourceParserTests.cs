@@ -178,10 +178,24 @@ namespace Moksy.Test
         }
 
         [TestMethod]
+        public void SimpleConvertNoParametersWithCaptures()
+        {
+            var result = RouteParser.ConvertPatternToRegularExpression("/Pet", true);
+            Assert.AreEqual("^?<resourceName>/Pet$", result);
+        }
+
+        [TestMethod]
         public void SimpleConvertOneParameter()
         {
             var result = RouteParser.ConvertPatternToRegularExpression("/Pet/{prop}");
             Assert.AreEqual("^(/Pet/)(.*?)()$", result);
+        }
+
+        [TestMethod]
+        public void SimpleConvertOneParameterWithCaptures()
+        {
+            var result = RouteParser.ConvertPatternToRegularExpression("/Pet/{prop}", true);
+            Assert.AreEqual("^(?<resourceName>/Pet/)(?<resourceIdentifier>.*?)()$", result);
         }
 
         [TestMethod]
@@ -199,10 +213,59 @@ namespace Moksy.Test
         }
 
         [TestMethod]
-        public void SimpleConvertTwoParameters()
+        public void SimpleConvertTwoParametersWithResources()
         {
             var result = RouteParser.ConvertPatternToRegularExpression("/Pet/{prop}/Toy/{name}");
             Assert.AreEqual("^(/Pet/)(.*?)()(/Toy/)(.*?)()$", result);
+        }
+
+        [TestMethod]
+        public void SimpleConvertTwoParametersWithResourcesAndCaptures()
+        {
+            var result = RouteParser.ConvertPatternToRegularExpression("/Pet/{prop}/Toy/{name}", true);
+            Assert.AreEqual("^(?<resourceName>/Pet/)(?<resourceIdentifier>.*?)()(?<resourceName>/Toy/)(?<resourceIdentifier>.*?)()$", result);
+        }
+
+        [TestMethod]
+        public void SimpleConvertTwoParametersWithResourcesAndResourceAtEnd()
+        {
+            var result = RouteParser.ConvertPatternToRegularExpression("/Pet/{prop}/Toy/{name}/Price");
+            Assert.AreEqual("^(/Pet/)(.*?)()(/Toy/)(.*?)()(/Price)$", result);
+        }
+
+        [TestMethod]
+        public void SimpleConvertTwoParametersNoResources()
+        {
+            var result = RouteParser.ConvertPatternToRegularExpression("/Pet/{prop}/{name}");
+            Assert.AreEqual("^(/Pet/)(.*?)()(/)(.*?)()$", result);
+        }
+
+        [TestMethod]
+        public void SimpleConvertThreeParameters()
+        {
+            var result = RouteParser.ConvertPatternToRegularExpression("/Pet/{prop}/Toy/{name}/Price/{price}");
+            Assert.AreEqual("^(/Pet/)(.*?)()(/Toy/)(.*?)()(/Price/)(.*?)()$", result);
+        }
+
+        [TestMethod]
+        public void SimpleConvertThreeParametersNoResources()
+        {
+            var result = RouteParser.ConvertPatternToRegularExpression("/{prop}/{name}/{price}");
+            Assert.AreEqual("^(/)(.*?)()(/)(.*?)()(/)(.*?)()$", result);
+        }
+
+        [TestMethod]
+        public void SimpleConvertThreeParametersSomeResourcesAndNoResources()
+        {
+            var result = RouteParser.ConvertPatternToRegularExpression("/{prop}/Toy/{name}/{price}/Cost/{currency}/{value}");
+            Assert.AreEqual("^(/)(.*?)()(/Toy/)(.*?)()(/)(.*?)()(/Cost/)(.*?)()(/)(.*?)()$", result);
+        }
+
+        [TestMethod]
+        public void SimpleConvertThreeParametersSomeResourcesAndNoResourcesWithCaptures()
+        {
+            var result = RouteParser.ConvertPatternToRegularExpression("/{prop}/Toy/{name}/{price}/Cost/{currency}/{value}", true);
+            Assert.AreEqual("^(/)(?<resourceIdentifier>.*?)()(?<resourceName>/Toy/)(?<resourceIdentifier>.*?)()(/)(?<resourceIdentifier>.*?)()(?<resourceName>/Cost/)(?<resourceIdentifier>.*?)()(/)(?<resourceIdentifier>.*?)()$", result);
         }
 
         [TestMethod]
@@ -210,6 +273,94 @@ namespace Moksy.Test
         {
             var result = RouteParser.ConvertPatternToRegularExpression("/Pet('{Kind}')");
             Assert.AreEqual("^(/Pet\\(')(.*?)('\\))$", result);
+        }
+
+
+
+        [TestMethod]
+        public void ConvertThreeParametersReference()
+        {
+            // This is a reference for how a path is parsed and the various components extracted. 
+            var result = RouteParser.ConvertPatternToRegularExpression("/{prop}/Toy/{name}/{price}/Cost/{currency}/{value}", true);
+            Assert.AreEqual("^(/)(?<resourceIdentifier>.*?)()(?<resourceName>/Toy/)(?<resourceIdentifier>.*?)()(/)(?<resourceIdentifier>.*?)()(?<resourceName>/Cost/)(?<resourceIdentifier>.*?)()(/)(?<resourceIdentifier>.*?)()$", result);
+
+            var candidate = "/candidate/Toy/Bone/50/Cost/dollar/85";
+            var matches = Regex.Matches(candidate, result, RegexOptions.ExplicitCapture);
+
+            // We now need to extract the resourceNames and resourceIdentifiers. By sorting their start index, we can work out the order in which 
+            // they occurred and then walk an in-memory database. 
+
+            var resourceNames = matches[0].Groups["resourceName"];
+            var resourceIdentifiers = matches[0].Groups["resourceIdentifier"];
+
+            List<Placeholder> parsed = new List<Placeholder>();
+
+            foreach (Capture n in resourceNames.Captures)
+            {
+                parsed.Add(new Placeholder() { Type = "resourceName", Value = n.Value.Replace("/", ""), Index = n.Index });
+            }
+            foreach(Capture n in resourceIdentifiers.Captures)
+            {
+                parsed.Add(new Placeholder() { Type = "resourceIdentifier", Value = n.Value, Index = n.Index });
+            }
+
+            parsed = parsed.OrderBy(f => f.Index).ToList();
+
+            Assert.AreEqual("resourceIdentifier", parsed[0].Type);
+            Assert.AreEqual("candidate", parsed[0].Value);
+
+            Assert.AreEqual("resourceName", parsed[1].Type);
+            Assert.AreEqual("Toy", parsed[1].Value);
+
+            Assert.AreEqual("resourceIdentifier", parsed[2].Type);
+            Assert.AreEqual("Bone", parsed[2].Value);
+
+            Assert.AreEqual("resourceIdentifier", parsed[3].Type);
+            Assert.AreEqual("50", parsed[3].Value);
+
+            Assert.AreEqual("resourceName", parsed[4].Type);
+            Assert.AreEqual("Cost", parsed[4].Value);
+
+            Assert.AreEqual("resourceIdentifier", parsed[5].Type);
+            Assert.AreEqual("dollar", parsed[5].Value);
+
+            Assert.AreEqual("resourceIdentifier", parsed[6].Type);
+            Assert.AreEqual("85", parsed[6].Value);
+        }
+
+        [TestMethod]
+        public void ConvertThreeParametersWithParse()
+        {
+            var tokens = RouteParser.Parse("/candidate/Toy/Bone/50/Cost/dollar/85", "/{prop}/Toy/{name}/{price}/Cost/{currency}/{value}").ToList();
+            Assert.AreEqual(10, tokens.Count());
+
+            // NOTE: The reason that some resource are empty is because there HAS to be a resource (of some kind) prior to the property. 
+            //       The easiest and most transparent way to do this is to simply make the resource name empty. 
+
+            AssertRouteToken(tokens, 0, RouteTokenKind.Resource, "", "");
+            AssertRouteToken(tokens, 1, RouteTokenKind.Property, "prop", "candidate");
+            AssertRouteToken(tokens, 2, RouteTokenKind.Resource, "Toy", "Toy");
+            AssertRouteToken(tokens, 3, RouteTokenKind.Property, "name", "Bone");
+            AssertRouteToken(tokens, 4, RouteTokenKind.Resource, "", "");
+            AssertRouteToken(tokens, 5, RouteTokenKind.Property, "price", "50");
+            AssertRouteToken(tokens, 6, RouteTokenKind.Resource, "Cost", "Cost");
+            AssertRouteToken(tokens, 7, RouteTokenKind.Property, "currency", "dollar");
+            AssertRouteToken(tokens, 8, RouteTokenKind.Resource, "", "");
+            AssertRouteToken(tokens, 9, RouteTokenKind.Property, "value", "85");
+        }
+
+        protected void AssertRouteToken(List<RouteToken> tokens, int index, RouteTokenKind kind, string name, string value)
+        {
+            Assert.AreEqual(kind, tokens[index].Kind);
+            Assert.AreEqual(name, tokens[index].Name);
+            Assert.AreEqual(value, tokens[index].Value);
+        }
+
+        private class Placeholder
+        {
+            public int Index {get;set;}
+            public string Type {get;set;}
+            public string Value {get;set;}
         }
 
         
