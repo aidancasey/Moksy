@@ -49,7 +49,57 @@ namespace Moksy.Storage
             if (tokens.Count() == 0) return false;
 
             JObject jobject = JsonConvert.DeserializeObject(data) as JObject;
+            
+            // We need to 'walk' the data resources until we find the entry we are looking for.
+            // By convention, if the property does not in exist in the path we create an entry for it. 
+            List<Resource> currentResourceList = Resources;
+            Resource resource = null;
+            for (int offset = 0; offset < tokens.Length; offset++)
+            {
+                var token = tokens[offset];
+                if (token.Kind == RouteTokenKind.Resource)
+                {
+                    resource = currentResourceList.FirstOrDefault(f => string.Compare(token.Name, f.Name, true) == 0);
+                    if (resource == null)
+                    {
+                        resource = new Resource(token.Name);
+                        currentResourceList.Add(resource);
+                        continue;
+                    }
+                }
+                if (token.Kind == RouteTokenKind.Property)
+                {
+                    // We need to find the entry with this value in it. 
+                    
+                }
+            }
 
+            if (null == resource)
+            {
+                return false;
+            }
+
+            // ASSERTION: We have found the resource we need to add the entry. 
+
+            string propertyValue = null;
+            JToken jobjectPropertyValue = null;
+            if (propertyName != null)
+            {
+                jobjectPropertyValue = jobject[propertyName];
+            }
+            if (jobjectPropertyValue != null)
+            {
+                propertyValue = jobjectPropertyValue.ToString();
+            }
+
+            var existingIndex = FindIndexOf(resource, propertyName, propertyValue, discriminator);
+            if (existingIndex != -1)
+            {
+                resource.Data(discriminator).RemoveAt(existingIndex);
+            }
+
+            resource.Data(discriminator).Add(new Entry() { Json = data, Bytes = binaryContent });
+            /*
             for (int offset = 0; offset < tokens.Length; offset++)
             {
                 // TODO: Refactor when we support nested resources. 
@@ -78,7 +128,7 @@ namespace Moksy.Storage
 
                 resource.Data(discriminator).Add(new Entry() { Json = data, Bytes = binaryContent });
             }
-
+            */
             return true;
         }
 

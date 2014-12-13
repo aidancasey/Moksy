@@ -30,6 +30,16 @@ namespace Moksy.Test.Imdb
         #region Database - Add/Delete where multiple resources are in use 
 
         [TestMethod]
+        public void Nested()
+        {
+            var result = Database.AddJson("/Pet", "/Pet", "Kind", @"{""Kind"":""Dog""}");
+            result = Database.AddJson("/Pet/Dog/Toy", "/Pet/{Kind}/Toy", "Name", @"{""Name"":""Bone""}");
+            Assert.IsTrue(result);
+
+            Assert.Fail("Sanity");
+        }
+        /*
+        [TestMethod]
         public void AddEntryFirstEntryPresent()
         {
             Assert.Fail("This test is redundant - and wrong. Update this to test nested resources");
@@ -49,10 +59,34 @@ namespace Moksy.Test.Imdb
             Assert.AreEqual(@"{""Name"":""Bone""}", Database.Resources[0].Data()[0].Json);
         }
 
+        [TestMethod]
+        public void TopLevelAddedFirst()
+        {
+            // Add /Pet
+            // Then add /Pet/Toy/Bone
+            var result = Database.AddJson("/Pet", "/Pet", "Kind", @"{""Kind"":""Dog""}");
+            result = Database.AddJson("/Pet/Dog/Toy", "/Pet/{Kind}/Toy", "Name", @"{""Name"":""Bone""}");
+            Assert.IsTrue(result);
+
+            // One top level resources. 
+            Assert.AreEqual(1, Database.Resources.Count);
+            Assert.AreEqual("Pet", Database.Resources[0].Name);
+
+            // Pet has one nested resource - Toy
+            Assert.AreEqual(1, Database.Resources[0].Data()[0].Resources.Count);
+            Assert.AreEqual("Toy", Database.Resources[1].Data()[0].Resources[0].Name);
+
+            // Pet has a single entry - Dog. 
+            Assert.AreEqual(1, Database.Resources[0].Data().Count);
+            Assert.AreEqual(@"{""Kind"":""Dog""}", Database.Resources[0].Data()[0].Json);
+
+            // Pet/Dog/Toy has a single entry - bone. 
+            Assert.AreEqual(1, Database.Resources[0].Data()[0].Resources[0].Data()[0].Resources[0].Data()[0].Json);
+            Assert.AreEqual(@"{""Name"":""Bone""}", Database.Resources[0].Data()[0].Json);
+        }*/
         #endregion
 
 
-        /*
         #region Resources
 
         [TestMethod]
@@ -309,6 +343,5 @@ namespace Moksy.Test.Imdb
         }
 
         #endregion
-         * */
     }
 }

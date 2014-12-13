@@ -19,6 +19,7 @@ namespace Moksy.Storage
         {
             this.Name = name;
             Storage = new Dictionary<string, List<Entry>>();
+            Resources = new List<Resource>();
         }
 
         /// <summary>
@@ -50,6 +51,11 @@ namespace Moksy.Storage
         /// Name of this resource. 
         /// </summary>
         public readonly string Name;
+
+        /// <summary>
+        /// Any nested resources. 
+        /// </summary>
+        public readonly List<Resource> Resources;
 
         /// <summary>
         /// List of entries associated with this resource (Json)
