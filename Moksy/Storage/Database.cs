@@ -50,27 +50,65 @@ namespace Moksy.Storage
 
             JObject jobject = JsonConvert.DeserializeObject(data) as JObject;
             
-            // We need to 'walk' the data resources until we find the entry we are looking for.
-            // By convention, if the property does not in exist in the path we create an entry for it. 
+            // 1. We need to 'walk' the path (and therefore the database) until we get to the Resource that will hold our value. 
+            //    As we walk the path, we create the resources we need to store the data as we go. 
+            // 2. Add the entry to the database. 
+
+
+            // 1.
             List<Resource> currentResourceList = Resources;
             Resource resource = null;
+            string propertyValue = null;
+            JToken jobjectPropertyValue = null;
             for (int offset = 0; offset < tokens.Length; offset++)
             {
+                propertyValue = null;
+                jobjectPropertyValue = null;
+
                 var token = tokens[offset];
                 if (token.Kind == RouteTokenKind.Resource)
                 {
-                    resource = currentResourceList.FirstOrDefault(f => string.Compare(token.Name, f.Name, true) == 0);
+                    resource = currentResourceList.FirstOrDefault(f => string.Compare(token.Name, f.Name, true) == 0 && !f.IsPropertyResource);
                     if (resource == null)
                     {
                         resource = new Resource(token.Name);
                         currentResourceList.Add(resource);
-                        continue;
                     }
+                    currentResourceList = resource.Resources;
+                    continue;
                 }
                 if (token.Kind == RouteTokenKind.Property)
                 {
-                    // We need to find the entry with this value in it. 
-                    
+                    if (offset == tokens.Length - 1)
+                    {
+                        // The property at the end of the path is assumed to reference an existing object; so we are finished "walking"
+                        continue;
+
+                    }
+
+                    // Create a candidate entry 
+                    var existingIndex = FindIndexOf(resource, token.Name, token.Value, discriminator);
+                    if (existingIndex == -1)
+                    {
+                        // Given the entry does not already exist; we need to create it. To get to here: Post @{""Name"":""Bone""} to /Pet/Dog/Toy
+                        // A entry for {Dog} will be created. 
+                        var jsonRaw = JsonConvert.DeserializeObject("{}") as JObject;
+                        jsonRaw[token.Name] = token.Value;
+                        var json = JsonConvert.SerializeObject(jsonRaw);
+
+                        resource.Data(discriminator).Add(new Entry() { Json = json, Bytes = binaryContent });
+                    }
+
+                    var existingPropertyResourse = resource.Resources.FirstOrDefault(f => string.Compare(f.Name, token.Value, true) == 0 && f.IsPropertyResource);
+                    if (existingPropertyResourse == null)
+                    {
+                        resource.Resources.Add(new Resource(token.Value, true));
+                        currentResourceList = resource.Resources.Last().Resources;
+                    }
+                    else
+                    {
+                        currentResourceList = existingPropertyResourse.Resources;
+                    }
                 }
             }
 
@@ -80,9 +118,6 @@ namespace Moksy.Storage
             }
 
             // ASSERTION: We have found the resource we need to add the entry. 
-
-            string propertyValue = null;
-            JToken jobjectPropertyValue = null;
             if (propertyName != null)
             {
                 jobjectPropertyValue = jobject[propertyName];
@@ -92,43 +127,21 @@ namespace Moksy.Storage
                 propertyValue = jobjectPropertyValue.ToString();
             }
 
-            var existingIndex = FindIndexOf(resource, propertyName, propertyValue, discriminator);
-            if (existingIndex != -1)
+            var existingPropertyIndex = FindIndexOf(resource, propertyName, propertyValue, discriminator);
+            if (existingPropertyIndex != -1)
             {
-                resource.Data(discriminator).RemoveAt(existingIndex);
+                resource.Data(discriminator).RemoveAt(existingPropertyIndex);
+            }
+
+            var existingPropertyResourse2 = resource.Resources.FirstOrDefault(f => string.Compare(f.Name, propertyValue, true) == 0 && f.IsPropertyResource);
+            if (existingPropertyResourse2 != null)
+            {
+                resource.Resources.Remove(existingPropertyResourse2);
             }
 
             resource.Data(discriminator).Add(new Entry() { Json = data, Bytes = binaryContent });
-            /*
-            for (int offset = 0; offset < tokens.Length; offset++)
-            {
-                // TODO: Refactor when we support nested resources. 
-                var token = tokens[offset];
-                if (token.Kind != RouteTokenKind.Resource) return false;
+            resource.Resources.Add(new Resource(propertyValue, true));
 
-                var resource = NewResource(token);
-                if (null == resource) return false;
-
-                string propertyValue = null;
-                JToken jobjectPropertyValue = null;
-                if (propertyName != null)
-                {
-                    jobjectPropertyValue = jobject[propertyName];
-                }
-                if (jobjectPropertyValue != null)
-                {
-                    propertyValue = jobjectPropertyValue.ToString();
-                }
-
-                var existingIndex = FindIndexOf(resource, propertyName, propertyValue, discriminator);
-                if (existingIndex != -1)
-                {
-                    resource.Data(discriminator).RemoveAt(existingIndex);
-                }
-
-                resource.Data(discriminator).Add(new Entry() { Json = data, Bytes = binaryContent });
-            }
-            */
             return true;
         }
 
@@ -155,17 +168,30 @@ namespace Moksy.Storage
             var tokens = RouteParser.Parse(path, pattern).ToArray();
             if (tokens.Count() == 0) return null;
 
-            // TODO: Refactor when we support nested resources. 
-            var token = tokens[0];
-            if (token.Kind != RouteTokenKind.Resource) return null;
+            List<Resource> currentResourceList = Resources;
+            Resource resource = null;
+            for (int offset = 0; offset < tokens.Length; offset++)
+            {
+                var token = tokens[offset];
 
-            var match = Resources.FirstOrDefault(f => f.Name == token.Value);
-            if (match == null) return null;
+                // NOTE: It doesn't matter what kind of token we are; we are 'walking' the Resource list to find our match. 
+                if (token.Kind == RouteTokenKind.Resource)
+                {
+                    resource = currentResourceList.FirstOrDefault(f => string.Compare(f.Name, token.Name, true) == 0 && !f.IsPropertyResource);
+                }
+                else
+                {
+                    resource = currentResourceList.FirstOrDefault(f => string.Compare(f.Name, token.Value, true) == 0 && f.IsPropertyResource);
+                }
+                if (resource == null) return null;
 
-            var index = FindIndexOf(match, propertyName, value);
+                currentResourceList = resource.Resources;
+            }
+
+            var index = FindIndexOf(resource, propertyName, value);
             if (index == -1) return null;
 
-            return match.Data(discriminator)[index].Json;
+            return resource.Data(discriminator)[index].Json;
         }
 
 

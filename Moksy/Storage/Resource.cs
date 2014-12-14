@@ -15,11 +15,21 @@ namespace Moksy.Storage
         /// Constructor. 
         /// </summary>
         /// <param name="name">Name of the resource. </param>
-        public Resource(string name)
+        public Resource(string name) : this(name, false)
+        {
+        }
+
+        /// <summary>
+        /// Constructor. 
+        /// </summary>
+        /// <param name="name">Name of the resource. </param>
+        /// <param name="isPropertyResource">If true, this resource is represented by a property. </param>
+        public Resource(string name, bool isPropertyResource)
         {
             this.Name = name;
             Storage = new Dictionary<string, List<Entry>>();
             Resources = new List<Resource>();
+            IsPropertyResource = isPropertyResource;
         }
 
         /// <summary>
@@ -46,6 +56,20 @@ namespace Moksy.Storage
 
             return Storage[discriminator];
         }
+
+        /// <summary>
+        /// If True, this resource is represented as a property in a path and whose Name is subject to change. 
+        /// If False, this resource Name is fixed. 
+        /// </summary>
+        /// <remarks>This is purely an implementation detail. For example: if we have a pattern like this:
+        /// /Pet/{Kind}/Toy
+        /// And a path like this:
+        /// /Pet/Dog/Toy
+        /// Then Pet is a Resource and IsPropertyResource == false;
+        /// Then Dog is a Resource and IsPropertyResource == true;
+        /// Then Toy is a Resource and IsPropertyResource == false;
+        /// </remarks>
+        public readonly bool IsPropertyResource;
 
         /// <summary>
         /// Name of this resource. 
