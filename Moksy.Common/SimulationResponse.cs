@@ -268,16 +268,33 @@ namespace Moksy.Common
         /// <returns></returns>
         public SimulationResponse AddToImdb()
         {
-            return AddToImdb(true);
+            return AddToImdb(true, null);
+        }
+
+        public SimulationResponse AddToImdb(bool add)
+        {
+            return AddToImdb(add, null);
+        }
+
+        public SimulationResponse AddToImdb(string propertyName)
+        {
+            return AddToImdb(true, propertyName);
         }
 
         /// <summary>
         /// Indicates whether the data should be added to the in memory database. 
         /// </summary>
         /// <param name="add"></param>
+        /// <param name="indexProperty">The property to use as a unique index in the Imdb. </param>
         /// <returns></returns>
-        public SimulationResponse AddToImdb(bool add)
+        public SimulationResponse AddToImdb(bool add, string indexProperty)
         {
+            if (Simulation.Condition.SimulationConditionContent.ContentKind == ContentKind.File && indexProperty == null && Simulation.Condition.SimulationConditionContent.IndexProperty == null)
+            {
+                // For File, we always use "BinaryContentIdentifier". It is implicit.
+                indexProperty = "BinaryContentIdentity";
+            }
+
             if (add == true)
             {
                 if (Simulation.Condition.SimulationConditionContent.IsImdb == false)
@@ -288,8 +305,20 @@ namespace Moksy.Common
                 {
                     throw new System.InvalidOperationException(@"You can only specify AddToImdb() for Post() and Put() Conditions. ");
                 }
+                if (Simulation.Condition.SimulationConditionContent.IndexProperty == null && indexProperty == null)
+                {
+                    throw new System.InvalidOperationException(@"BREAKING CHANGE: You can only specify AddToImdb() if you also specify an Index Property. To do this, use either .Exists(""{theProperty}"") or .NotExists(""{theProperty}"") as part of the condition or specify the IndexProperty as part of AddToImdb(""{theProperty""})");
+                }
+                if (indexProperty != null && Simulation.Condition.SimulationConditionContent.IndexProperty != null)
+                {
+                    throw new System.InvalidOperationException(@"You have specified an Index Property to AddToImdb() but one is already specified using the .Exists or .NotExists condition. Please use one or the other in your simulation. ");
+                }
             }
             SimulationResponseContent.AddImdb = add;
+            if (indexProperty != null)
+            {
+                Simulation.Condition.SimulationConditionContent.IndexProperty = indexProperty.Replace("{", "").Replace("}", "");
+            }
             return this;
         }
 

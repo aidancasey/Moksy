@@ -276,9 +276,9 @@ namespace Moksy.Test.Imdb
         {
             var result = Database.AddJson("/Pet", "/Pet", "Kind", @"{""Kind"":""Dog""}");
             var removed = Database.Remove("/Pet", "/Pet", "NoneExistent", null);
-            Assert.IsTrue(removed);
+            Assert.IsFalse(removed);
             Assert.AreEqual(1, Database.Resources.Count);
-            Assert.AreEqual(0, Database.Resources[0].Data().Count);
+            Assert.AreEqual(1, Database.Resources[0].Data().Count);
         }
 
         #endregion

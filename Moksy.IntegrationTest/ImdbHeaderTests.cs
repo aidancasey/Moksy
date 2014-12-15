@@ -27,7 +27,7 @@ namespace Moksy.IntegrationTest
         [TestMethod]
         public void PostWithoutHeaderDoesNotMatch()
         {
-            var s = SimulationFactory.When.I.Post().ToImdb("/Pet", "owner").Then.AddToImdb().With.StatusCode(System.Net.HttpStatusCode.Created);
+            var s = SimulationFactory.When.I.Post().ToImdb("/Pet", "owner").Then.AddToImdb("{Kind}").With.StatusCode(System.Net.HttpStatusCode.Created);
             Proxy.Add(s);
 
             var response = Post("/Pet", "{}");
@@ -37,7 +37,7 @@ namespace Moksy.IntegrationTest
         [TestMethod]
         public void PostWithHeaderDoesMatch()
         {
-            var s = SimulationFactory.When.I.Post().ToImdb("/Pet", "owner").Then.AddToImdb().With.StatusCode(System.Net.HttpStatusCode.Created);
+            var s = SimulationFactory.When.I.Post().ToImdb("/Pet", "owner").Then.AddToImdb("{Kind}").With.StatusCode(System.Net.HttpStatusCode.Created);
             Proxy.Add(s);
 
             var headers = new List<Header>() { new Header("owner", "me") };
@@ -48,7 +48,7 @@ namespace Moksy.IntegrationTest
         [TestMethod]
         public void PostWithHeaderAndGetWithHeaderExactMatch()
         {
-            var s = SimulationFactory.When.I.Post().ToImdb("/Pet", "owner").Then.AddToImdb().With.StatusCode(System.Net.HttpStatusCode.Created);
+            var s = SimulationFactory.When.I.Post().ToImdb("/Pet", "owner").Then.AddToImdb("{Kind}").With.StatusCode(System.Net.HttpStatusCode.Created);
             Proxy.Add(s);
 
             s = SimulationFactory.When.I.Get().FromImdb("/Pet/{Kind}", "owner").Then.Return.Body("{value}").With.StatusCode(System.Net.HttpStatusCode.PreconditionFailed);
@@ -66,7 +66,7 @@ namespace Moksy.IntegrationTest
         [TestMethod]
         public void PostWithHeaderAndGetWithoutHeaderDoesNotMatch()
         {
-            var s = SimulationFactory.When.I.Post().ToImdb("/Pet", "owner").Then.AddToImdb().With.StatusCode(System.Net.HttpStatusCode.Created);
+            var s = SimulationFactory.When.I.Post().ToImdb("/Pet", "owner").Then.AddToImdb("{Kind}").With.StatusCode(System.Net.HttpStatusCode.Created);
             Proxy.Add(s);
 
             s = SimulationFactory.When.I.Get().FromImdb("/Pet/{Kind}", "owner").Then.Return.Body("{value}").With.StatusCode(System.Net.HttpStatusCode.PreconditionFailed);
@@ -85,7 +85,7 @@ namespace Moksy.IntegrationTest
         [TestMethod]
         public void StoreValueWithHeaderDiscriminator()
         {
-            var s = SimulationFactory.When.I.Post().ToImdb("/Pet", "owner").Then.AddToImdb().With.StatusCode(System.Net.HttpStatusCode.Created);
+            var s = SimulationFactory.When.I.Post().ToImdb("/Pet", "owner").Then.AddToImdb("{Kind}").With.StatusCode(System.Net.HttpStatusCode.Created);
             Proxy.Add(s);
 
             s = SimulationFactory.When.I.Get().FromImdb("/Pet/{Kind}", "owner").Then.Return.Body("{value}").With.StatusCode(System.Net.HttpStatusCode.PreconditionFailed);
@@ -112,7 +112,7 @@ namespace Moksy.IntegrationTest
         [TestMethod]
         public void PutValueWithHeaderDiscriminator()
         {
-            var s = SimulationFactory.When.I.Post().ToImdb("/Pet", "owner").Then.AddToImdb().With.StatusCode(System.Net.HttpStatusCode.Created);
+            var s = SimulationFactory.When.I.Post().ToImdb("/Pet", "owner").Then.AddToImdb("{Kind}").With.StatusCode(System.Net.HttpStatusCode.Created);
             Proxy.Add(s);
 
             s = SimulationFactory.When.I.Get().FromImdb("/Pet/{Kind}", "owner").Then.Return.Body("{value}").With.StatusCode(System.Net.HttpStatusCode.PreconditionFailed);
@@ -145,7 +145,7 @@ namespace Moksy.IntegrationTest
         [TestMethod]
         public void PutValueRouteDifferentFromObjectWithHeaderDiscriminator()
         {
-            var s = SimulationFactory.When.I.Post().ToImdb("/Pet", "owner").Then.AddToImdb().With.StatusCode(System.Net.HttpStatusCode.Created);
+            var s = SimulationFactory.When.I.Post().ToImdb("/Pet", "owner").Then.AddToImdb("{Kind}").With.StatusCode(System.Net.HttpStatusCode.Created);
             Proxy.Add(s);
 
             s = SimulationFactory.When.I.Get().FromImdb("/Pet/{Kind}", "owner").Then.Return.Body("{value}").With.StatusCode(System.Net.HttpStatusCode.PreconditionFailed);
@@ -181,7 +181,7 @@ namespace Moksy.IntegrationTest
         [TestMethod]
         public void PutValueNotInPath()
         {
-            var s = SimulationFactory.When.I.Post().ToImdb("/Pet", "owner").Then.AddToImdb().With.StatusCode(System.Net.HttpStatusCode.Created);
+            var s = SimulationFactory.When.I.Post().ToImdb("/Pet", "owner").Then.AddToImdb("{Kind}").With.StatusCode(System.Net.HttpStatusCode.Created);
             Proxy.Add(s);
 
             s = SimulationFactory.When.I.Get().FromImdb("/Pet/{Kind}", "owner").Then.Return.Body("{value}").With.StatusCode(System.Net.HttpStatusCode.PreconditionFailed);
@@ -217,7 +217,7 @@ namespace Moksy.IntegrationTest
         [TestMethod]
         public void DeleteByKindHeaderDiscriminator()
         {
-            var s = SimulationFactory.When.I.Post().ToImdb("/Pet", "owner").Then.AddToImdb().With.StatusCode(System.Net.HttpStatusCode.Created);
+            var s = SimulationFactory.When.I.Post().ToImdb("/Pet", "owner").Then.AddToImdb("{Kind}").With.StatusCode(System.Net.HttpStatusCode.Created);
             Proxy.Add(s);
 
             s = SimulationFactory.When.I.Get().FromImdb("/Pet/{Kind}", "owner").And.NotExists("{Kind}").Then.Return.Body("{value}").With.StatusCode(System.Net.HttpStatusCode.MultipleChoices);

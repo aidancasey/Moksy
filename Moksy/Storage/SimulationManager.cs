@@ -503,6 +503,15 @@ namespace Moksy.Storage
 
                                 continue;
                             }
+                            if (match.Condition.SimulationConditionContent.Persistence == Persistence.None)
+                            {
+                                // The Simulation specified is something like this: When.I.Post().ToImdb("/Pet").Then.AddToImdb("{Kind}").
+                                // There is no explicit mention of whether the item already exists or not; so we just add it. 
+                                var t = new Common.Match() { Simulation = match };
+                                t.EvaluatedMatchingConstraints.AddRange(matchingAssertions);
+                                t.EvaluatedNoneMatchingConstraints.AddRange(noneMatchingAsserations);
+                                return t;
+                            }
 
                             continue;
                         }

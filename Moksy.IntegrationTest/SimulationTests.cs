@@ -170,7 +170,7 @@ namespace Moksy.IntegrationTest
         [TestMethod]
         public void InMemoryForPostAndGetSingleBothWithImdbAndAdd()
         {
-            var s = Moksy.Common.SimulationFactory.When.I.Post().ToImdb("/Product").Then.Return.StatusCode(System.Net.HttpStatusCode.MultipleChoices).With.AddToImdb();
+            var s = Moksy.Common.SimulationFactory.When.I.Post().ToImdb("/Product").Then.Return.StatusCode(System.Net.HttpStatusCode.MultipleChoices).With.AddToImdb("{Kind}");
             Proxy.Add(s);
 
             var t = Moksy.Common.SimulationFactory.When.I.Get().FromImdb("/Product").Then.Return.StatusCode(System.Net.HttpStatusCode.NonAuthoritativeInformation);
@@ -271,7 +271,7 @@ namespace Moksy.IntegrationTest
         [TestMethod]
         public void PostAndGetAsJsonSingleEntry()
         {
-            var simulation1 = Moksy.Common.SimulationFactory.New("First").I.Post().ToImdb("/Product").AsJson().Return.StatusCode(System.Net.HttpStatusCode.ProxyAuthenticationRequired).AddToImdb();
+            var simulation1 = Moksy.Common.SimulationFactory.New("First").I.Post().ToImdb("/Product").AsJson().Return.StatusCode(System.Net.HttpStatusCode.ProxyAuthenticationRequired).AddToImdb("{SomeProperty}");
             Proxy.Add(simulation1);
 
             var simulation2 = Moksy.Common.SimulationFactory.New("Second").I.Get().FromImdb("/Product").AsJson().Return.StatusCode(System.Net.HttpStatusCode.PaymentRequired);
@@ -288,7 +288,7 @@ namespace Moksy.IntegrationTest
         [TestMethod]
         public void PostAndGetAsJsonTwoEntriesEntry()
         {
-            var simulation1 = Moksy.Common.SimulationFactory.New("First").I.Post().ToImdb("/Product").AsJson().Return.StatusCode(System.Net.HttpStatusCode.ProxyAuthenticationRequired).AddToImdb();
+            var simulation1 = Moksy.Common.SimulationFactory.New("First").I.Post().ToImdb("/Product").AsJson().Return.StatusCode(System.Net.HttpStatusCode.ProxyAuthenticationRequired).AddToImdb("{a}");
             Proxy.Add(simulation1);
 
             var simulation2 = Moksy.Common.SimulationFactory.New("Second").I.Get().FromImdb("/Product").AsJson().Return.StatusCode(System.Net.HttpStatusCode.PaymentRequired);
@@ -307,7 +307,7 @@ namespace Moksy.IntegrationTest
         [TestMethod]
         public void PostAndGetAsJsonTwoEntriesWithValuePlaceholder()
         {
-            var simulation1 = Moksy.Common.SimulationFactory.New("First").I.Post().ToImdb("/Product").AsJson().Return.StatusCode(System.Net.HttpStatusCode.ProxyAuthenticationRequired).AddToImdb();
+            var simulation1 = Moksy.Common.SimulationFactory.New("First").I.Post().ToImdb("/Product").AsJson().Return.StatusCode(System.Net.HttpStatusCode.ProxyAuthenticationRequired).AddToImdb("{a}");
             Proxy.Add(simulation1);
 
             var simulation2 = Moksy.Common.SimulationFactory.New("Second").I.Get().FromImdb("/Product").AsJson().Return.Body("Abc{value}Def").StatusCode(System.Net.HttpStatusCode.PaymentRequired);
@@ -564,7 +564,7 @@ namespace Moksy.IntegrationTest
             var simulation1 = Moksy.Common.SimulationFactory.When.I.Delete().FromImdb("/Pet('{Kind}')").AsJson().And.Exists().Then.Return.StatusCode(System.Net.HttpStatusCode.MultipleChoices).RemoveFromImdb();
             Proxy.Add(simulation1);
 
-            var simulation3 = Moksy.Common.SimulationFactory.New("First").I.Post().ToImdb("/Pet").AsJson().And.NotExists("{Kind}").Return.StatusCode(System.Net.HttpStatusCode.ProxyAuthenticationRequired).AddToImdb();
+            var simulation3 = Moksy.Common.SimulationFactory.New("First").I.Post().ToImdb("/Pet").AsJson().And.NotExists("{Kind}").Return.StatusCode(System.Net.HttpStatusCode.Created).AddToImdb();
             Proxy.Add(simulation3);
 
             var simulation4 = Moksy.Common.SimulationFactory.New("Second").I.Get().FromImdb("/Pet('{Kind}')").AsJson().And.Exists().Return.StatusCode(System.Net.HttpStatusCode.NotModified);
@@ -574,6 +574,7 @@ namespace Moksy.IntegrationTest
             Proxy.Add(simulation5);
 
             var response = Post("/Pet", @"{ ""Kind"" : ""Cat""  }");
+            Assert.AreEqual(System.Net.HttpStatusCode.Created, response.StatusCode);
 
             response = Delete("/Pet('Cat')");
             Assert.AreEqual(System.Net.HttpStatusCode.MultipleChoices, response.StatusCode);

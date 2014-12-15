@@ -36,8 +36,23 @@ namespace Moksy.Common
         /// If not null, contains the name of the property that is used for uniqueness on Post operations and as a key on Delete, Put, Patch and Get operations. 
         /// </summary>
         [JsonProperty("indexProperty")]
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public string IndexProperty { get; set; }
+        [EditorBrowsable(EditorBrowsableState.Advanced)]
+        public string IndexProperty 
+        {
+            get
+            {
+                return IndexPropertyStorage;
+            }
+            set
+            {
+                IndexPropertyStorage = value;
+                if (IndexPropertyStorage != null)
+                {
+                    IndexPropertyStorage = IndexPropertyStorage.Replace("{", "").Replace("}", "");
+                }
+            }
+        }
+        private string IndexPropertyStorage;
 
         /// <summary>
         /// The number of times this condition is to repeat before it is discarded. 

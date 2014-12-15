@@ -232,7 +232,8 @@ namespace Moksy.Storage
         /// <summary>
         /// Removes the first object that has a property name with the given value. See Lookup for parameter information. 
         /// </summary>
-        /// <remarks>True true if the object was removed; false otherwise. </remarks>
+        /// <remarks>True true if the object was removed; false if the object was not within the resources. False implies that no state has taken place;
+        /// techncially, if an object does not already exist, then it has already been removed but true/false are included for sanity reasons. </remarks>
         public bool Remove(string path, string pattern, string propertyName, string value, string discriminator)
         {
             if (null == discriminator) discriminator = "";
@@ -240,17 +241,50 @@ namespace Moksy.Storage
             var tokens = RouteParser.Parse(path, pattern).ToArray();
             if (tokens.Count() == 0) return false;
 
-            // TODO: Refactor when we support nested resources. 
-            var token = tokens[0];
-            if (token.Kind != RouteTokenKind.Resource) return false;
+            Stack<Resource> resources = new Stack<Resource>();
 
-            var match = Resources.FirstOrDefault(f => f.Name == token.Value);
+            List<Resource> currentResourceList = Resources;
+            Resource resource = null;
+            for (int offset = 0; offset < tokens.Length; offset++)
+            {
+                var token = tokens[offset];
+
+                // NOTE: It doesn't matter what kind of token we are; we are 'walking' the Resource list to find our match. 
+                if (token.Kind == RouteTokenKind.Resource)
+                {
+                    resource = currentResourceList.FirstOrDefault(f => string.Compare(f.Name, token.Name, true) == 0 && !f.IsPropertyResource);
+                }
+                else
+                {
+                    if (offset == tokens.Length - 1)
+                    {
+                        // We are a 'value' at the end. ie: we are deleting /Pet/{Kind}
+                        continue;
+                    }
+                    resource = currentResourceList.FirstOrDefault(f => string.Compare(f.Name, token.Value, true) == 0 && f.IsPropertyResource);
+                }
+                if (resource == null) return false;
+
+                currentResourceList = resource.Resources;
+                resources.Push(resource);
+            }
+
+            // NOTE: If the object does not already exist; then by definition it has been removed. 
+            var match = currentResourceList.FirstOrDefault(f => f.Name == value);
             if (match == null) return false;
+
+            if (resources.Count == 0) return false;
+
+            var existingMatch = match; 
+
+            // To remove a resource, we need to 'go back one' to remove it. 
+            match = resources.Pop();
 
             var index = FindIndexOf(match, propertyName, value, discriminator);
             if (index == -1) return false;
 
             match.Data(discriminator).RemoveAt(index);
+            match.Resources.Remove(existingMatch);
             return true;
         }
 
@@ -280,6 +314,7 @@ namespace Moksy.Storage
         {
             var tokens = RouteParser.Parse(path, pattern).ToArray();
             if (tokens.Count() == 0) return null;
+
 
             // TODO: Refactor when we support nested resources. 
             var token = tokens[0];
@@ -344,26 +379,6 @@ namespace Moksy.Storage
 
             return result.ToString();
         }
-
-        /// <summary>
-        /// Will create an entry for the resource 
-        /// </summary>
-        /// <param name="resourceName"></param>
-        /// <returns></returns>
-        protected Resource NewResource(RouteToken token)
-        {
-            if (token.Kind != RouteTokenKind.Resource) return null;
-
-            var match = Resources.FirstOrDefault(f => f.Name == token.Value);
-            if (match != null) return match;
-
-            Resources.Add(new Resource(token.Value));
-
-            return Resources.Last();
-        }
-
-
-
 
         protected int FindIndexOf(Resource resource, string propertyName, string value)
         {

@@ -62,6 +62,18 @@ namespace Moksy.Test.Imdb
 
             result = Database.Exists("/Pet/Dog/Toy", "/Pet/{Kind}/Toy", "Name", "Wheel");
             Assert.IsFalse(result);
+
+            //
+            // Remove
+            //
+            Database.Remove("/Pet/Dog/Toy", "/Pet/{Kind}/Toy", "Name", "Bone");
+
+            result = Database.Exists("/Pet/Dog/Toy", "/Pet/{Kind}/Toy", "Name", "Bone");
+            Assert.IsFalse(result);
+
+            // NOTE: This is 1 because the Discriminator/Entry pair is NOT purged when we remove the last entry. 
+            Assert.AreEqual(1, Database.Resources[0].Resources[0].Resources.Count);
+
         }
 
         [TestMethod]
@@ -485,9 +497,9 @@ namespace Moksy.Test.Imdb
         {
             var result = Database.AddJson("/Pet", "/Pet", "Kind", @"{""Kind"":""Dog""}");
             var removed = Database.Remove("/Pet", "/Pet", "NoneExistent", null);
-            Assert.IsTrue(removed);
+            Assert.IsFalse(removed);
             Assert.AreEqual(1, Database.Resources.Count);
-            Assert.AreEqual(0, Database.Resources[0].Data().Count);
+            Assert.AreEqual(1, Database.Resources[0].Data().Count);
         }
 
         #endregion

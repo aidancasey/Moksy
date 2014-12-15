@@ -121,7 +121,7 @@ namespace Moksy.IntegrationTest
             var simulation1 = Moksy.Common.SimulationFactory.New("First").Get().FromImdb("/Pet").Return.StatusCode(System.Net.HttpStatusCode.OK);
             Proxy.Add(simulation1);
 
-            var simulation2 = Moksy.Common.SimulationFactory.New("Second").Post().ToImdb("/Pet").Then.Return.StatusCode(System.Net.HttpStatusCode.Created).And.AddToImdb();
+            var simulation2 = Moksy.Common.SimulationFactory.New("Second").Post().ToImdb("/Pet").Then.Return.StatusCode(System.Net.HttpStatusCode.Created).And.AddToImdb("{Kind}");
             Proxy.Add(simulation2);
 
             var response = Post("/Pet", new Pet() { Kind = "Dog" });
@@ -140,7 +140,7 @@ namespace Moksy.IntegrationTest
             var simulation1 = Moksy.Common.SimulationFactory.New("First").Get().FromImdb("/Pet").Return.StatusCode(System.Net.HttpStatusCode.OK);
             Proxy.Add(simulation1);
 
-            var simulation2 = Moksy.Common.SimulationFactory.New("Second").Post().ToImdb("/Pet").Then.Return.StatusCode(System.Net.HttpStatusCode.Created).And.AddToImdb();
+            var simulation2 = Moksy.Common.SimulationFactory.New("Second").Post().ToImdb("/Pet").Then.Return.StatusCode(System.Net.HttpStatusCode.Created).And.AddToImdb("{Kind}");
             Proxy.Add(simulation2);
 
             var response = Post("/Pet", new Pet() { Kind = "Dog" });
@@ -161,7 +161,7 @@ namespace Moksy.IntegrationTest
             var simulation1 = Moksy.Common.SimulationFactory.New("First").Get().FromImdb("/Pet").Return.StatusCode(System.Net.HttpStatusCode.OK).Return.Body("StillExists");
             Proxy.Add(simulation1);
 
-            var simulation2 = Moksy.Common.SimulationFactory.New("Second").Post().ToImdb("/Pet").Then.Return.StatusCode(System.Net.HttpStatusCode.Created).And.AddToImdb();
+            var simulation2 = Moksy.Common.SimulationFactory.New("Second").Post().ToImdb("/Pet").Then.Return.StatusCode(System.Net.HttpStatusCode.Created).And.AddToImdb("{Kind}");
             Proxy.Add(simulation2);
 
             var response = Post("/Pet", new Pet() { Kind = "Dog" });

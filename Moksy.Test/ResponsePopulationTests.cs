@@ -115,7 +115,7 @@ namespace Moksy.Test
         [TestMethod]
         public void AddToImdbWithUsageSpecifiedTrue()
         {
-            var s = SimulationFactory.When.I.Post().ToImdb("/Endpoint").Then.Return.And.AddToImdb();
+            var s = SimulationFactory.When.I.Post().ToImdb("/Endpoint").Then.Return.And.AddToImdb("SomeProperty");
             Assert.IsTrue(s.SimulationResponseContent.AddImdb);
         }
 
