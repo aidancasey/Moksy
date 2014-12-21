@@ -110,7 +110,7 @@ namespace Moksy
                         var all = GetAll();
                         return true;
                     }
-                    catch (System.Net.WebException ex)
+                    catch (System.Net.WebException)
                     {
                     }
 
@@ -172,7 +172,7 @@ namespace Moksy
                         var all = GetAll();
                         return true;
                     }
-                    catch (System.Net.WebException ex)
+                    catch (System.Net.WebException)
                     {
                     }
 

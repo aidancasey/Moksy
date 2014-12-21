@@ -74,6 +74,7 @@
     <Compile Include="DocumentationTests.cs" />
     <Compile Include="ImdbHeaderTests.cs" />
     <Compile Include="Imdb\BodyParameterTests.cs" />
+    <Compile Include="Imdb\ImdbNestedTests.cs" />
     <Compile Include="Imdb\FileTests.cs" />
     <Compile Include="Pet.cs" />
     <Compile Include="SimulationTests.cs" />
@@ -101,7 +102,6 @@
     <Content Include="Moksy.Host.exe.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <None Include="Microsoft.ECO.TestHelper.config" />
     <None Include="packages.config" />
     <Content Include="TestData\ec2.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

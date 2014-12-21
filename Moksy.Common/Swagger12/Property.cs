@@ -318,7 +318,7 @@ namespace Moksy.Common.Swagger12
 
                 return true;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 //  The property was not in the correct format. 
                 result.Add(new Violation() { Code = propertyName, Context = string.Format("{0}{1}", context, propertyName), Description = string.Format(@"The {0} value is not in the correct format based on the Type.", propertyName), ViolationLevel = ViolationLevel.Error });
@@ -391,7 +391,7 @@ namespace Moksy.Common.Swagger12
                     return true;
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 // This exception should not have been reached - the default, minimum and maximum should already have been validated in a previous call. 
             }

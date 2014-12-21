@@ -232,6 +232,5 @@ namespace Moksy.IntegrationTest
             Assert.AreEqual("Dog", response.Content);
         }
         */
-        public TestContext TestContext { get; set; }
     }
 }

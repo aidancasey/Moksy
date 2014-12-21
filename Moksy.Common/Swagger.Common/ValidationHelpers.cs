@@ -30,7 +30,7 @@ namespace Moksy.Common.Swagger.Common
 
                 valid = true;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
 
             }

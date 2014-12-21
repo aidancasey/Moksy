@@ -146,7 +146,6 @@ namespace Moksy.Common
                 // var tail = m.Groups["tail"];
                 string resourceName = "";
                 string resourceIdentifier = "";
-                string tail = "";
 
                 if (offset != pathMatches[0].Groups.Count)
                 {

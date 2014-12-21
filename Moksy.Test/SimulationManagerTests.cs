@@ -300,7 +300,7 @@ namespace Moksy.Test
             var post = SimulationFactory.When.I.Post().ToImdb("/Pet").AsJson().And.NotExists("Kind").Then.AddToImdb();
             mgr.Add(post.Simulation);
 
-            var add = SimulationFactory.When.I.Get().FromImdb("/Pet('{Kind}')").AsJson().Then.Return.StatusCode(System.Net.HttpStatusCode.OK);
+            var add = SimulationFactory.When.I.Get().FromImdb("/Pet('{Kind}')").AsJson().And.NotExists("{Kind}").Then.Return.StatusCode(System.Net.HttpStatusCode.OK);
             mgr.Add(add.Simulation);
 
             var match = mgr.Match(HttpMethod.Get, "/Pet('Dog')", null, new List<Header>(), false, null);
@@ -315,7 +315,7 @@ namespace Moksy.Test
             var post = SimulationFactory.When.I.Post().ToImdb("/Pet").AsJson().And.NotExists("Kind").Then.AddToImdb();
             mgr.Add(post.Simulation);
 
-            var add = SimulationFactory.When.I.Get().FromImdb("/Pet('{Kind}')").AsJson().Then.Return.StatusCode(System.Net.HttpStatusCode.OK);
+            var add = SimulationFactory.When.I.Get().FromImdb("/Pet('{Kind}')").AsJson().And.NotExists("{Kind}").Then.Return.StatusCode(System.Net.HttpStatusCode.OK);
             mgr.Add(add.Simulation);
 
             var match = mgr.Match(HttpMethod.Get, "/Pet('Dog')", "", new List<Header>(), false, null);

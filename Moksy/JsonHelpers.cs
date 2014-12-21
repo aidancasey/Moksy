@@ -43,7 +43,7 @@ namespace Moksy.Common
                 propertyValueAsJobject = JsonConvert.DeserializeObject(propertyValue) as JObject;
                 isString = false;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
             }
 

@@ -48,27 +48,8 @@ namespace Moksy.Common.Constraints
             NotEqualsResponse = NotEqualsResponseTemplate;
         }
 
-        [JsonProperty(PropertyName="propertyName")]
-        public string PropertyName { get; set; }
-
         [JsonProperty(PropertyName="expectedLength")]
         public int ExpectedLength { get; set; }
-
-        [JsonProperty(PropertyName = "treatMissingAsLengthZero")]
-        public bool TreatMissingAsLengthZero { get; set; }
-
-        [JsonProperty(PropertyName = "treatNullAsLengthZero")]
-        public bool TreatNullAsLengthZero { get; set; }
-
-
-
-        /// <summary>
-        /// Will hold the Actual Length of the string after evaluation. 
-        /// </summary>
-        [JsonIgnore]
-        public int ActualLength { get; set; }
-
-
 
         public override bool Evaluate(Newtonsoft.Json.Linq.JObject jobject)
         {

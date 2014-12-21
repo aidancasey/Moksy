@@ -46,9 +46,11 @@ namespace Moksy.Storage
         /// </summary>
         /// <param name="discriminator"></param>
         /// <returns></returns>
-        public List<Entry> Data(string discriminator)
+        private List<Entry> Data(string discriminator)
         {
-            if (discriminator == null) discriminator = "";
+            // Set as part of refactoring: the group/discriminator is now part of the path/pattern and not an individual resource. 
+            discriminator = "Fixed";
+
             if (!Storage.ContainsKey(discriminator))
             {
                 Storage[discriminator] = new List<Entry>();

@@ -115,6 +115,7 @@ namespace Moksy.IntegrationTest.Imdb
 
             var path = System.IO.Path.Combine(TestContext.DeploymentDirectory, "TestData", "ec2.png");
             var response = PostFile("/Storage", path);
+            Assert.AreEqual(System.Net.HttpStatusCode.Created, response.StatusCode);
             var header = response.Headers.FirstOrDefault(f => f.Name == "Location");
             var location = System.Convert.ToString(header.Value);
 

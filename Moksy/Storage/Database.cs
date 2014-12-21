@@ -19,7 +19,7 @@ namespace Moksy.Storage
         /// </summary>
         public Database()
         {
-            Resources = new List<Resource>();
+            Groups = new List<Group>();
         }
 
         public bool AddJson(string path, string pattern, string propertyName, string data)
@@ -56,7 +56,7 @@ namespace Moksy.Storage
 
 
             // 1.
-            List<Resource> currentResourceList = Resources;
+            List<Resource> currentResourceList = GetResources(discriminator);
             Resource resource = null;
             string propertyValue = null;
             JToken jobjectPropertyValue = null;
@@ -96,7 +96,7 @@ namespace Moksy.Storage
                         jsonRaw[token.Name] = token.Value;
                         var json = JsonConvert.SerializeObject(jsonRaw);
 
-                        resource.Data(discriminator).Add(new Entry() { Json = json, Bytes = binaryContent });
+                        resource.Data().Add(new Entry() { Json = json, Bytes = binaryContent });
                     }
 
                     var existingPropertyResourse = resource.Resources.FirstOrDefault(f => string.Compare(f.Name, token.Value, true) == 0 && f.IsPropertyResource);
@@ -130,7 +130,7 @@ namespace Moksy.Storage
             var existingPropertyIndex = FindIndexOf(resource, propertyName, propertyValue, discriminator);
             if (existingPropertyIndex != -1)
             {
-                resource.Data(discriminator).RemoveAt(existingPropertyIndex);
+                resource.Data().RemoveAt(existingPropertyIndex);
             }
 
             var existingPropertyResourse2 = resource.Resources.FirstOrDefault(f => string.Compare(f.Name, propertyValue, true) == 0 && f.IsPropertyResource);
@@ -139,7 +139,7 @@ namespace Moksy.Storage
                 resource.Resources.Remove(existingPropertyResourse2);
             }
 
-            resource.Data(discriminator).Add(new Entry() { Json = data, Bytes = binaryContent });
+            resource.Data().Add(new Entry() { Json = data, Bytes = binaryContent });
             resource.Resources.Add(new Resource(propertyValue, true));
 
             return true;
@@ -168,7 +168,7 @@ namespace Moksy.Storage
             var tokens = RouteParser.Parse(path, pattern).ToArray();
             if (tokens.Count() == 0) return null;
 
-            List<Resource> currentResourceList = Resources;
+            List<Resource> currentResourceList = GetResources(discriminator);
             Resource resource = null;
             for (int offset = 0; offset < tokens.Length; offset++)
             {
@@ -191,7 +191,7 @@ namespace Moksy.Storage
             var index = FindIndexOf(resource, propertyName, value);
             if (index == -1) return null;
 
-            return resource.Data(discriminator)[index].Json;
+            return resource.Data()[index].Json;
         }
 
 
@@ -219,7 +219,7 @@ namespace Moksy.Storage
         /// </summary>
         public void RemoveAll()
         {
-            Resources.Clear();
+            Groups.Clear();
         }
 
 
@@ -243,7 +243,7 @@ namespace Moksy.Storage
 
             Stack<Resource> resources = new Stack<Resource>();
 
-            List<Resource> currentResourceList = Resources;
+            List<Resource> currentResourceList = GetResources(discriminator);
             Resource resource = null;
             for (int offset = 0; offset < tokens.Length; offset++)
             {
@@ -283,7 +283,7 @@ namespace Moksy.Storage
             var index = FindIndexOf(match, propertyName, value, discriminator);
             if (index == -1) return false;
 
-            match.Data(discriminator).RemoveAt(index);
+            match.Data().RemoveAt(index);
             match.Resources.Remove(existingMatch);
             return true;
         }
@@ -296,34 +296,57 @@ namespace Moksy.Storage
         /// <param name="path"></param>
         /// <param name="pattern"></param>
         /// <returns></returns>
-        public bool ContainsResource(string path, string pattern)
+        public bool ContainsResource(string path, string pattern, string discriminator)
         {
-            var resource = LookupResource(path, pattern);
+            var resource = LookupResource(path, pattern, discriminator);
             return resource != null;
         }
 
-
+        public Resource LookupResource(string path, string pattern, string discriminator)
+        {
+            return LookupResource(path, pattern, discriminator, false);
+        }
 
         /// <summary>
         /// Looks up the resource based on the given path. 
         /// </summary>
         /// <param name="path"></param>
         /// <param name="pattern"></param>
+        /// <param name="ignoreFinalPropertyResource">If true, the final property resource will be ignored. This is an implementation hack until the Imdb is improved. </param>
         /// <returns></returns>
-        public Resource LookupResource(string path, string pattern)
+        public Resource LookupResource(string path, string pattern, string discriminator, bool ignoreFinalPropertyResource)
         {
             var tokens = RouteParser.Parse(path, pattern).ToArray();
             if (tokens.Count() == 0) return null;
 
+            Stack<Resource> resources = new Stack<Resource>();
 
-            // TODO: Refactor when we support nested resources. 
-            var token = tokens[0];
-            if (token.Kind != RouteTokenKind.Resource) return null;
+            List<Resource> currentResourceList = GetResources(discriminator);
+            Resource resource = null;
+            for (int offset = 0; offset < tokens.Length; offset++)
+            {
+                var token = tokens[offset];
 
-            var match = Resources.FirstOrDefault(f => f.Name == token.Value);
-            if (match == null) return null;
+                // NOTE: It doesn't matter what kind of token we are; we are 'walking' the Resource list to find our match. 
+                if (token.Kind == RouteTokenKind.Resource)
+                {
+                    resource = currentResourceList.FirstOrDefault(f => string.Compare(f.Name, token.Name, true) == 0 && !f.IsPropertyResource);
+                }
+                else
+                {
+                    if (ignoreFinalPropertyResource && offset == tokens.Length - 1)
+                    {
+                        return resource;
+                    }
+                    resource = currentResourceList.FirstOrDefault(f => string.Compare(f.Name, token.Value, true) == 0 && f.IsPropertyResource);
+                }
+                if (resource == null) return null;
 
-            return match;
+                currentResourceList = resource.Resources;
+                resources.Push(resource);
+            }
+
+            return resource;
         }
 
 
@@ -398,7 +421,7 @@ namespace Moksy.Storage
             if (null == discriminator) discriminator = "";
             if (null == propertyName) return -1;
 
-            foreach (var d in resource.Data(discriminator))
+            foreach (var d in resource.Data())
             {
                 JObject jobject = JsonConvert.DeserializeObject(d.Json) as JObject;
                 if (null == jobject) continue;
@@ -406,11 +429,11 @@ namespace Moksy.Storage
                 var currentValue = jobject[propertyName];
                 if (currentValue != null && currentValue.ToString() == value)
                 {
-                    return resource.Data(discriminator).IndexOf(d);
+                    return resource.Data().IndexOf(d);
                 }
                 if (currentValue == null && value == null)
                 {
-                    return resource.Data(discriminator).IndexOf(d);
+                    return resource.Data().IndexOf(d);
                 }
             }
 
@@ -418,8 +441,47 @@ namespace Moksy.Storage
         }
 
         /// <summary>
-        /// Resources stored in this database. Each resource can itself have child resources. 
+        /// Return the resources using the default Discriminator. 
         /// </summary>
-        internal List<Resource> Resources;
+        [Obsolete("Use GetResources() instead")]
+        internal List<Resource> Resources
+        {
+            get
+            {
+                return GetResources();
+            }
+        }
+
+        /// <summary>
+        /// Get all of the resources for the default discriminator: ""
+        /// </summary>
+        /// <returns></returns>
+        internal List<Resource> GetResources()
+        {
+            return GetResources("");
+        }
+
+        /// <summary>
+        /// Get the resources for the 
+        /// </summary>
+        /// <param name="discriminator"></param>
+        /// <returns></returns>
+        internal List<Resource> GetResources(string discriminator)
+        {
+            if (discriminator == null) discriminator = "";
+
+            var existing = Groups.FirstOrDefault(f => string.Compare(f.Name, discriminator, true) == 0);
+            if (existing == null)
+            {
+                existing = new Group(discriminator);
+                Groups.Add(existing);
+            }
+            return existing.Resources;
+        }
+
+        /// <summary>
+        /// Groups of data associated with this database. 
+        /// </summary>
+        internal List<Group> Groups;
     }
 }
