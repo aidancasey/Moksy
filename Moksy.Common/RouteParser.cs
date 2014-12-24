@@ -13,20 +13,6 @@ namespace Moksy.Common
     public class RouteParser
     {
         /// <summary>
-        /// Get the first resource from the path. 
-        /// </summary>
-        /// <param name="path">The path. ie: /Pet/Dog</param>
-        /// <param name="pattern">The pattern. ie: /Pet/{Kind}</param>
-        /// <returns></returns>
-        public static string GetFirstResource(string path, string pattern)
-        {
-            var result = Parse(path, pattern);
-            var match = result.FirstOrDefault(f => f.Kind == RouteTokenKind.Resource);
-            if (null == match) return null;
-            return match.Value;
-        }
-
-        /// <summary>
         /// Parse the pattern and extract the tokens. 
         /// </summary>
         /// <param name="pattern">The path / pattern (typically from a condition). ie: /Pet/{Kind}</param>

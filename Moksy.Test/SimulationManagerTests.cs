@@ -237,6 +237,7 @@ namespace Moksy.Test
         {
             Moksy.Storage.SimulationManager manager = new Storage.SimulationManager();
             var s = SimulationFactory.When.I.Post().ToImdb("/Pet").Simulation;
+            s.Condition.SimulationConditionContent.IndexProperty = "Kind";
             manager.AddToImdb(s, "/Pet", "/Pet", @"{ ""Kind"" : ""Dog"" }", null);
             manager.AddToImdb(s, "/Pet", "/Pet", @"{ ""Kind"" : ""Cat"" }", null);
             var result = manager.GetKeysFor("/Pet", "/Pet", "Kind", null);

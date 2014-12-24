@@ -118,7 +118,7 @@ namespace Moksy.IntegrationTest
         [TestMethod]
         public void AddOnSimulationAndDeleteItButLeaveData()
         {
-            var simulation1 = Moksy.Common.SimulationFactory.New("First").Get().FromImdb("/Pet").Return.StatusCode(System.Net.HttpStatusCode.OK);
+            var simulation1 = Moksy.Common.SimulationFactory.New("First").Get().FromImdb("/Pet").AsJson().Return.StatusCode(System.Net.HttpStatusCode.OK);
             Proxy.Add(simulation1);
 
             var simulation2 = Moksy.Common.SimulationFactory.New("Second").Post().ToImdb("/Pet").Then.Return.StatusCode(System.Net.HttpStatusCode.Created).And.AddToImdb("{Kind}");

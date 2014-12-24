@@ -24,12 +24,22 @@ namespace Moksy.Storage
         /// </summary>
         /// <param name="name">Name of the resource. </param>
         /// <param name="isPropertyResource">If true, this resource is represented by a property. </param>
-        public Resource(string name, bool isPropertyResource)
+        public Resource(string name, bool isPropertyResource) : this(name, isPropertyResource, null)
+        {
+        }
+
+        /// <summary>
+        /// Constructor. 
+        /// </summary>
+        /// <param name="name">Name of the resource. </param>
+        /// <param name="isPropertyResource">If true, this resource is represented by a property. </param>
+        public Resource(string name, bool isPropertyResource, Resource owner)
         {
             this.Name = name;
             Storage = new Dictionary<string, List<Entry>>();
             Resources = new List<Resource>();
             IsPropertyResource = isPropertyResource;
+            Owner = owner;
         }
 
         /// <summary>
@@ -77,6 +87,11 @@ namespace Moksy.Storage
         /// Name of this resource. 
         /// </summary>
         public readonly string Name;
+
+        /// <summary>
+        /// The owner resource (can be null if this is a 'top level' resource).
+        /// </summary>
+        public readonly Resource Owner;
 
         /// <summary>
         /// Any nested resources. 

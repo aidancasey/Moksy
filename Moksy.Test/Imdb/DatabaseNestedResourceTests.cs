@@ -32,22 +32,24 @@ namespace Moksy.Test.Imdb
         [TestMethod]
         public void AddResourcePropertyResourceObject()
         {
-            // TODO: Refactor. 
             var result = Database.AddJson("/Pet", "/Pet", "Kind", @"{""Kind"":""Dog""}");
             result = Database.AddJson("/Pet/Dog/Toy", "/Pet/{Kind}/Toy", "Name", @"{""Name"":""Bone""}");
             Assert.IsTrue(result);
 
             // /Pet
             Assert.AreEqual(1, Database.GetResources().Count);
+            Assert.AreEqual("Pet", Database.GetResources()[0].Name);
 
             // /Pet/{Kind} (/Pet/Dog)
             Assert.AreEqual(1, Database.GetResources()[0].Resources.Count);
-            Assert.AreEqual(@"{""Kind"":""Dog""}", Database.GetResources()[0].Data()[0].Json);
+            Assert.AreEqual("Dog", Database.GetResources()[0].Resources[0].Name);
+            Assert.AreEqual(@"{""Kind"":""Dog""}", Database.GetResources()[0].Resources[0].Data()[0].Json);
 
             // /Pet/{Kind}/Toy
             Assert.AreEqual(1, Database.GetResources()[0].Resources[0].Resources.Count);
             Assert.AreEqual("Toy", Database.GetResources()[0].Resources[0].Resources[0].Name);
-            Assert.AreEqual(@"{""Name"":""Bone""}", Database.GetResources()[0].Resources[0].Resources[0].Data()[0].Json);
+            Assert.AreEqual("Bone", Database.GetResources()[0].Resources[0].Resources[0].Resources[0].Name);
+            Assert.AreEqual(@"{""Name"":""Bone""}", Database.GetResources()[0].Resources[0].Resources[0].Resources[0].Data()[0].Json);
             
             //
             // Exists
@@ -89,12 +91,12 @@ namespace Moksy.Test.Imdb
 
             // /Pet/{Kind} (/Pet/Dog)
             Assert.AreEqual(1, Database.GetResources()[0].Resources.Count);
-            Assert.AreEqual(@"{""Kind"":""Dog""}", Database.GetResources()[0].Data()[0].Json);
+            Assert.AreEqual(@"{""Kind"":""Dog""}", Database.GetResources()[0].Resources[0].Data()[0].Json);
 
             // /Pet/{Kind}/Toy
             Assert.AreEqual(1, Database.GetResources()[0].Resources[0].Resources.Count);
             Assert.AreEqual("Toy", Database.GetResources()[0].Resources[0].Resources[0].Name);
-            Assert.AreEqual(@"{""Name"":""Bone""}", Database.GetResources()[0].Resources[0].Resources[0].Data()[0].Json);
+            Assert.AreEqual(@"{""Name"":""Bone""}", Database.GetResources()[0].Resources[0].Resources[0].Resources[0].Data()[0].Json);
         }
 
         [TestMethod]
@@ -109,7 +111,7 @@ namespace Moksy.Test.Imdb
             Assert.AreEqual("", Database.GetResources()[0].Name);
 
             Assert.AreEqual(1, Database.GetResources()[0].Resources.Count);
-            Assert.AreEqual(@"{""Kind"":""Dog""}", Database.GetResources()[0].Data()[0].Json);
+            Assert.AreEqual(@"{""Kind"":""Dog""}", Database.GetResources()[0].Resources[0].Data()[0].Json);
             Assert.AreEqual(0, Database.GetResources()[0].Resources[0].Resources.Count);
         }
 
@@ -125,7 +127,8 @@ namespace Moksy.Test.Imdb
             // Blank
             // Dog
             // Blank
-            // Two etnries
+            // Two resources
+            //     Each of the two resources contains a single entry - Name/Bone; and Name/Chew
 
             // /Dog
             // NOTE: An "EMPTY" Resource will be created first. 
@@ -133,13 +136,16 @@ namespace Moksy.Test.Imdb
             Assert.AreEqual("", Database.GetResources()[0].Name);
 
             Assert.AreEqual(1, Database.GetResources()[0].Resources.Count);
-            Assert.AreEqual(@"{""Kind"":""Dog""}", Database.GetResources()[0].Data()[0].Json);
+            Assert.AreEqual(@"{""Kind"":""Dog""}", Database.GetResources()[0].Resources[0].Data()[0].Json);
 
             // Dog/Bone
             Assert.AreEqual(1, Database.GetResources()[0].Resources[0].Resources.Count);
             Assert.AreEqual("", Database.GetResources()[0].Resources[0].Resources[0].Name);
-            Assert.AreEqual(@"{""Name"":""Bone""}", Database.GetResources()[0].Resources[0].Resources[0].Data()[0].Json);
-            Assert.AreEqual(@"{""Name"":""Chew""}", Database.GetResources()[0].Resources[0].Resources[0].Data()[1].Json);
+
+            Assert.AreEqual("Bone", Database.GetResources()[0].Resources[0].Resources[0].Resources[0].Name);
+            Assert.AreEqual("Chew", Database.GetResources()[0].Resources[0].Resources[0].Resources[1].Name);
+            Assert.AreEqual(@"{""Name"":""Bone""}", Database.GetResources()[0].Resources[0].Resources[0].Resources[0].Data()[0].Json);
+            Assert.AreEqual(@"{""Name"":""Chew""}", Database.GetResources()[0].Resources[0].Resources[0].Resources[1].Data()[0].Json);
         }
 
         [TestMethod]
@@ -156,12 +162,13 @@ namespace Moksy.Test.Imdb
             Assert.AreEqual("", Database.GetResources()[0].Name);
 
             Assert.AreEqual(1, Database.GetResources()[0].Resources.Count);
-            Assert.AreEqual(@"{""Kind"":""Dog""}", Database.GetResources()[0].Data()[0].Json);
+            Assert.AreEqual(@"{""Kind"":""Dog""}", Database.GetResources()[0].Resources[0].Data()[0].Json);
 
             // Dog/Bone
             Assert.AreEqual(1, Database.GetResources()[0].Resources[0].Resources[0].Resources.Count);
             Assert.AreEqual("", Database.GetResources()[0].Resources[0].Resources[0].Name);
-            Assert.AreEqual(@"{""Name"":""Bone""}", Database.GetResources()[0].Resources[0].Resources[0].Data()[0].Json);
+            Assert.AreEqual("Bone", Database.GetResources()[0].Resources[0].Resources[0].Resources[0].Name);
+            Assert.AreEqual(@"{""Name"":""Bone""}", Database.GetResources()[0].Resources[0].Resources[0].Resources[0].Data()[0].Json);
         }
 
         [TestMethod]
@@ -184,16 +191,16 @@ namespace Moksy.Test.Imdb
             Assert.AreEqual("", Database.GetResources()[0].Name);
 
             Assert.AreEqual(3, Database.GetResources()[0].Resources.Count);
-            Assert.AreEqual(@"{""Kind"":""Dog""}", Database.GetResources()[0].Data()[0].Json);
-            Assert.AreEqual(@"{""Kind"":""Cat""}", Database.GetResources()[0].Data()[1].Json);
-            Assert.AreEqual(@"{""Kind"":""Gerbil""}", Database.GetResources()[0].Data()[2].Json);
+            Assert.AreEqual(@"{""Kind"":""Dog""}", Database.GetResources()[0].Resources[0].Data()[0].Json);
+            Assert.AreEqual(@"{""Kind"":""Cat""}", Database.GetResources()[0].Resources[1].Data()[0].Json);
+            Assert.AreEqual(@"{""Kind"":""Gerbil""}", Database.GetResources()[0].Resources[2].Data()[0].Json);
 
             // Dog/Bone
             Assert.AreEqual(1, Database.GetResources()[0].Resources[0].Resources.Count);
             Assert.AreEqual("", Database.GetResources()[0].Resources[0].Resources[0].Name);
             Assert.AreEqual(2, Database.GetResources()[0].Resources[0].Resources[0].Resources.Count);
-            Assert.AreEqual(@"{""Name"":""Bone""}", Database.GetResources()[0].Resources[0].Resources[0].Data()[0].Json);
-            Assert.AreEqual(@"{""Name"":""Thing""}", Database.GetResources()[0].Resources[0].Resources[0].Data()[1].Json);
+            Assert.AreEqual(@"{""Name"":""Bone""}", Database.GetResources()[0].Resources[0].Resources[0].Resources[0].Data()[0].Json);
+            Assert.AreEqual(@"{""Name"":""Thing""}", Database.GetResources()[0].Resources[0].Resources[0].Resources[1].Data()[0].Json);
         }
 
 
@@ -294,8 +301,8 @@ namespace Moksy.Test.Imdb
 
             Assert.AreEqual(1, Database.GetResources().Count);
             Assert.AreEqual("Pet", Database.GetResources()[0].Name);
-            Assert.AreEqual(1, Database.GetResources()[0].Data().Count);
-            Assert.AreEqual(@"{""Kind"":""Dog""}", Database.GetResources()[0].Data()[0].Json);
+            Assert.AreEqual(1, Database.GetResources()[0].Resources[0].Data().Count);
+            Assert.AreEqual(@"{""Kind"":""Dog""}", Database.GetResources()[0].Resources[0].Data()[0].Json);
 
             Assert.AreEqual(1, Database.GetResources()[0].Resources.Count);
         }
@@ -310,9 +317,9 @@ namespace Moksy.Test.Imdb
 
             Assert.AreEqual(1, Database.GetResources().Count);
             Assert.AreEqual("Pet", Database.GetResources()[0].Name);
-            Assert.AreEqual(2, Database.GetResources()[0].Data().Count);
-            Assert.AreEqual(@"{""Kind"":""Dog""}", Database.GetResources()[0].Data()[0].Json);
-            Assert.AreEqual(@"{""Kind"":""Cat""}", Database.GetResources()[0].Data()[1].Json);
+            Assert.AreEqual(2, Database.GetResources()[0].Resources.Count);
+            Assert.AreEqual(@"{""Kind"":""Dog""}", Database.GetResources()[0].Resources[0].Data()[0].Json);
+            Assert.AreEqual(@"{""Kind"":""Cat""}", Database.GetResources()[0].Resources[1].Data()[0].Json);
         }
 
         [TestMethod]
@@ -320,8 +327,8 @@ namespace Moksy.Test.Imdb
         {
             var result = Database.AddJson("/Pet", "/Pet", "NoneExistentProperty", @"{""Kind"":""Dog""}");
             Assert.AreEqual(1, Database.GetResources().Count);
-            Assert.AreEqual(1, Database.GetResources()[0].Data().Count);
-            Assert.AreEqual(@"{""Kind"":""Dog""}", Database.GetResources()[0].Data()[0].Json);
+            Assert.AreEqual(1, Database.GetResources()[0].Resources.Count);
+            Assert.AreEqual(@"{""Kind"":""Dog""}", Database.GetResources()[0].Resources[0].Data()[0].Json);
         }
 
         [TestMethod]
@@ -330,8 +337,8 @@ namespace Moksy.Test.Imdb
             var result = Database.AddJson("/Pet", "/Pet", "NoneExistentProperty", @"{""Kind"":""Dog""}");
             result = Database.AddJson("/Pet", "/Pet", "NoneExistentProperty", @"{""Kind"":""Cat""}");
             Assert.AreEqual(1, Database.GetResources().Count);
-            Assert.AreEqual(1, Database.GetResources()[0].Data().Count);
-            Assert.AreEqual(@"{""Kind"":""Cat""}", Database.GetResources()[0].Data()[0].Json);
+            Assert.AreEqual(1, Database.GetResources()[0].Resources.Count);
+            Assert.AreEqual(@"{""Kind"":""Cat""}", Database.GetResources()[0].Resources[0].Data()[0].Json);
         }
 
         [TestMethod]
@@ -340,9 +347,9 @@ namespace Moksy.Test.Imdb
             var result = Database.AddJson("/Pet", "/Pet", "NoneExistentProperty", @"{""Kind"":""Dog""}");
             result = Database.AddJson("/Pet", "/Pet", "NoneExistentProperty", @"{""NoneExistentProperty"":"""",""Kind"":""Cat""}");
             Assert.AreEqual(1, Database.GetResources().Count);
-            Assert.AreEqual(2, Database.GetResources()[0].Data().Count);
-            Assert.AreEqual(@"{""Kind"":""Dog""}", Database.GetResources()[0].Data()[0].Json);
-            Assert.AreEqual(@"{""NoneExistentProperty"":"""",""Kind"":""Cat""}", Database.GetResources()[0].Data()[1].Json);
+            Assert.AreEqual(2, Database.GetResources()[0].Resources.Count);
+            Assert.AreEqual(@"{""Kind"":""Dog""}", Database.GetResources()[0].Resources[0].Data()[0].Json);
+            Assert.AreEqual(@"{""NoneExistentProperty"":"""",""Kind"":""Cat""}", Database.GetResources()[0].Resources[1].Data()[0].Json);
         }
 
         [TestMethod]
@@ -363,9 +370,9 @@ namespace Moksy.Test.Imdb
 
             Assert.AreEqual(1, Database.GetResources().Count);
             Assert.AreEqual("Pet", Database.GetResources()[0].Name);
-            Assert.AreEqual(2, Database.GetResources()[0].Data().Count);
-            Assert.AreEqual(@"{""Kind"":""Dog""}", Database.GetResources()[0].Data()[0].Json);
-            Assert.AreEqual(@"{""Kind"":""DOG""}", Database.GetResources()[0].Data()[1].Json);
+            Assert.AreEqual(2, Database.GetResources()[0].Resources.Count);
+            Assert.AreEqual(@"{""Kind"":""Dog""}", Database.GetResources()[0].Resources[0].Data()[0].Json);
+            Assert.AreEqual(@"{""Kind"":""DOG""}", Database.GetResources()[0].Resources[1].Data()[0].Json);
         }
 
         [TestMethod]
@@ -377,8 +384,8 @@ namespace Moksy.Test.Imdb
 
             Assert.AreEqual(1, Database.GetResources().Count);
             Assert.AreEqual("Pet", Database.GetResources()[0].Name);
-            Assert.AreEqual(1, Database.GetResources()[0].Data().Count);
-            Assert.AreEqual(@"{""Kind"":""Dog"",""C"":""D""}", Database.GetResources()[0].Data()[0].Json);
+            Assert.AreEqual(1, Database.GetResources()[0].Resources[0].Data().Count);
+            Assert.AreEqual(@"{""Kind"":""Dog"",""C"":""D""}", Database.GetResources()[0].Resources[0].Data()[0].Json);
         }
 
 
@@ -450,20 +457,23 @@ namespace Moksy.Test.Imdb
 
             // /Pet/{Kind} (/Pet/Dog)
             Assert.AreEqual(3, Database.GetResources("me")[0].Resources.Count);
-            Assert.AreEqual(@"{""Kind"":""Dog""}", Database.GetResources("me")[0].Data()[0].Json);
-            Assert.AreEqual(@"{""Kind"":""GerbilMe""}", Database.GetResources("me")[0].Data()[1].Json);
-            Assert.AreEqual(@"{""Kind"":""Cat""}", Database.GetResources("me")[0].Data()[2].Json);
+            Assert.AreEqual(@"{""Kind"":""Dog""}", Database.GetResources("me")[0].Resources[0].Data()[0].Json);
+            Assert.AreEqual(@"{""Kind"":""GerbilMe""}", Database.GetResources("me")[0].Resources[1].Data()[0].Json);
+            Assert.AreEqual(@"{""Kind"":""Cat""}", Database.GetResources("me")[0].Resources[2].Data()[0].Json);
 
             // /Pet/{Kind}/Toy
             Assert.AreEqual(1, Database.GetResources("me")[0].Resources[0].Resources.Count);
             Assert.AreEqual("Toy", Database.GetResources("me")[0].Resources[0].Resources[0].Name);
-            Assert.AreEqual(@"{""Name"":""Bone""}", Database.GetResources("me")[0].Resources[0].Resources[0].Data()[0].Json);
+            Assert.AreEqual("Bone", Database.GetResources("me")[0].Resources[0].Resources[0].Resources[0].Name);
+            Assert.AreEqual(@"{""Name"":""Bone""}", Database.GetResources("me")[0].Resources[0].Resources[0].Resources[0].Data()[0].Json);
 
             // /Pet/{Kind}/Toy/{Name}/Price
             Assert.AreEqual(2, Database.GetResources("me")[0].Resources[0].Resources[0].Resources[0].Resources[0].Resources.Count);
             Assert.AreEqual("Price", Database.GetResources("me")[0].Resources[0].Resources[0].Resources[0].Resources[0].Name);
-            Assert.AreEqual(@"{""Ranking"":""CheapMe""}", Database.GetResources("me")[0].Resources[0].Resources[0].Resources[0].Resources[0].Data()[0].Json);
-            Assert.AreEqual(@"{""Ranking"":""ExpensiveMe""}", Database.GetResources("me")[0].Resources[0].Resources[0].Resources[0].Resources[0].Data()[1].Json);  
+            Assert.AreEqual("CheapMe", Database.GetResources("me")[0].Resources[0].Resources[0].Resources[0].Resources[0].Resources[0].Name);
+            Assert.AreEqual("ExpensiveMe", Database.GetResources("me")[0].Resources[0].Resources[0].Resources[0].Resources[0].Resources[1].Name);
+            Assert.AreEqual(@"{""Ranking"":""CheapMe""}", Database.GetResources("me")[0].Resources[0].Resources[0].Resources[0].Resources[0].Resources[0].Data()[0].Json);
+            Assert.AreEqual(@"{""Ranking"":""ExpensiveMe""}", Database.GetResources("me")[0].Resources[0].Resources[0].Resources[0].Resources[0].Resources[1].Data()[0].Json);  
    
             //
             // Now add nested (discriminated) items. 
@@ -486,20 +496,23 @@ namespace Moksy.Test.Imdb
 
             // /Pet/{Kind} (/Pet/Dog)
             Assert.AreEqual(3, Database.GetResources("you")[0].Resources.Count);
-            Assert.AreEqual(@"{""Kind"":""Dog""}", Database.GetResources("you")[0].Data()[0].Json);
-            Assert.AreEqual(@"{""Kind"":""GerbilYou""}", Database.GetResources("you")[0].Data()[1].Json);
-            Assert.AreEqual(@"{""Kind"":""Cat""}", Database.GetResources("you")[0].Data()[2].Json);
+            Assert.AreEqual(@"{""Kind"":""Dog""}", Database.GetResources("you")[0].Resources[0].Data()[0].Json);
+            Assert.AreEqual(@"{""Kind"":""GerbilYou""}", Database.GetResources("you")[0].Resources[1].Data()[0].Json);
+            Assert.AreEqual(@"{""Kind"":""Cat""}", Database.GetResources("you")[0].Resources[2].Data()[0].Json);
 
             // /Pet/{Kind}/Toy
             Assert.AreEqual(1, Database.GetResources("you")[0].Resources[0].Resources.Count);
             Assert.AreEqual("Toy", Database.GetResources("you")[0].Resources[0].Resources[0].Name);
-            Assert.AreEqual(@"{""Name"":""Bone""}", Database.GetResources("you")[0].Resources[0].Resources[0].Data()[0].Json);
+            Assert.AreEqual("Bone", Database.GetResources("you")[0].Resources[0].Resources[0].Resources[0].Name);
+            Assert.AreEqual(@"{""Name"":""Bone""}", Database.GetResources("you")[0].Resources[0].Resources[0].Resources[0].Data()[0].Json);
 
             // /Pet/{Kind}/Toy/{Name}/Price
             Assert.AreEqual(2, Database.GetResources("you")[0].Resources[0].Resources[0].Resources[0].Resources[0].Resources.Count);
             Assert.AreEqual("Price", Database.GetResources("you")[0].Resources[0].Resources[0].Resources[0].Resources[0].Name);
-            Assert.AreEqual(@"{""Ranking"":""CheapYou""}", Database.GetResources("you")[0].Resources[0].Resources[0].Resources[0].Resources[0].Data()[0].Json);
-            Assert.AreEqual(@"{""Ranking"":""ExpensiveYou""}", Database.GetResources("you")[0].Resources[0].Resources[0].Resources[0].Resources[0].Data()[1].Json);  
+            Assert.AreEqual("CheapYou", Database.GetResources("you")[0].Resources[0].Resources[0].Resources[0].Resources[0].Resources[0].Name);
+            Assert.AreEqual("ExpensiveYou", Database.GetResources("you")[0].Resources[0].Resources[0].Resources[0].Resources[0].Resources[1].Name);
+            Assert.AreEqual(@"{""Ranking"":""CheapYou""}", Database.GetResources("you")[0].Resources[0].Resources[0].Resources[0].Resources[0].Resources[0].Data()[0].Json);
+            Assert.AreEqual(@"{""Ranking"":""ExpensiveYou""}", Database.GetResources("you")[0].Resources[0].Resources[0].Resources[0].Resources[0].Resources[1].Data()[0].Json);  
 
             //
             // Exists: 
@@ -614,8 +627,8 @@ namespace Moksy.Test.Imdb
             Assert.IsTrue(removed);
 
             Assert.AreEqual(1, Database.GetResources().Count);
-            Assert.AreEqual(1, Database.GetResources()[0].Data().Count);
-            Assert.AreEqual(@"{""Kind"":""Cat""}", Database.GetResources()[0].Data()[0].Json);
+            Assert.AreEqual(1, Database.GetResources()[0].Resources.Count);
+            Assert.AreEqual(@"{""Kind"":""Cat""}", Database.GetResources()[0].Resources[0].Data()[0].Json);
         }
 
         [TestMethod]
@@ -628,9 +641,9 @@ namespace Moksy.Test.Imdb
             Assert.IsFalse(removed);
 
             Assert.AreEqual(1, Database.GetResources().Count);
-            Assert.AreEqual(2, Database.GetResources()[0].Data().Count);
-            Assert.AreEqual(@"{""Kind"":""Dog""}", Database.GetResources()[0].Data()[0].Json);
-            Assert.AreEqual(@"{""Kind"":""Cat""}", Database.GetResources()[0].Data()[1].Json);
+            Assert.AreEqual(2, Database.GetResources()[0].Resources.Count);
+            Assert.AreEqual(@"{""Kind"":""Dog""}", Database.GetResources()[0].Resources[0].Data()[0].Json);
+            Assert.AreEqual(@"{""Kind"":""Cat""}", Database.GetResources()[0].Resources[1].Data()[0].Json);
         }
 
         [TestMethod]
@@ -640,7 +653,7 @@ namespace Moksy.Test.Imdb
             var removed = Database.Remove("/Pet", "/Pet", "NoneExistent", null);
             Assert.IsFalse(removed);
             Assert.AreEqual(1, Database.GetResources().Count);
-            Assert.AreEqual(1, Database.GetResources()[0].Data().Count);
+            Assert.AreEqual(1, Database.GetResources()[0].Resources[0].Data().Count);
         }
 
         #endregion

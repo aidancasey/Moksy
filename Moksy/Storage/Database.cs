@@ -60,6 +60,7 @@ namespace Moksy.Storage
             Resource resource = null;
             string propertyValue = null;
             JToken jobjectPropertyValue = null;
+            Resource owner = null;
             for (int offset = 0; offset < tokens.Length; offset++)
             {
                 propertyValue = null;
@@ -68,12 +69,13 @@ namespace Moksy.Storage
                 var token = tokens[offset];
                 if (token.Kind == RouteTokenKind.Resource)
                 {
-                    resource = currentResourceList.FirstOrDefault(f => string.Compare(token.Name, f.Name, true) == 0 && !f.IsPropertyResource);
+                    resource = currentResourceList.FirstOrDefault(f => string.Compare(token.Name, f.Name, false) == 0 && !f.IsPropertyResource);
                     if (resource == null)
                     {
-                        resource = new Resource(token.Name);
+                        resource = new Resource(token.Name, false, owner);
                         currentResourceList.Add(resource);
                     }
+                    owner = resource;
                     currentResourceList = resource.Resources;
                     continue;
                 }
@@ -85,24 +87,19 @@ namespace Moksy.Storage
                         continue;
 
                     }
-
-                    // Create a candidate entry 
-                    var existingIndex = FindIndexOf(resource, token.Name, token.Value, discriminator);
-                    if (existingIndex == -1)
+ 
+                    var existingPropertyResourse = resource.Resources.FirstOrDefault(f => string.Compare(f.Name, token.Value, false) == 0 && f.IsPropertyResource);
+                    if (existingPropertyResourse == null)
                     {
-                        // Given the entry does not already exist; we need to create it. To get to here: Post @{""Name"":""Bone""} to /Pet/Dog/Toy
-                        // A entry for {Dog} will be created. 
+                        var nr = new Resource(token.Value, true, owner);
+                        resource.Resources.Add(nr);
+
                         var jsonRaw = JsonConvert.DeserializeObject("{}") as JObject;
                         jsonRaw[token.Name] = token.Value;
                         var json = JsonConvert.SerializeObject(jsonRaw);
 
-                        resource.Data().Add(new Entry() { Json = json, Bytes = binaryContent });
-                    }
+                        nr.Data().Add(new Entry() { Json = json, Bytes = binaryContent });
 
-                    var existingPropertyResourse = resource.Resources.FirstOrDefault(f => string.Compare(f.Name, token.Value, true) == 0 && f.IsPropertyResource);
-                    if (existingPropertyResourse == null)
-                    {
-                        resource.Resources.Add(new Resource(token.Value, true));
                         currentResourceList = resource.Resources.Last().Resources;
                     }
                     else
@@ -130,17 +127,18 @@ namespace Moksy.Storage
             var existingPropertyIndex = FindIndexOf(resource, propertyName, propertyValue, discriminator);
             if (existingPropertyIndex != -1)
             {
-                resource.Data().RemoveAt(existingPropertyIndex);
+                resource.Resources.RemoveAt(existingPropertyIndex);
             }
 
-            var existingPropertyResourse2 = resource.Resources.FirstOrDefault(f => string.Compare(f.Name, propertyValue, true) == 0 && f.IsPropertyResource);
+            var existingPropertyResourse2 = resource.Resources.FirstOrDefault(f => string.Compare(f.Name, propertyValue, false) == 0 && f.IsPropertyResource);
             if (existingPropertyResourse2 != null)
             {
                 resource.Resources.Remove(existingPropertyResourse2);
             }
 
-            resource.Data().Add(new Entry() { Json = data, Bytes = binaryContent });
-            resource.Resources.Add(new Resource(propertyValue, true));
+            var newResource = new Resource(propertyValue, true, owner);
+            newResource.Data().Add(new Entry() { Json = data, Bytes = binaryContent });
+            resource.Resources.Add(newResource);
 
             return true;
         }
@@ -191,7 +189,7 @@ namespace Moksy.Storage
             var index = FindIndexOf(resource, propertyName, value);
             if (index == -1) return null;
 
-            return resource.Data()[index].Json;
+            return resource.Resources[index].Data()[0].Json;
         }
 
 
@@ -283,8 +281,7 @@ namespace Moksy.Storage
             var index = FindIndexOf(match, propertyName, value, discriminator);
             if (index == -1) return false;
 
-            match.Data().RemoveAt(index);
-            match.Resources.Remove(existingMatch);
+            match.Resources.RemoveAt(index);
             return true;
         }
 
@@ -302,11 +299,6 @@ namespace Moksy.Storage
             return resource != null;
         }
 
-        public Resource LookupResource(string path, string pattern, string discriminator)
-        {
-            return LookupResource(path, pattern, discriminator, false);
-        }
-
         /// <summary>
         /// Looks up the resource based on the given path. 
         /// </summary>
@@ -314,7 +306,7 @@ namespace Moksy.Storage
         /// <param name="pattern"></param>
         /// <param name="ignoreFinalPropertyResource">If true, the final property resource will be ignored. This is an implementation hack until the Imdb is improved. </param>
         /// <returns></returns>
-        public Resource LookupResource(string path, string pattern, string discriminator, bool ignoreFinalPropertyResource)
+        public Resource LookupResource(string path, string pattern, string discriminator)
         {
             var tokens = RouteParser.Parse(path, pattern).ToArray();
             if (tokens.Count() == 0) return null;
@@ -334,11 +326,12 @@ namespace Moksy.Storage
                 }
                 else
                 {
-                    if (ignoreFinalPropertyResource && offset == tokens.Length - 1)
+                    var index = FindIndexOf(resource, token.Name, token.Value, discriminator);
+                    if (index == -1)
                     {
-                        return resource;
+                        return null;
                     }
-                    resource = currentResourceList.FirstOrDefault(f => string.Compare(f.Name, token.Value, true) == 0 && f.IsPropertyResource);
+                    resource = resource.Resources[index];
                 }
                 if (resource == null) return null;
 
@@ -421,19 +414,22 @@ namespace Moksy.Storage
             if (null == discriminator) discriminator = "";
             if (null == propertyName) return -1;
 
-            foreach (var d in resource.Data())
+            foreach (var r in resource.Resources)
             {
-                JObject jobject = JsonConvert.DeserializeObject(d.Json) as JObject;
-                if (null == jobject) continue;
+                foreach (var d in r.Data())
+                {
+                    JObject jobject = JsonConvert.DeserializeObject(d.Json) as JObject;
+                    if (null == jobject) continue;
 
-                var currentValue = jobject[propertyName];
-                if (currentValue != null && currentValue.ToString() == value)
-                {
-                    return resource.Data().IndexOf(d);
-                }
-                if (currentValue == null && value == null)
-                {
-                    return resource.Data().IndexOf(d);
+                    var currentValue = jobject[propertyName];
+                    if (currentValue != null && currentValue.ToString() == value)
+                    {
+                        return resource.Resources.IndexOf(r);
+                    }
+                    if (currentValue == null && value == null)
+                    {
+                        return resource.Resources.IndexOf(r);
+                    }
                 }
             }
 

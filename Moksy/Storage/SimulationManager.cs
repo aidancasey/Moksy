@@ -109,7 +109,7 @@ namespace Moksy.Storage
 
         protected Simulation MatchesGetFromImdb(Simulation match, string path, string variable, string discriminator)
         {
-            var resource = Database.LookupResource(path, match.Condition.SimulationConditionContent.Pattern, discriminator, true);
+            var resource = Database.LookupResource(path, match.Condition.SimulationConditionContent.Pattern, discriminator);
             if (null == resource)
             {
                 if (match.Condition.SimulationConditionContent.Persistence == Persistence.NotExists)
@@ -241,9 +241,6 @@ namespace Moksy.Storage
                 if (vars.Count() == 0) return null;
 
                 // The path has placeholders such as /Get({id}). We need to pull out the resource.
-                var resourceName = RouteParser.GetFirstResource(path, match.Condition.SimulationConditionContent.Pattern);
-                if (null == resourceName) return null;
-
                 if (!Database.ContainsResource(path, match.Condition.SimulationConditionContent.Pattern, discriminator)) return null;
 
                 Substitution s = new Substitution();
@@ -279,7 +276,7 @@ namespace Moksy.Storage
                 var vars = new Substitution().GetVariables(match.Condition.SimulationConditionContent.Pattern);
                 if (vars.Count() == 0) return null;
 
-                var resource = Database.LookupResource(path, match.Condition.SimulationConditionContent.Pattern, discriminator, true);
+                var resource = Database.LookupResource(path, match.Condition.SimulationConditionContent.Pattern, discriminator);
                 if (null == resource) return null;
 
                 Substitution s = new Substitution();
@@ -325,7 +322,7 @@ namespace Moksy.Storage
                     var vars = new Substitution().GetVariables(match.Condition.SimulationConditionContent.Pattern);
                     if (vars.Count() == 0) return false;
 
-                    var resource = Database.LookupResource(path, match.Condition.SimulationConditionContent.Pattern, discriminator, true);
+                    var resource = Database.LookupResource(path, match.Condition.SimulationConditionContent.Pattern, discriminator);
                     if (null == resource) return false;
 
                     Substitution s = new Substitution();
@@ -365,7 +362,7 @@ namespace Moksy.Storage
             if (!Database.ContainsResource(path, pattern, discriminator)) return false;
             if (null == propertyName) return false;
 
-            var resource = Database.LookupResource(path, pattern, discriminator, true);
+            var resource = Database.LookupResource(path, pattern, discriminator);
             if (null == resource) return false;
 
             foreach (var e in resource.Data())
@@ -624,9 +621,6 @@ namespace Moksy.Storage
 
             lock (Storage.SyncRoot)
             {
-                var resourceName = RouteParser.GetFirstResource(path, simulation.Condition.SimulationConditionContent.Pattern);
-                if (null == resourceName) return;
-
                 if (simulation.Condition.SimulationConditionContent.ContentKind == ContentKind.BodyParameters)
                 {
                     content = ConvertBodyParametersToJson(content);
@@ -650,9 +644,6 @@ namespace Moksy.Storage
 
             lock (Storage.SyncRoot)
             {
-                var resourceName = RouteParser.GetFirstResource(path, simulation.Condition.SimulationConditionContent.Pattern);
-                if (null == resourceName) return;
-
                 if (simulation.Condition.SimulationConditionContent.ContentKind == ContentKind.BodyParameters)
                 {
                     content = ConvertBodyParametersToJson(content);
@@ -839,29 +830,48 @@ namespace Moksy.Storage
         {
             if (null == simulation) throw new System.ArgumentNullException("simulation");
 
-            var resource = Database.LookupResource(path, simulation.Condition.SimulationConditionContent.Pattern, discriminator, true);
+            var resource = Database.LookupResource(path, simulation.Condition.SimulationConditionContent.Pattern, discriminator);
             if (null == resource) return null;
 
-            foreach (var e in resource.Data())
+            // We need to do some higgery-jiggery pokery here. We have found the 'end' resource; however, we might be doing PUT /Pet/{Dog}
+            // In order to locate a match, we need to search the Pet entries; not the DOg entries; so we need to 'back up' one. 
+            if (resource.Owner != null)
             {
-                try
+                var tokens = RouteParser.Parse(path, simulation.Condition.SimulationConditionContent.Pattern);
+                if (tokens.Count() > 0)
                 {
-                    var jobject = JsonConvert.DeserializeObject(e.Json) as JObject;
-                    if (null == jobject) continue;
-
-                    // ASSERTION: We are valid Json. 
-                    var value = jobject[propertyName.Replace("{","").Replace("}", "")];
-                    if (null == value && candidatePropertyValue == null) return jobject;
-                    if (value == null) continue;
-
-                    if (System.Convert.ToString((value as JValue).Value) == candidatePropertyValue)
+                    var last = tokens.Last();
+                    if (last.Name == propertyName)
                     {
-                        return jobject;
+                        // Walk 'one back up' so we can determine if there is actually a match here. 
+                        resource = resource.Owner;
                     }
                 }
-                catch (Exception)
+            }
+
+            foreach (var r in resource.Resources)
+            {
+                foreach (var e in r.Data())
                 {
-                    // If the entry is not valid Json - no problem; just continue. Try the next entry. 
+                    try
+                    {
+                        var jobject = JsonConvert.DeserializeObject(e.Json) as JObject;
+                        if (null == jobject) continue;
+
+                        // ASSERTION: We are valid Json. 
+                        var value = jobject[propertyName.Replace("{", "").Replace("}", "")];
+                        if (null == value && candidatePropertyValue == null) return jobject;
+                        if (value == null) continue;
+
+                        if (System.Convert.ToString((value as JValue).Value) == candidatePropertyValue)
+                        {
+                            return jobject;
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        // If the entry is not valid Json - no problem; just continue. Try the next entry. 
+                    }
                 }
             }
 
@@ -909,7 +919,7 @@ namespace Moksy.Storage
             //if (!Database.ContainsResource(path, pattern, discriminator)) return null;
             //if (null == propertyName) return null;
 
-            var resource = Database.LookupResource(path, pattern, discriminator,true);
+            var resource = Database.LookupResource(path, pattern, discriminator);
             if (null == resource) return null;
 
             foreach (var e in resource.Data())
@@ -951,18 +961,18 @@ namespace Moksy.Storage
             if (null == path) return result;
             if (null == propertyName) return result;
 
-            var resourceName = RouteParser.GetFirstResource(path, pattern);
-            if (null == resourceName) return result;
-
             var resource = Database.LookupResource(path, pattern, discriminator);
             if (null == resource) return result;
 
-            foreach (var p in resource.Data())
+            foreach (var r in resource.Resources)
             {
-                var key = GetPropertyValueFromJson(p.Json, propertyName);
-                if (null == key) continue;
+                foreach (var p in r.Data())
+                {
+                    var key = GetPropertyValueFromJson(p.Json, propertyName);
+                    if (null == key) continue;
 
-                result.Add(key);
+                    result.Add(key);
+                }
             }
 
             return result;
@@ -981,9 +991,6 @@ namespace Moksy.Storage
 
             lock (Storage.SyncRoot)
             {
-                var resourceName = RouteParser.GetFirstResource(path, simulation.Condition.SimulationConditionContent.Pattern);
-                if (null == resourceName) return null;
-
                 var resource = Database.LookupResource(path, simulation.Condition.SimulationConditionContent.Pattern, discriminator);
                 if (null == resource) return null;
 
@@ -1009,13 +1016,30 @@ namespace Moksy.Storage
 
             lock (Storage.SyncRoot)
             {
-                var resource = Database.LookupResource(path, simulation.Condition.SimulationConditionContent.Pattern, discriminator, true);
+                var resource = Database.LookupResource(path, simulation.Condition.SimulationConditionContent.Pattern, discriminator);
                 if (null == resource) return null;
 
-                List<string> components = new List<string>();
-                foreach (var e in resource.Data())
+                // We now need to ensure we find the 'end' of the path.
+                if (resource.Owner != null && simulation.Condition.SimulationConditionContent.IndexProperty != null)
                 {
-                    components.Add(e.Json);
+                    var tokens = RouteParser.Parse(path, simulation.Condition.SimulationConditionContent.Pattern);
+                    if (tokens.Count() > 0)
+                    {
+                        var last = tokens.Last();
+                        if (string.Compare(last.Name, simulation.Condition.SimulationConditionContent.IndexProperty, false) == 0)
+                        {
+                            resource = resource.Owner;
+                        }
+                    }
+                }
+
+                List<string> components = new List<string>();
+                foreach (var r in resource.Resources)
+                {
+                    foreach (var e in r.Data())
+                    {
+                        components.Add(e.Json);
+                    }
                 }
                 var result = string.Join(",", components);
                 return result;
@@ -1060,11 +1084,6 @@ namespace Moksy.Storage
 
                 if (deleteData)
                 {
-                    // TODO: Correct this... I need the path + pattern context. 
-
-                    var resourceName = RouteParser.GetFirstResource(match.Condition.SimulationConditionContent.Pattern, match.Condition.SimulationConditionContent.Pattern);
-                    if (null == resourceName) return false;
-
                     var resource = Database.LookupResource(match.Condition.SimulationConditionContent.Pattern, match.Condition.SimulationConditionContent.Pattern, "");
                     if (null == resource) return false;
 
