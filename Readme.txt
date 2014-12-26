@@ -1,6 +1,13 @@
-MOKSY - V1.2.104 by Grey Ham (www.twitter.com/brek_it, www.brekit.com, www.havecomputerwillcode.com)
+MOKSY - V1.2.145 by Grey Ham (www.twitter.com/brek_it, www.brekit.com, www.havecomputerwillcode.com)
 ---------------------------------------------------------------------------------------------------
 
+New Additions to 1.2.145:
+-------------------------
+    - Nested Imdb. ie: /Pet/{Kind}/Toy/{Name}/Supplier/{...} etc.
+	- Start the Proxy with additional parameters (such as logging)
+	- Improved matching of headers, body parameters and url paramters (partial matches; urlencoding)
+	- Lots of internal refactoring to improve the IntelliSENSE experience. 
+	- Various bug fixes
 
 
 What is Moksy?
@@ -38,14 +45,14 @@ Moksy will support Create, Read, Update and Delete functions (POST, GET, DELETE,
 		SimulationFactory.When.I.Post().ToImdb("/Pet").And.Exists("Kind").Return.StatusCode(System.Net.HttpStatusCode.BadRequest).And.Body("A Pet of that kind already exists");
 		
 		SimulationFactory.When.I.Get().FromImdb("/Pet").Then.Return.StatusCode(System.Net.HttpStatusCode.OK).With.Body("[{value}]);
-		SimulationFactory.When.I.Get().FromImdb("/Pet/{kind}").And.Exists().Then.Return.StatusCode(System.Net.HttpStatusCode.OK);
-		SimulationFactory.When.I.Get().FromImdb("/Pet/{kind}").And.NotExists().Then.Return.StatusCode(System.Net.HttpStatusCode.NotFound);
+		SimulationFactory.When.I.Get().FromImdb("/Pet/{kind}").And.Exists("{kind}").Then.Return.StatusCode(System.Net.HttpStatusCode.OK);
+		SimulationFactory.When.I.Get().FromImdb("/Pet/{kind}").And.NotExists("{kind}").Then.Return.StatusCode(System.Net.HttpStatusCode.NotFound);
 
-		SimulationFactory.When.I.Delete().FromImdb("/Pet/{kind}").And.Exists().Then.Return.StatusCode(System.Net.HttpStatusCode.NoContent).And.RemoveFromImdb();
-		SimulationFactory.When.I.Delete().FromImdb("/Pet/{kind}").And.NotExists().Then.Return.StatusCode(System.Net.HttpStatusCode.NoContent);
+		SimulationFactory.When.I.Delete().FromImdb("/Pet/{kind}").And.Exists("{kind}").Then.Return.StatusCode(System.Net.HttpStatusCode.NoContent).And.RemoveFromImdb();
+		SimulationFactory.When.I.Delete().FromImdb("/Pet/{kind}").And.NotExists("{kind}").Then.Return.StatusCode(System.Net.HttpStatusCode.NoContent);
 
-		SimulationFactory.When.I.Put().ToImdb("/Pet").And.NotExists("Kind").Return.StatusCode(System.Net.HttpStatusCode.Created).And.AddToImdb().And.Body("{value}");
-		SimulationFactory.When.I.Put().ToImdb("/Pet").And.Exists("Kind").Return.StatusCode(System.Net.HttpStatusCode.OK).And.AddToImdb().And.Body("{value}");
+		SimulationFactory.When.I.Put().ToImdb("/Pet").And.NotExists("{Kind}").Return.StatusCode(System.Net.HttpStatusCode.Created).And.AddToImdb().And.Body("{value}");
+		SimulationFactory.When.I.Put().ToImdb("/Pet").And.Exists("{Kind}").Return.StatusCode(System.Net.HttpStatusCode.OK).And.AddToImdb().And.Body("{value}");
 
 Posting the Json structure to http://localhost:10011/Pet will add it to the in memory database for that resource; calling GET on http://localhost:10011 will return a comma-separated
 list of the Json entries wrapped in [] to simulate an array. Of course, calling GET on http://localhost:10011/Dog will return just the above structure. 
@@ -59,6 +66,46 @@ Moksy can be useful for:
 - Faking, stubbing or mocking Web Services, REST API Services or third-party end-points you need to interact with that might be unreliable or under development.
 - Removing service development from the critical path - just set up simulations in Moksy and have your testers and devs hit the end-points until the final service is delivered.
   Ideal for Api shaping - just change the expectation and response and iteratively refine your services. 
+
+
+
+Simple Header / Url / Body Parameter Examples:
+----------------------------------------------
+To return a response based on the presence of some header. For example:
+
+    SimulationFactory.When.I.Get().From("/Pet").With.Header("Name").Then.Return.StatusCode(System.Net.HttpStatusCode.OK).And.Body("Yo!");
+
+To return a response based on the presence of some header and a fixed value:
+
+    SimulationFactory.When.I.Get().From("/Pet").With.Header("Name", "theValue").Then.Return.StatusCode(System.Net.HttpStatusCode.OK).And.Body("Requires header with given value");
+
+Sometimes you only want to check a part of the value of a header. Use the .PartialValue and (optionally) CaseInsensitive to choose the comparison you want to make:
+
+    SimulationFactory.When.I.Get().From("/Pet").With.Header("Name", "alu", ComparisonType.PartialValue | ComparisonType.CaseInsensitive).Then.Return.StatusCode(System.Net.HttpStatusCode.OK).And.Body("Yo!");
+
+The same principle applies for Url/Query parameters and Body Parameters (as would be POST'd from a Form, for example):
+
+    SimulationFactory.When.I.Post().To("/Pet").With.Parameter("Name", "alu", ParameterType.BodyParameter, ComparisonType.PartialValue | ComparisonType.CaseInsensitive).Then.Return.StatusCode(System.Net.HttpStatusCode.OK).And.Body("Yo!");
+
+Or perhaps with a URL Parameter - you would GET from /Pet?Name=theValue to get this to match for example:
+
+	SimulationFactory.When.I.GET().From("/Pet").With.Parameter("Name", "alu", ParameterType.UrlParameter, ComparisonType.PartialValue | ComparisonType.CaseInsensitive).Then.Return.StatusCode(System.Net.HttpStatusCode.OK).And.Body("Yo!");
+
+
+
+It is possible to reuse the Header, Query or Body Parameter values that were sent as part of the request in the Response Body or Headers themselves. For example:
+
+    SimulationFactory.When.I.Get().From("/Pet").With.Header("Kind", "Dog").Then.Return.StatusCode(System.Net.HttpStatusCode.OK).And.Body("{Request:Header:Kind}");
+
+The same applies for Body Parameters and Query Parameters. For example:
+
+	... .And.Body("{Request:BodyParameter:TheBodyParameter}")
+	... .And.Body("{Request:QueryParameter:TheQueryParameter}")
+
+Sometimes you also want the body and query parameters to be encoded again when returned. Use the :UrlEncoded: placeholders instead:
+
+	... .And.Body("{Request:BodyParameter:UrlEncoded:TheBodyParameter}")
+	... .And.Body("{Request:QueryParameter:UrlEncoded:TheQueryParameter}")
 
 
 
@@ -82,11 +129,12 @@ Using Moksy within your tests is easy:
    // Now navigate to http://localhost:10011/TheEndpoint in your browser or hit that Url from another service to receive "Hello World!"
 
 Consider getting the source code and using the Moksy.IntegrationTests.DocumentationTests as your playpen; step through the tests in MsTest and follow the instructions :-) 
- 
 
 
-[Experimental - Subject to change]
- ----------------------------------------------
+
+
+Constrains and Violations:
+--------------------------
 Constraints and violations can be set as part of your simulations. This is useful for returning error conditions if, for example, property conditions and constraints are not met.
 For example:
 
@@ -103,9 +151,8 @@ LIMITATIONS:
 - Very many! This is still a work in progress. 
 - For In-Memory Database, only POST, GET, PUT and DELETE are supported. PATCH support will be added in future. 
 - HTTPS is not supported. 
-- Only a single placeholder can be specified in the paths. ie: /Pet('{Kind}') is supported but /Pet('{Kind}')/Toy('{Name}') is not. 
+- Multiple placeholders can be specified in a path. ie: /Pet/{Kind}/Toy{Name} but the Exists and NotExists can only specify the last variable in the list. ie: {Name} 
 - Accessing resources for GET and DELETE can only be done through the URL. ie: GET /Pet('Dog') and not GET /Pet with 'Dog' in the Body or Header. 
-- All Simulations must be set up as part of the test. In future, it will be possible to persist the simulations. 
 
 
 Quick samples:
@@ -159,17 +206,17 @@ Moksy provides a (very simple) In Memory Database for POST, GET and DELETE calls
 
 Use Moksy with the .ToImdb() and .FromImdb() calls. Moksy will create an in-memory database based on the Json you submit. For example:
 
-    When.I.Post().ToImdb("/Pet").And.NotExists("Kind").Then.Return.StatusCode(System.Net.HttpStatusCode.Created).And.AddToImdb();
-	When.I.Post().ToImdb("/Pet").And.Exists("Kind").Then.Return.StatusCode(System.Net.HttpStatusCode.BadRequest);
+    When.I.Post().ToImdb("/Pet").And.NotExists("{Kind}").Then.Return.StatusCode(System.Net.HttpStatusCode.Created).And.AddToImdb();
+	When.I.Post().ToImdb("/Pet").And.Exists("{Kind}").Then.Return.StatusCode(System.Net.HttpStatusCode.BadRequest);
 
-	When.I.Get().FromImdb("/Pet('{Kind}')").And.NotExists().Then.Return.StatusCode(System.Net.HttpStatusCode.NotFound);
-	When.I.Get().FromImdb("/Pet('{Kind}')").And.Exists().Then.Return.StatusCode(System.Net.HttpStatusCode.OK).With.Body("{value}");
+	When.I.Get().FromImdb("/Pet('{Kind}')").And.NotExists("{Kind}").Then.Return.StatusCode(System.Net.HttpStatusCode.NotFound);
+	When.I.Get().FromImdb("/Pet('{Kind}')").And.Exists("{Kind}").Then.Return.StatusCode(System.Net.HttpStatusCode.OK).With.Body("{value}");
 
-	When.I.Delete().FromImdb("/Pet('{Kind}')").And.NotExists().Then.Return.StatusCode(System.Net.HttpStatusCode.NoContent);
-	When.I.Delete().FromImdb("/Pet('{Kind}')").And.Exists().Then.Return.StatusCode(System.Net.HttpStatusCode.NoContent).And.RemoveFromImdb();
+	When.I.Delete().FromImdb("/Pet('{Kind}')").And.NotExists("{Kind}").Then.Return.StatusCode(System.Net.HttpStatusCode.NoContent);
+	When.I.Delete().FromImdb("/Pet('{Kind}')").And.Exists("{Kind}").Then.Return.StatusCode(System.Net.HttpStatusCode.NoContent).And.RemoveFromImdb();
 
-	When.I.Put().ToImdb("/Pet").And.NotExists("Kind").Return.StatusCode(System.Net.HttpStatusCode.Created).And.AddToImdb().And.Body("{value}");
-	When.I.Put().ToImdb("/Pet").And.Exists("Kind").Return.StatusCode(System.Net.HttpStatusCode.OK).And.AddToImdb().And.Body("{value}");
+	When.I.Put().ToImdb("/Pet").And.NotExists("{Kind}").Return.StatusCode(System.Net.HttpStatusCode.Created).And.AddToImdb().And.Body("{value}");
+	When.I.Put().ToImdb("/Pet").And.Exists("{Kind}").Return.StatusCode(System.Net.HttpStatusCode.OK).And.AddToImdb().And.Body("{value}");
 
 If I now submit the following string to /Pet:
 
@@ -182,6 +229,40 @@ Obviously, building up test data is part of the problem - you need to be able to
 Similarly with Delete. 
 
 PATCH is currently not supported for the Imdb. 
+
+To clear an Imdb but not to remove the simulation itself, call:
+
+    DELETE /resource
+
+With a header of:
+
+	moksy-retainsimulation: true
+	moksy-purgedata: true
+
+
+
+Nested Imdb:
+------------
+Moksy now supports "nested" Imdb's - with a few limitations. For example:
+
+    When.I.Post().ToImdb("/Pet/{Kind}/Toy").And.NotExists("{Name}").Then.Return.StatusCode(System.Net.HttpStatusCode.Created).And.AddToImdb();
+	When.I.Post().ToImdb("/Pet/{Kind}/Toy").And.Exists("{Name}").Then.Return.StatusCode(System.Net.HttpStatusCode.BadRequest);
+
+	When.I.Get().FromImdb("/Pet('{Kind}')/Toy").And.NotExists().Then.Return.StatusCode(System.Net.HttpStatusCode.NotFound);
+	When.I.Get().FromImdb("/Pet('{Kind}')/Toy").And.Exists().Then.Return.StatusCode(System.Net.HttpStatusCode.OK).With.Body("[{value}]");
+
+	When.I.Delete().FromImdb("/Pet('{Kind}/Toy/{Name}')").And.NotExists("{Name}").Then.Return.StatusCode(System.Net.HttpStatusCode.NoContent);
+	When.I.Delete().FromImdb("/Pet('{Kind}/Toy/{Name}')").And.Exists("{Name}").Then.Return.StatusCode(System.Net.HttpStatusCode.NoContent).And.RemoveFromImdb();
+
+	When.I.Put().ToImdb("/Pet('{Kind}/Toy/{Name}')").And.NotExists("{Name}").Return.StatusCode(System.Net.HttpStatusCode.Created).And.AddToImdb().And.Body("{value}");
+	When.I.Put().ToImdb("/Pet('{Kind}/Toy/{Name}')").And.Exists("{Name}").Return.StatusCode(System.Net.HttpStatusCode.OK).And.AddToImdb().And.Body("{value}");    
+
+Exists() and NotExists() will only validate against the 'last' variable in the path. 
+
+
+Convention:
+If a resource "in the path" does not exist, then it will be created automatically. There are limitations to this in that specific variables cannot be automatically created for
+intermediate resources. 
 
 
 
@@ -276,10 +357,10 @@ With that in mind, we can 'round trip' by returning the object using that Identi
 
 Variables are referenced in the Body using {...} notation. There are four variables that are always present to every simulation:
 
-	{requestscheme}			- ie: http
-	{requesthost}			- ie: localhost
-	{requestport}			- ie: 10011
-	{requestroot}			- ie: http://localhost:10011
+	{Request:Url:Scheme}		- ie: http								NOTE:	{requestscheme still works but has been superseded}
+	{Request:Url:Host}			- ie: localhost									{requesthost still works but has been superseded}
+	{Request:Url:Port}			- ie: 10011										{requestport still works but has been superseded}
+	{Request:Url:Root}			- ie: http://localhost:10011					{requestroot still works but has been superseded}
 
 This information can be used (for example) in 'inject' the Location of an object in a Response header:
 
