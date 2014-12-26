@@ -76,6 +76,9 @@
     <Compile Include="Imdb\BodyParameterTests.cs" />
     <Compile Include="Imdb\ImdbNestedTests.cs" />
     <Compile Include="Imdb\FileTests.cs" />
+    <Compile Include="Macros\BodyParameterMacroTests.cs" />
+    <Compile Include="Macros\QueryParameterTests.cs" />
+    <Compile Include="Macros\HeaderMacroTests.cs" />
     <Compile Include="Pet.cs" />
     <Compile Include="SimulationTests.cs" />
     <Compile Include="CrudTests.cs" />

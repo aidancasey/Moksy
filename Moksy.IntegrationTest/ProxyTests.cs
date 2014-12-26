@@ -185,6 +185,14 @@ namespace Moksy.IntegrationTest
 
         }
 
+        /*
+        [TestMethod]
+        public void StartWithLog()
+        {
+            Proxy.Exit();
+
+            Proxy.Start("/Log");
+        }
 
         /*
         [TestMethod]

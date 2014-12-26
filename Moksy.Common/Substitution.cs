@@ -30,7 +30,7 @@ namespace Moksy.Common
             var result = new List<SubstitutionVariable>();
             if (null == content) return result;
 
-            System.Text.RegularExpressions.Regex regex = new System.Text.RegularExpressions.Regex("({[A-Za-z0-9]+})+");
+            System.Text.RegularExpressions.Regex regex = new System.Text.RegularExpressions.Regex("({[A-Za-z0-9:]+})+");
             var matches = regex.Matches(content);
             foreach (System.Text.RegularExpressions.Match match in matches)
             {

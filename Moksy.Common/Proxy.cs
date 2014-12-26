@@ -73,13 +73,37 @@ namespace Moksy
         }
 
         /// <summary>
+        /// Start Moksy on the given port and pass in the additional command line parameters / arguments. This is typically /Log or the name of a file containing
+        /// the specification we want to load. 
+        /// </summary>
+        /// <param name="arguments">An optional list of arguments to use when starting the Moksy service. </param>
+        /// <returns></returns>
+        public bool Start(string arguments)
+        {
+            return Start(5, arguments);
+        }
+
+        /// <summary>
         /// Start Moksy on the given port. It is safe to call this method even if the service is running. 
         /// If this method fails, troubleshoot by launching Moksy.Host.exe <port> from an elevated command prompt.
         /// The exe can only be started if the host is local: this will return success immediately if IsLocalhost is false. Use the Wait functionality to wait for the service to become available. 
         /// </summary>
         public bool Start(uint timeoutInSeconds)
         {
+            return Start(timeoutInSeconds, "");
+        }
+
+        /// <summary>
+        /// Start Moksy on the given port. It is safe to call this method even if the service is running. 
+        /// If this method fails, troubleshoot by launching Moksy.Host.exe <port> from an elevated command prompt.
+        /// The exe can only be started if the host is local: this will return success immediately if IsLocalhost is false. Use the Wait functionality to wait for the service to become available. 
+        /// </summary>
+        /// <param name="timeoutInSeconds">The timeout in seconds to wait for the service to become ready and initialized. </param>
+        /// <param name="arguments">Optional list of arguments to use. </param>
+        public bool Start(uint timeoutInSeconds, string arguments)
+        {
             if(!IsLocalhost) return true;
+            if (arguments == null) arguments = "";
 
             Proxy proxy = new Proxy(Port);
             try
@@ -96,7 +120,7 @@ namespace Moksy
             var exeName = "Moksy.Host.Exe";
 
             System.Diagnostics.ProcessStartInfo psi = new System.Diagnostics.ProcessStartInfo();
-            psi.Arguments = Port.ToString();
+            psi.Arguments = string.Format("{0} {1}", Port.ToString(), arguments);
             psi.WorkingDirectory = folder;
             psi.FileName = System.IO.Path.Combine(folder, exeName);
 

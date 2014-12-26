@@ -80,10 +80,19 @@ namespace Moksy.Handlers
                 var discriminator = GetDiscriminator(headers, match.Condition.SimulationConditionContent.ImdbHeaderDiscriminator);
 
                 var vars = CreateVariables("", match);
+                // NOTE: These four are obsolete - use the new Request:Url: variables instead. 
                 vars["requestscheme"] = request.RequestUri.Scheme;
                 vars["requesthost"] = request.RequestUri.Host;
                 vars["requestport"] = request.RequestUri.Port.ToString();
                 vars["requestroot"] = string.Format("{0}://{1}:{2}", request.RequestUri.Scheme, request.RequestUri.Host, request.RequestUri.Port.ToString());
+
+                vars["Request:Url:Scheme"] = vars["requestscheme"];
+                vars["Request:Url:Host"] = vars["requesthost"];
+                vars["Request:Url:Port"] = vars["requestport"];
+                vars["Request:Url:Root"] = vars["requestroot"];
+
+                PopulateRequestHeaders(request, vars);
+                PopulateRequestQueryParameters(request, vars);
 
                 var evaluatedMatchingResponses = from T in simulation.EvaluatedMatchingConstraints select T.EvaluatedResponse;
                 var evaluatedMatchingResponsesAsString = string.Join(",", evaluatedMatchingResponses.ToArray());
@@ -93,7 +102,11 @@ namespace Moksy.Handlers
                 var evaluatedNoneMatchingResponsesAsString = string.Join(",", evaluatedNoneMatchingResponses.ToArray());
                 vars["violationResponses"] = string.Format("[{0}]", evaluatedNoneMatchingResponsesAsString);
 
+                PopulateBodyParameters(match, request, vars);
+
                 SubstituteHeaders(vars, match.Response.ResponseHeaders);
+
+                PopulateResponseHeaders(match.Response.ResponseHeaders, vars);
 
                 var canned = HttpResponseMessageFactory.New(match.Response);
 
@@ -494,7 +507,7 @@ namespace Moksy.Handlers
 
         protected Dictionary<string, string> CreateVariables(string value, Simulation s)
         {
-            Dictionary<string, string> vars = new Dictionary<string, string>();
+            Dictionary<string, string> vars = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase);
             vars["value"] = string.Format("{0}", value);
 
             var vs = s.Response.CalculateVariables();
@@ -547,6 +560,112 @@ namespace Moksy.Handlers
             foreach (var h in headers)
             {
                 h.Value = s.Substitute(h.Value, variables);
+            }
+        }
+
+        protected void PopulateRequestHeaders(HttpRequestMessage request, Dictionary<string, string> vars)
+        {
+            if (null == request || null == vars || request.Headers.Count() == 0) return;
+
+            foreach (var header in request.Headers)
+            {
+                var name = string.Format("Request:Header:{0}", header.Key);
+                var value = string.Join("; ", header.Value);
+
+                vars[name] = value;
+
+                name = string.Format("Request:Header:UrlEncoded:{0}", header.Key);
+                value = RestSharp.Contrib.HttpUtility.UrlEncode(value);
+
+                vars[name] = value;
+            }
+        }
+
+        protected void PopulateRequestQueryParameters(HttpRequestMessage request, Dictionary<string, string> vars)
+        {
+            if (null == request || null == vars) return;
+
+            try
+            {
+                var pairs = RestSharp.Contrib.HttpUtility.ParseQueryString(request.RequestUri.Query);
+                foreach (var pairKey in pairs.Keys)
+                {
+                    string key = string.Format("{0}", pairKey);
+
+                    var name = string.Format("Request:QueryParameter:{0}", key);
+                    var value = string.Format("{0}", pairs.Get(key));
+
+                    vars[name] = value;
+
+                    // Encoded
+                    name = string.Format("Request:QueryParameter:UrlEncoded:{0}", key);
+                    value = RestSharp.Contrib.HttpUtility.UrlEncode(string.Format("{0}", pairs.Get(key)));
+
+                    vars[name] = value;
+                }
+            }
+            catch (Exception ex)
+            {
+            }
+        }
+
+        protected void PopulateBodyParameters(Simulation simulation, HttpRequestMessage request, Dictionary<string, string> vars)
+        {
+            if (null == request || null == vars || simulation == null) return;
+            if (simulation.Condition.SimulationConditionContent.ContentKind != ContentKind.BodyParameters) return;
+
+            try
+            {
+                var task = request.Content.ReadAsByteArrayAsync();
+                task.Wait();
+
+                var contentAsBytes = task.Result;
+                var contentAsString = new System.Text.ASCIIEncoding().GetString(task.Result);
+
+                var json = SimulationManager.Instance.ConvertBodyParametersToJson(contentAsString);
+                var jobject = JsonConvert.DeserializeObject(json) as Newtonsoft.Json.Linq.JObject;
+                
+                foreach (var property in jobject.Properties())
+                {
+                    Newtonsoft.Json.Linq.JToken jobjectPropertyValue = null;
+                    string propertyValue = null;
+
+                    jobjectPropertyValue = jobject[property.Name];
+
+                    if (jobjectPropertyValue != null)
+                    {
+                        propertyValue = jobjectPropertyValue.ToString();
+                    }
+
+                    if (null == propertyValue) propertyValue = "";
+
+                    string name = string.Format("Request:BodyParameter:{0}", property.Name);
+                    vars[name] = propertyValue;
+
+                    name = string.Format("Request:BodyParameter:UrlEncoded:{0}", property.Name);
+                    vars[name] = RestSharp.Contrib.HttpUtility.UrlEncode(propertyValue);
+                }
+            }
+            catch(Exception ex)
+            {
+                // An error occurred - just continue and do the best we can. 
+            }
+        }
+
+        protected void PopulateResponseHeaders(IEnumerable<Header> headers, Dictionary<string, string> vars)
+        {
+            if (null == headers || null == vars || headers.Count() == 0) return;
+
+            foreach (var header in headers)
+            {
+                var name = string.Format("Response:Header:{0}", header.Name);
+                var value = "";
+                if (header.HasValue)
+                {
+                    value = header.Value;
+                }
+
+                vars[name] = value;
             }
         }
 
