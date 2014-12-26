@@ -96,7 +96,7 @@ namespace Moksy.Test.ParameterMatching
         public void OneConditionWithEncoding()
         {
             SimulationCondition c = new SimulationCondition();
-            c.Parameter("d/e", "f/g", ComparisonType.UrlEncoded, ParameterType.UrlParameter);
+            c.Parameter("d/e", "f/g", ComparisonType.UrlEncode, ParameterType.UrlParameter);
 
             Assert.IsTrue(Evaluator.MatchesUrlParameters(c, "d%2fe=f%2fg"));
         }
@@ -118,6 +118,26 @@ namespace Moksy.Test.ParameterMatching
             c.Parameter("g", "h", ParameterType.UrlParameter);
 
             Assert.IsFalse(Evaluator.MatchesUrlParameters(c, "d=e"));
+        }
+
+
+
+        [TestMethod]
+        public void OneConditionMatchesCaseSensitivePartialValue()
+        {
+            SimulationCondition c = new SimulationCondition();
+            c.Parameter("A", "b", ComparisonType.PartialValue, ParameterType.UrlParameter);
+
+            Assert.IsTrue(Evaluator.MatchesUrlParameters(c, "A=bcd"));
+        }
+
+        [TestMethod]
+        public void OneConditionMatchesCaseInsensitivePartialValue()
+        {
+            SimulationCondition c = new SimulationCondition();
+            c.Parameter("A", "bcD", ComparisonType.PartialValue | ComparisonType.CaseInsensitive, ParameterType.UrlParameter);
+
+            Assert.IsTrue(Evaluator.MatchesUrlParameters(c, "A=bcD"));
         }
     }
 }

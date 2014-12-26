@@ -112,5 +112,31 @@ namespace Moksy.Test.ParameterMatching
 
             Assert.IsTrue(Evaluator.Matches(c, ps));
         }
+
+
+
+        [TestMethod]
+        public void ParameterPartialValueCaseSensitive()
+        {
+            List<Parameter> ps = new List<Parameter>();
+            ps.Add(new Parameter("thename", "thevalue"));
+
+            SimulationCondition c = new SimulationCondition();
+            c.Parameter("thename", "eval", ComparisonType.PartialValue);
+
+            Assert.IsTrue(Evaluator.Matches(c, ps));
+        }
+
+        [TestMethod]
+        public void ParameterPartialValueCaseInsensitive()
+        {
+            List<Parameter> ps = new List<Parameter>();
+            ps.Add(new Parameter("thename", "thevalue"));
+
+            SimulationCondition c = new SimulationCondition();
+            c.Parameter("thename", "EVal", ComparisonType.PartialValue | ComparisonType.CaseInsensitive);
+
+            Assert.IsTrue(Evaluator.Matches(c, ps));
+        }
     }
 }

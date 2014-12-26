@@ -517,7 +517,7 @@ namespace Moksy.Common
             var vars = s.GetVariables(SimulationConditionContent.Pattern);
             if (vars.Count() != 1) { throw new System.InvalidOperationException(@"ERROR: To use Exists(), the Path parameter must contain at least one placeholder. ie: When.I.Get().From(""/Endpoint({id})"")"); }
 
-            SimulationConditionContent.IndexProperty = string.Format("{0}", vars.First().Name);
+            SimulationConditionContent.IndexProperty = string.Format("{0}", vars.Last().Name);
 
             SimulationConditionContent.Persistence = Common.Persistence.Exists;
             return this;
@@ -535,7 +535,7 @@ namespace Moksy.Common
             var vars = s.GetVariables(SimulationConditionContent.Pattern);
             if (vars.Count() != 1) { throw new System.InvalidOperationException(@"ERROR: To use Exists(), the Path parameter must contain at least one placeholder. ie: When.I.Get().From(""/Endpoint({id})"")"); }
 
-            SimulationConditionContent.IndexProperty = string.Format("{0}", vars.First().Name);
+            SimulationConditionContent.IndexProperty = string.Format("{0}", vars.Last().Name);
 
             SimulationConditionContent.Persistence = Common.Persistence.NotExists;
             return this;

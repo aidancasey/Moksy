@@ -240,7 +240,7 @@ namespace Moksy.Test.ParameterMatching
             headers.Add(new Header("TheH%2feader", "TheValue"));
 
             SimulationCondition c = new SimulationCondition();
-            c.Header("TheH/eader", ComparisonType.Exists | ComparisonType.UrlEncoded);
+            c.Header("TheH/eader", ComparisonType.Exists | ComparisonType.UrlEncode);
 
             Assert.IsTrue(Evaluator.Matches(c, headers));
         }
@@ -252,7 +252,7 @@ namespace Moksy.Test.ParameterMatching
             headers.Add(new Header("TheH%2feader", "TheV%2falue"));
 
             SimulationCondition c = new SimulationCondition();
-            c.Header("TheH/eader", "TheV/alue", ComparisonType.Exists | ComparisonType.UrlEncoded);
+            c.Header("TheH/eader", "TheV/alue", ComparisonType.Exists | ComparisonType.UrlEncode);
 
             Assert.IsTrue(Evaluator.Matches(c, headers));
         }
@@ -315,7 +315,7 @@ namespace Moksy.Test.ParameterMatching
             headers.Add(new Header("TheHeader", "TheValue"));
 
             SimulationCondition c = new SimulationCondition();
-            c.Header("TheHeader", "TheValue", Persistence.NotExists);
+            c.Header("TheHeader", "TheValue", ComparisonType.NotExists);
 
             Assert.IsFalse(Evaluator.Matches(c, headers));
         }
@@ -326,7 +326,7 @@ namespace Moksy.Test.ParameterMatching
             List<Header> headers = new List<Header>();
 
             SimulationCondition c = new SimulationCondition();
-            c.Header("TheHeader", "TheValue", Persistence.NotExists);
+            c.Header("TheHeader", "TheValue", ComparisonType.NotExists);
 
             Assert.IsTrue(Evaluator.Matches(c, headers));
         }
@@ -338,7 +338,7 @@ namespace Moksy.Test.ParameterMatching
             headers.Add(new Header("TheHeader", "TheValue2"));
 
             SimulationCondition c = new SimulationCondition();
-            c.Header("TheHeader", "TheValue", Persistence.NotExists);
+            c.Header("TheHeader", "TheValue", ComparisonType.NotExists);
 
             Assert.IsTrue(Evaluator.Matches(c, headers));
         }
@@ -364,7 +364,7 @@ namespace Moksy.Test.ParameterMatching
             headers.Add(new Header("TheHeader", "TheValue"));
 
             SimulationCondition c = new SimulationCondition();
-            c.Header("TheHeader", Persistence.NotExists);
+            c.Header("TheHeader", ComparisonType.NotExists);
 
             Assert.IsFalse(Evaluator.Matches(c, headers));
         }
@@ -378,6 +378,32 @@ namespace Moksy.Test.ParameterMatching
             c.Header("TheHeader");
 
             Assert.IsFalse(Evaluator.Matches(c, headers));
+        }
+
+
+
+        [TestMethod]
+        public void HeaderPartialValueMatchCaseSensitive()
+        {
+            List<Header> headers = new List<Header>();
+            headers.Add(new Header("TheHeader", "TheValue"));
+
+            SimulationCondition c = new SimulationCondition();
+            c.Header("TheHeader", "eVal", ComparisonType.PartialValue);
+
+            Assert.IsTrue(Evaluator.Matches(c, headers));
+        }
+
+        [TestMethod]
+        public void HeaderPartialValueMatchCaseInsensitive()
+        {
+            List<Header> headers = new List<Header>();
+            headers.Add(new Header("TheHeader", "TheValue"));
+
+            SimulationCondition c = new SimulationCondition();
+            c.Header("TheHeader", "eVaL", ComparisonType.PartialValue | ComparisonType.CaseInsensitive);
+
+            Assert.IsTrue(Evaluator.Matches(c, headers));
         }
     }
 }

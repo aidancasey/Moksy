@@ -43,6 +43,22 @@ namespace Moksy.IntegrationTest
             return Execute(url, RestSharp.Method.DELETE, headers);
         }
 
+        protected RestSharp.IRestResponse Delete(string url, string body, List<Header> headers)
+        {
+            if (headers == null) headers = new List<Header>();
+
+            RestSharp.IRestClient client = new RestSharp.RestClient(Root);
+            RestSharp.IRestRequest request = new RestSharp.RestRequest(url, RestSharp.Method.DELETE);
+            foreach (var header in headers)
+            {
+                request.AddParameter(header.Name, header.Value, RestSharp.ParameterType.HttpHeader);
+            }
+            request.AddBody(body);
+            request.RequestFormat = RestSharp.DataFormat.Json;
+            var response = client.Execute(request);
+            return response;
+        }
+
         protected RestSharp.IRestResponse Execute(string url, RestSharp.Method method)
         {
             return Execute(url, method, new List<Header>());

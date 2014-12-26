@@ -220,7 +220,12 @@ namespace Moksy.Handlers
                             }
                             else
                             {
-                                var entry = Storage.SimulationManager.Instance.GetEntryFromImdb(match, path, discriminator);
+                                var resource = Storage.SimulationManager.Instance.GetResourceFromImdb(match, path, discriminator);
+                                Entry entry = null;
+                                if (resource != null)
+                                {
+                                    entry = resource.Data().FirstOrDefault();
+                                }
                                 if (entry != null)
                                 {
                                     entry.Bytes = contentAsBytes;
@@ -308,11 +313,19 @@ namespace Moksy.Handlers
                         else
                         {
                             // The Path of the Simulation might be of the form /TheResource('{id}') where there is at least one placeholder. 
-                            var entry = Storage.SimulationManager.Instance.GetEntryFromImdb(HttpMethod.Get, path, request.RequestUri.Query, headers, discriminator);
+                            var resource = Storage.SimulationManager.Instance.GetResourceFromImdb(HttpMethod.Get, path, request.RequestUri.Query, headers, discriminator);
+                            Entry entry = null;
                             string candidateValue = "";
+                            if (resource != null)
+                            {
+                                entry = resource.Data().FirstOrDefault();
+
+                                candidateValue = GetResourceAsJson(resource);
+                            }
                             if (entry != null && entry.Json != null)
                             {
-                                candidateValue = JsonConvert.SerializeObject(JsonConvert.DeserializeObject(entry.Json));
+                                // candidateValue = JsonConvert.SerializeObject(JsonConvert.DeserializeObject(entry.Json));
+
                             }
 
                             // We are Imdb. Each entry is a Json fragment. We concatenate them together and separate them with ,
@@ -370,7 +383,7 @@ namespace Moksy.Handlers
                         {
                             if (match.Response.SimulationResponseContent.RemoveImdb)
                             {
-                                Storage.SimulationManager.Instance.DeleteFromImdb(HttpMethod.Delete, path, match.Condition.SimulationConditionContent.Pattern, request.RequestUri.Query, headers, discriminator);
+                                Storage.SimulationManager.Instance.DeleteFromImdb(match, path, match.Condition.SimulationConditionContent.Pattern, request.RequestUri.Query, headers, discriminator);
                             }
                             string candidateValue = "";
                             var variables = s.GetVariables(match.Response.SimulationResponseContent.Content);
@@ -456,6 +469,27 @@ namespace Moksy.Handlers
             if (null == match) return null;
 
             return match.Value;
+        }
+
+        protected string GetResourceAsJson(Resource resource)
+        {
+            if (null == resource) return null;
+
+            List<string> entries = new List<string>();
+            if (resource.Data().Count > 0)
+            {
+                entries.Add(JsonConvert.SerializeObject(JsonConvert.DeserializeObject(resource.Data().First().Json)));
+            }
+            foreach (var nr in resource.Resources)
+            {
+                foreach (var e in nr.Data())
+                {
+                    entries.Add(JsonConvert.SerializeObject(JsonConvert.DeserializeObject(e.Json)));
+                }
+            }
+
+            var result = string.Join(",", entries);
+            return result;
         }
 
         protected Dictionary<string, string> CreateVariables(string value, Simulation s)

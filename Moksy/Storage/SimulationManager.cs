@@ -87,7 +87,7 @@ namespace Moksy.Storage
                         var vars = new Substitution().GetVariables(match.Condition.SimulationConditionContent.Pattern);
                         if (vars.Count() > 0)
                         {
-                            var result = MatchesGetFromImdb(match, path, vars.First().Name, discriminator);
+                            var result = MatchesGetFromImdb(match, path, vars.Last().Name, discriminator);
                             return result;
                         }
                     }
@@ -125,25 +125,12 @@ namespace Moksy.Storage
                 return null;
             }
 
-            var resourceName = resource.Name;
-
-            // There are two possibilities:
-            // 1. Persistence == Exists. In other words: an object with this property must exist for the match to occur.
-            // 2. Persistence == NotExists. In other words: an object WITHOUT this property must exist for the match to occur. 
-
-            // ASSERTION: The in memory database exists. We now need to work out whether the value being requested exists or not. 
-            Substitution s = new Substitution();
-            var regex = RouteParser.ConvertPatternToRegularExpression(match.Condition.SimulationConditionContent.Pattern);
-
-            System.Text.RegularExpressions.Regex rex = new System.Text.RegularExpressions.Regex(regex);
-            var result = rex.Match(path);
-            if (!result.Success) return null;
-
-            // TODO: We only get four matches back - the whole; prefix; value; end
-            if (result.Groups.Count != 4) return null;
-
-            var value = path.Substring(result.Groups[2].Index, result.Groups[2].Length);
-            if (value == null) return null;
+            string value = null;
+            var tokens = RouteParser.Parse(path, match.Condition.SimulationConditionContent.Pattern);
+            if (tokens.Count() > 0)
+            {
+                value = tokens.Last().Value;
+            }
 
             var existingJson = FindMatch(path, match.Condition.SimulationConditionContent.Pattern, variable, value, discriminator);
             if (match.Condition.SimulationConditionContent.Persistence == Persistence.NotExists)
@@ -167,6 +154,27 @@ namespace Moksy.Storage
 
             // NOTE: If not condition is specified, they are saying something like: Get("/Pet('Dog')") and we must now match it as an exact match. 
             return match;
+            /*
+
+            var resourceName = resource.Name;
+
+            // There are two possibilities:
+            // 1. Persistence == Exists. In other words: an object with this property must exist for the match to occur.
+            // 2. Persistence == NotExists. In other words: an object WITHOUT this property must exist for the match to occur. 
+
+            // ASSERTION: The in memory database exists. We now need to work out whether the value being requested exists or not. 
+            Substitution s = new Substitution();
+            var regex = RouteParser.ConvertPatternToRegularExpression(match.Condition.SimulationConditionContent.Pattern);
+
+            System.Text.RegularExpressions.Regex rex = new System.Text.RegularExpressions.Regex(regex);
+            var result = rex.Match(path);
+            if (!result.Success) return null;
+
+            // TODO: We only get four matches back - the whole; prefix; value; end
+            if (result.Groups.Count != 4) return null;
+
+            var value = path.Substring(result.Groups[2].Index, result.Groups[2].Length);
+            if (value == null) return null;*/
         }
 
 
@@ -206,7 +214,7 @@ namespace Moksy.Storage
         /// <returns>Null if an object does not exist; otherwise, the JObject (json) of the object indexes by that property. </returns>
         /// <remarks>This will look at all paths currently in the system (based on the method) 
         /// </remarks>
-        public Entry GetEntryFromImdb(System.Net.Http.HttpMethod method, string path, string query, IEnumerable<Header> headers, string discriminator)
+        public Resource GetResourceFromImdb(System.Net.Http.HttpMethod method, string path, string query, IEnumerable<Header> headers, string discriminator)
         {
             if (null == path) return null;
             if (null == headers) headers = new List<Header>();
@@ -218,7 +226,10 @@ namespace Moksy.Storage
 
                 if (method == HttpMethod.Get)
                 {
-                    return GetEntryFromImdb(match, path, discriminator);
+                    var resource = GetResourceFromImdb(match, path, discriminator);
+                    if (resource == null) return null;
+
+                    return resource;
                 }
             }
 
@@ -237,27 +248,14 @@ namespace Moksy.Storage
         {
             lock (Storage.SyncRoot)
             {
-                var vars = new Substitution().GetVariables(match.Condition.SimulationConditionContent.Pattern);
-                if (vars.Count() == 0) return null;
+                var existingResource = Database.LookupResource(path, match.Condition.SimulationConditionContent.Pattern, discriminator);
+                if (null == existingResource) return null;
 
-                // The path has placeholders such as /Get({id}). We need to pull out the resource.
-                if (!Database.ContainsResource(path, match.Condition.SimulationConditionContent.Pattern, discriminator)) return null;
+                var entry = existingResource.Data().FirstOrDefault();
+                if (null == entry) return null;
 
-                Substitution s = new Substitution();
-                var regex = RouteParser.ConvertPatternToRegularExpression(match.Condition.SimulationConditionContent.Pattern);
-
-                System.Text.RegularExpressions.Regex rex = new System.Text.RegularExpressions.Regex(regex);
-                var result = rex.Match(path);
-                if (!result.Success) return null;
-
-                // TODO: We only get four matches back - the whole; the prefix; kind; stem. 
-                if (result.Groups.Count != 4) return null;
-
-                var value = path.Substring(result.Groups[2].Index, result.Groups[2].Length);
-                if (value == null) return null;
-
-                var existingJson = FindMatch(path, match.Condition.SimulationConditionContent.Pattern, vars.First().Name, value, discriminator);
-                return existingJson;
+                var result = JsonConvert.DeserializeObject(entry.Json) as JObject;
+                return result;
             }
         }
 
@@ -269,7 +267,7 @@ namespace Moksy.Storage
         /// <param name="match"></param>
         /// <param name="path"></param>
         /// <returns></returns>
-        public Entry GetEntryFromImdb(Simulation match, string path, string discriminator)
+        public Resource GetResourceFromImdb(Simulation match, string path, string discriminator)
         {
             lock (Storage.SyncRoot)
             {
@@ -279,21 +277,7 @@ namespace Moksy.Storage
                 var resource = Database.LookupResource(path, match.Condition.SimulationConditionContent.Pattern, discriminator);
                 if (null == resource) return null;
 
-                Substitution s = new Substitution();
-                var regex = RouteParser.ConvertPatternToRegularExpression(match.Condition.SimulationConditionContent.Pattern);
-
-                System.Text.RegularExpressions.Regex rex = new System.Text.RegularExpressions.Regex(regex);
-                var result = rex.Match(path);
-                if (!result.Success) return null;
-
-                // TODO: We only get four matches back - the whole; the prefix; kind; stem. 
-                if (result.Groups.Count != 4) return null;
-
-                var value = path.Substring(result.Groups[2].Index, result.Groups[2].Length);
-                if (value == null) return null;
-
-                var matchEntry = FindMatchEntry(path, match.Condition.SimulationConditionContent.Pattern, vars.First().Name, value, discriminator);
-                return matchEntry;
+                return resource;
             }
         }
 
@@ -306,40 +290,30 @@ namespace Moksy.Storage
         /// <returns>true if the object was deleted; false otherwise. </returns>
         /// <remarks>This will look at all paths currently in the system (based on the method) 
         /// </remarks>
-        public bool DeleteFromImdb(System.Net.Http.HttpMethod method, string path, string pattern, string query, IEnumerable<Header> headers, string discriminator)
+        public bool DeleteFromImdb(Simulation simulation, string path, string pattern, string query, IEnumerable<Header> headers, string discriminator)
         {
-            // TODO: Refactor. Like GetFromImdb
             if (null == path) return false;
             if (null == headers) headers = new List<Header>();
 
             lock (Storage.SyncRoot)
             {
-                var match = Match(method, path, query, headers, false, discriminator);
+                var match = Match(simulation.Condition.SimulationConditionContent.HttpMethod, path, query, headers, false, discriminator);
                 if (match == null) return false;
 
-                if (method == HttpMethod.Delete)
+                if (simulation.Condition.SimulationConditionContent.HttpMethod == HttpMethod.Delete)
                 {
-                    var vars = new Substitution().GetVariables(match.Condition.SimulationConditionContent.Pattern);
-                    if (vars.Count() == 0) return false;
-
                     var resource = Database.LookupResource(path, match.Condition.SimulationConditionContent.Pattern, discriminator);
                     if (null == resource) return false;
 
-                    Substitution s = new Substitution();
-                    var regex = RouteParser.ConvertPatternToRegularExpression(match.Condition.SimulationConditionContent.Pattern);
+                    // We now need to remove the resource in question.
+                    if (resource.Owner != null)
+                    {
+                        resource.Owner.Resources.Remove(resource);
+                        return true;
+                    }
 
-                    System.Text.RegularExpressions.Regex rex = new System.Text.RegularExpressions.Regex(regex);
-                    var result = rex.Match(path);
-                    if (!result.Success) return false;
-
-                    // TODO: We only get four matches back - the whole string; prefix; value; end. 
-                    if (result.Groups.Count != 4) return false;
-
-                    var value = path.Substring(result.Groups[2].Index, result.Groups[2].Length);
-                    if (value == null) return false;
-
-                    var removed = Remove(path, pattern, vars.First().Name, value, discriminator);
-                    return removed;
+                    Database.GetResources(discriminator).Remove(resource);
+                    return true;
                 }
             }
 
@@ -529,7 +503,7 @@ namespace Moksy.Storage
                         var vars = new Substitution().GetVariables(match.Condition.SimulationConditionContent.Pattern);
                         if (vars.Count() > 0)
                         {
-                            var result = MatchesGetFromImdb(match, path, vars.First().Name, GetDiscriminator(headers, match.Condition.SimulationConditionContent.ImdbHeaderDiscriminator));
+                            var result = MatchesGetFromImdb(match, path, vars.Last().Name, GetDiscriminator(headers, match.Condition.SimulationConditionContent.ImdbHeaderDiscriminator));
                             if (null == result)
                             {
                                 continue;
@@ -544,7 +518,7 @@ namespace Moksy.Storage
                         var vars = new Substitution().GetVariables(match.Condition.SimulationConditionContent.Pattern);
                         if (vars.Count() > 0)
                         {
-                            var result = MatchesGetFromImdb(match, path, vars.First().Name, GetDiscriminator(headers, match.Condition.SimulationConditionContent.ImdbHeaderDiscriminator));
+                            var result = MatchesGetFromImdb(match, path, vars.Last().Name, GetDiscriminator(headers, match.Condition.SimulationConditionContent.ImdbHeaderDiscriminator));
                             if (null == result)
                             {
                                 continue;

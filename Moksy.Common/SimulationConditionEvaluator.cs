@@ -91,9 +91,14 @@ namespace Moksy.Common
             foreach (var h in condition.RequestHeaders)
             {
                 bool ignoreCase = ((h.ComparisonType & ComparisonType.CaseInsensitive) != 0);
+                StringComparison sc = StringComparison.InvariantCulture;
+                if(ignoreCase)
+                {
+                    sc = StringComparison.InvariantCultureIgnoreCase;
+                }
                 Header match = null;
                 var name = h.Name;
-                if ((h.ComparisonType & ComparisonType.UrlEncoded) != 0)
+                if ((h.ComparisonType & ComparisonType.UrlEncode) != 0)
                 {
                     name = RestSharp.Contrib.HttpUtility.UrlEncode(name);
                 }
@@ -101,20 +106,27 @@ namespace Moksy.Common
                 if (h.HasValue)
                 {
                     var value = h.Value;
-                    if ((h.ComparisonType & ComparisonType.UrlEncoded) != 0 && h.Value != null)
+                    if ((h.ComparisonType & ComparisonType.UrlEncode) != 0 && h.Value != null)
                     {
                         value = RestSharp.Contrib.HttpUtility.UrlEncode(value);
                     }
 
-                    if ((h.ComparisonType & ComparisonType.NotExists) != 0)
+                    if ((h.ComparisonType & ComparisonType.PartialValue) != 0)
+                    {
+                        match = headers.FirstOrDefault(f => string.Compare(f.Name, name, ignoreCase) == 0 && f.Value.IndexOf(value, sc) >= 0);
+                    }
+                    else
                     {
                         match = headers.FirstOrDefault(f => string.Compare(f.Name, name, ignoreCase) == 0 && string.Compare(f.Value, value, ignoreCase) == 0);
+                    }
+
+                    if ((h.ComparisonType & ComparisonType.NotExists) != 0)
+                    {
                         if (match != null) return false;
                         if (match == null) continue;
                     }
                     else
                     {
-                        match = headers.FirstOrDefault(f => string.Compare(f.Name, name, ignoreCase) == 0 && string.Compare(f.Value, value, ignoreCase) == 0);
                         if (match != null) continue;
                         if (match == null) return false;
                     }
@@ -157,9 +169,14 @@ namespace Moksy.Common
             {
                 Parameter match = null;
                 bool ignoreCase = ((h.ComparisonType & ComparisonType.CaseInsensitive) != 0);
+                StringComparison sc = StringComparison.InvariantCulture;
+                if (ignoreCase)
+                {
+                    sc = StringComparison.InvariantCultureIgnoreCase;
+                }
                 string name = h.Name;
                 string value = h.Value;
-                if ((h.ComparisonType & ComparisonType.UrlEncoded) != 0)
+                if ((h.ComparisonType & ComparisonType.UrlEncode) != 0)
                 {
                     name = RestSharp.Contrib.HttpUtility.UrlEncode(name);
                     if (h.HasValue)
@@ -170,7 +187,14 @@ namespace Moksy.Common
 
                 if (h.HasValue)
                 {
-                    match = headers.FirstOrDefault(f => string.Compare(f.Name, name, ignoreCase) == 0 && string.Compare(f.Value, value, ignoreCase) == 0);
+                    if ((h.ComparisonType & ComparisonType.PartialValue) != 0)
+                    {
+                        match = headers.FirstOrDefault(f => string.Compare(f.Name, name, ignoreCase) == 0 && f.Value.IndexOf(value, sc) >= 0);
+                    }
+                    else
+                    {
+                        match = headers.FirstOrDefault(f => string.Compare(f.Name, name, ignoreCase) == 0 && string.Compare(f.Value, value, ignoreCase) == 0);
+                    }
                 }
                 else
                 {
@@ -340,7 +364,7 @@ namespace Moksy.Common
                 {
                     var ruleContent = rule.Content;
 
-                    if ((rule.ComparisonType & ComparisonType.UrlEncoded) != 0)
+                    if ((rule.ComparisonType & ComparisonType.UrlEncode) != 0)
                     {
                         ruleContent = RestSharp.Contrib.HttpUtility.UrlEncode(ruleContent);
                     }
