@@ -1,9 +1,9 @@
-Moksy v1.0
+# Moksy v1.0
 ----------
 See http:/www.brekit.com/moksy for more information. 
 
 
-Why?
+# Why?
 ----
 Moksy is an open source .Net library for stubbing, mocking and simulating web services. 
 
@@ -24,7 +24,8 @@ This release has a strong focus on testing JSON-based web services.
 To get up and running quickly: see "How To Use Moksy In Your Own Integration Tests" below. 
 
 
-In-Memory Database:
+
+# In-Memory Database:
 -------------------
 Simple canned responses for common verbs - POST, PATCH, DELETE and so forth - like above are ideal in many cases. However, there is a very common use case when developing REST API's using the Micro/Macro service pattern: we often want to support Create, Read and Delete functionality to help UI devs and testers get up and running quickly. 
 
@@ -51,8 +52,10 @@ Posting the Json structure to http://localhost:10011/Pet will add it to the in m
 list of the Json entries wrapped in [] to simulate an array. Of course, calling GET on http://localhost:10011/Dog will return just the above structure. 
 
 
-More Advanced Samples (Variables and Properties)
+# More Advanced Samples
 ------------------------------------------------
+
+### Variables and Properties
 The Problem: [the application is currently limited to GUIDS]
 When we add an object to the Imdb, we sometimes need to give it an identity. This typically a GUID or some hash but is always opaque. As a client, we cannot provide this identity because it is server calculated. 
 
@@ -79,9 +82,25 @@ This information can be used (for example) in 'inject' the Location of an object
 
 	When.I.Post().ToImdb("/Pet").And.NotExists("Kind").Then.Return.StatusCode(System.Net.HttpStatusCode.Created).With.Variable("Identity").OverrideProperty("Id", "{Identity}").AddToImdb().Body("{Identity}").With.Header("Location", "{uriroot}/Pet/{Identity}");
 
+### Example - Scoping a Moksy Simulation to a querystring parameter value
+```C#
 
+ // in this example I only want to simulate oauth calls where the querystring parameter 'scope'
+ // is passed in with the value of 'userinfo.profile'
+    
+    UserProfile profile = new UserProfile();
+    profile.UserName = "John Doe";
+    profile.Uid = "john.doe@gmail.com";
+    profile.UtcTokenExpiryDate = DateTime.Now.AddDays(2).ToUniversalTime();
+    var json = JsonConvert.SerializeObject(profile);
+    
+    SimulationFactory.When.I.Get().From("/oauth2/v1/validate")
+        .With.Parameter("scope","userinfo.profile" ParameterType.UrlParameter)
+        .With.Header("Authorization", string.Format("Bearer {0}", "abcd12345"))
+        .Then.Return.StatusCode(System.Net.HttpStatusCode.OK).And.Body(json).With.Header("Content-Type", "application/json");
+'''
 
-How To Use Moksy In Your Own Integration Tests:
+# How To Use Moksy In Your Own Integration Tests:
 -----------------------------------------------
 Using Moksy within your tests is easy:
 
@@ -103,8 +122,7 @@ Using Moksy within your tests is easy:
 Consider getting the source code and using the Moksy.IntegrationTests.DocumentationTests as your playpen; step through the tests in MsTest and follow the instructions :-) 
 
 
-
-Limitations:
+# Limitations:
 ------------
 Many! 
 
