@@ -98,7 +98,7 @@ This information can be used (for example) in 'inject' the Location of an object
         .With.Parameter("scope","userinfo.profile" ParameterType.UrlParameter)
         .With.Header("Authorization", string.Format("Bearer {0}", "abcd12345"))
         .Then.Return.StatusCode(System.Net.HttpStatusCode.OK).And.Body(json).With.Header("Content-Type", "application/json");
-'''
+```
 
 # How To Use Moksy In Your Own Integration Tests:
 -----------------------------------------------
